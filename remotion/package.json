@@ -10,7 +10,7 @@
     "gen:master-schema": "node scripts/gen_master_schema.mjs"
   },
   "dependencies": {
-    "@remotion/cli": "4.0.370",
+    "@remotion/cli": "4.0.518",
     "@remotion/fonts": "4.0.518",
     "@remotion/layout-utils": "4.0.370",
     "@remotion/lottie": "4.0.370",
