@@ -18,7 +18,7 @@
     "@remotion/transitions": "4.0.520",
     "lottie-web": "5.13.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react-dom": "19.2.8",
     "remotion": "4.0.520",
     "typescript": "^5.5.4"
   },
