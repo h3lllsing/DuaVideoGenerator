@@ -20,7 +20,7 @@ cryptography>=50.0.1,<51.0
 
 # Video Analysis
 opencv-python-headless>=5.0.0.93,<6.0
-scikit-image>=0.21.0,<1.0
+scikit-image>=0.26.0,<1.0
 scikit-learn>=1.9.0,<2.0
 
 # Frontend (GUI only, not needed for CI/tests)
