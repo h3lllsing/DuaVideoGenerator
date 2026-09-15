@@ -15,7 +15,7 @@
     "@remotion/layout-utils": "4.0.520",
     "@remotion/lottie": "4.0.520",
     "@remotion/noise": "4.0.520",
-    "@remotion/transitions": "4.0.520",
+    "@remotion/transitions": "4.0.523",
     "lottie-web": "5.13.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
