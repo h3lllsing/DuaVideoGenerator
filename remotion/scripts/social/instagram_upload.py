@@ -52,7 +52,7 @@ from social import state as ustate                       # noqa: E402
 
 PLATFORM = "instagram"
 GRAPH = "https://graph.instagram.com"
-API_VERSION = "v21.0"
+API_VERSION = "v26.0"
 MAX_DURATION = 900        # 15 min, Instagram Reels ceiling
 POLL_ATTEMPTS = 30
 POLL_DELAY = 20
@@ -78,12 +78,12 @@ def _request(url: str, data=None, method="GET", headers=None, timeout=300):
 
 
 def create_container(video_path: str, caption: str, ig_user_id: str,
-                     token: str) -> str:
+                     token: str, api_version: str = "") -> str:
     """Step 1+2: resumable binary upload, returns the container id."""
     size = os.path.getsize(video_path)
     with open(video_path, "rb") as fh:
         payload = fh.read()
-    url = (f"{GRAPH}/{API_VERSION}/{ig_user_id}/media")
+    url = (f"{GRAPH}/{api_version or API_VERSION}/{ig_user_id}/media")
     fields = {
         "media_type": "REELS",
         "transfer_encoding": "resumable",
@@ -123,9 +123,10 @@ def create_container(video_path: str, caption: str, ig_user_id: str,
 
 
 def await_finished(container_id: str, token: str,
-                   attempts=POLL_ATTEMPTS, delay=POLL_DELAY) -> str:
+                   attempts=POLL_ATTEMPTS, delay=POLL_DELAY,
+                   api_version: str = "") -> str:
     """Step 3: Instagram transcodes asynchronously; poll until FINISHED."""
-    url = (f"{GRAPH}/{API_VERSION}/{container_id}"
+    url = (f"{GRAPH}/{api_version or API_VERSION}/{container_id}"
            f"?fields=status_code,status&access_token={urllib.request.quote(token)}")
     for attempt in range(1, attempts + 1):
         _, _, data = _request(url)
@@ -143,9 +144,10 @@ def await_finished(container_id: str, token: str,
                       f"resume without re-uploading")
 
 
-def publish_container(container_id: str, ig_user_id: str, token: str) -> str:
+def publish_container(container_id: str, ig_user_id: str, token: str,
+                      api_version: str = "") -> str:
     """Step 4: make the processed container live. Returns the media id."""
-    url = (f"{GRAPH}/{API_VERSION}/{ig_user_id}/media_publish")
+    url = (f"{GRAPH}/{api_version or API_VERSION}/{ig_user_id}/media_publish")
     body = urllib.parse.urlencode({"creation_id": container_id,
                                    "access_token": token}).encode()
     _, _, data = _request(url, data=body, method="POST",
@@ -162,6 +164,7 @@ def upload_one(dua_id: str, kind: str, dry_run: bool) -> dict:
     tokens = load_tokens(PLATFORM, required=("page_access_token", "ig_user_id"),
                          allow_placeholder=dry_run)
     token, ig_user_id = tokens["page_access_token"], str(tokens["ig_user_id"])
+    api_version = str(tokens.get("api_version") or API_VERSION)
     video_path = resolve_video(dua_id, kind)
     duration = probe_duration(video_path)
     caption = format_caption(build_caption(dua_id, PLATFORM), PLATFORM)
@@ -182,10 +185,10 @@ def upload_one(dua_id: str, kind: str, dry_run: bool) -> dict:
     ustate.mark_uploading(dua_id, PLATFORM, video_path=video_path)
     try:
         container_id = retry_call("ig container", create_container, video_path,
-                                  caption, ig_user_id, token)
-        await_finished(container_id, token)
+                                  caption, ig_user_id, token, api_version)
+        await_finished(container_id, token, api_version=api_version)
         media_id = retry_call("ig publish", publish_container, container_id,
-                              ig_user_id, token)
+                              ig_user_id, token, api_version)
     except Exception as exc:
         ustate.mark_failed(dua_id, PLATFORM, str(exc), video_path=video_path)
         raise

@@ -53,7 +53,7 @@ from social import state as ustate                       # noqa: E402
 
 PLATFORM = "facebook"
 GRAPH = "https://graph.facebook.com"
-API_VERSION = "v21.0"
+API_VERSION = "v26.0"
 REEL_MAX_SECONDS = 90
 
 
@@ -76,9 +76,9 @@ def _request(url: str, data=None, method="GET", headers=None, timeout=300):
         raise UploadError(f"network failure: {exc.reason}") from exc
 
 
-def start_upload(page_id: str, token: str) -> tuple:
+def start_upload(page_id: str, token: str, api_version: str = "") -> tuple:
     """Step 1: open a resumable upload session."""
-    url = (f"{GRAPH}/{API_VERSION}/{page_id}/video_reels?"
+    url = (f"{GRAPH}/{api_version or API_VERSION}/{page_id}/video_reels?"
            + urllib.parse.urlencode({"upload_phase": "start",
                                      "access_token": token}))
     data = _request(url, method="POST")
@@ -115,9 +115,9 @@ def send_bytes(upload_url: str, video_path: str) -> None:
 
 
 def finish_upload(page_id: str, token: str, video_id: str,
-                  description: str) -> str:
+                  description: str, api_version: str = "") -> str:
     """Step 3: publish. Returns the resulting post id."""
-    url = (f"{GRAPH}/{API_VERSION}/{page_id}/video_reels?"
+    url = (f"{GRAPH}/{api_version or API_VERSION}/{page_id}/video_reels?"
            + urllib.parse.urlencode({"upload_phase": "finish",
                                      "video_id": video_id,
                                      "description": description,
@@ -135,6 +135,7 @@ def upload_one(dua_id: str, kind: str, allow_trim: bool, dry_run: bool) -> dict:
     tokens = load_tokens(PLATFORM, required=("page_access_token", "page_id"),
                          allow_placeholder=dry_run)
     token, page_id = tokens["page_access_token"], str(tokens["page_id"])
+    api_version = str(tokens.get("api_version") or API_VERSION)
     video_path = resolve_video(dua_id, kind)
     duration = probe_duration(video_path)
     description = format_caption(build_caption(dua_id, PLATFORM), PLATFORM)
@@ -161,10 +162,11 @@ def upload_one(dua_id: str, kind: str, allow_trim: bool, dry_run: bool) -> dict:
             final_path = trim_for_platform(video_path, dua_id, PLATFORM,
                                            REEL_MAX_SECONDS)
             trimmed = True
-        video_id, upload_url = retry_call("fb start", start_upload, page_id, token)
+        video_id, upload_url = retry_call("fb start", start_upload, page_id, token,
+                                         api_version)
         send_bytes(upload_url, final_path)
         post_id = retry_call("fb finish", finish_upload, page_id, token, video_id,
-                             description)
+                             description, api_version)
     except Exception as exc:
         ustate.mark_failed(dua_id, PLATFORM, str(exc), video_path=video_path)
         raise

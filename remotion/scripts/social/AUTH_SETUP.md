@@ -122,22 +122,22 @@ Reels via the API at all.
 ### Exchange tokens
 ```
 # 1. app token
-GET https://graph.facebook.com/v21.0/oauth/access_token
+GET https://graph.facebook.com/v26.0/oauth/access_token
     ?client_id=<APP_ID>&client_secret=<APP_SECRET>
 
 # 2. long-lived user token (60 days)
-GET https://graph.facebook.com/v21.0/oauth/access_token
+GET https://graph.facebook.com/v26.0/oauth/access_token
     ?grant_type=fb_exchange_token
     &client_id=<APP_ID>&client_secret=<APP_SECRET>
     &fb_exchange_token=<SHORT_LIVED_USER_TOKEN>
 
 # 3. find your IG id and Page id
-GET https://graph.facebook.com/v21.0/me/accounts
+GET https://graph.facebook.com/v26.0/me/accounts
     ?fields=id,name,access_token,instagram_business_account{id,username}
     &access_token=<LONG_LIVED_USER_TOKEN>
 
 # 4. never-expiring page token (needs "Allow Live Token Extensions")
-GET https://graph.facebook.com/v21.0/oauth/access_token
+GET https://graph.facebook.com/v26.0/oauth/access_token
     ?grant_type=fb_exchange_token
     &client_id=<APP_ID>&client_secret=<APP_SECRET>
     &fb_exchange_token=<LONG_LIVED_USER_TOKEN>
@@ -154,7 +154,7 @@ GET https://graph.facebook.com/v21.0/oauth/access_token
   "ig_user_id": "<instagram_business_account.id>",
   "page_id": "<Page id>",
   "ig_username": "<username>",
-  "api_version": "v21.0"
+  "api_version": "v26.0"
 }
 ```
 
@@ -164,12 +164,19 @@ GET https://graph.facebook.com/v21.0/oauth/access_token
   "page_access_token": "<same Page token>",
   "page_id": "<Page id>",
   "page_name": "<Page name>",
-  "api_version": "v21.0",
+  "api_version": "v26.0",
   "reel_max_seconds": 90
 }
 ```
 
 ### Gotchas
+- **`api_version` in the token file is now honoured.** The uploaders read it and
+  fall back to their built-in default only when the key is absent, so bumping a
+  Meta version is a data edit, not a code change. Meta retires each version
+  about two years after the next one ships — `v20.0` was removed 2026-09-24
+  and `v21.0` goes on 2027-01-21. Check
+  <https://developers.facebook.com/docs/graph-api/changelog/> when a call starts
+  failing with an "unsupported version" style error.
 - Page tokens do not expire while the user token behind them is alive — but
   they die immediately if the user removes the app or changes password.
 - Instagram: a container can sit in `IN_PROGRESS` for several minutes while
