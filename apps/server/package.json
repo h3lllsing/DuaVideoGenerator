@@ -1,0 +1,15 @@
+{
+  "name": "dua-upload-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-platform upload API for DuaVideoGenerator. Zero runtime dependencies; runs TypeScript directly on Node 24 type stripping.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "dev": "node --watch src/server.ts",
+    "test": "node test/concurrency.mjs && node test/quota.mjs"
+  }
+}

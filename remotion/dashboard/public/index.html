@@ -26,6 +26,7 @@
   <button class="chip" onclick="openAiImport()" title="AI se nayi duas import karo" aria-label="AI Import" style="background:#0d1a2e;border-color:#3b82f6;color:#60a5fa">&#129302; AI IMPORT</button>
   <button class="chip chip-uploaded" onclick="ytToggle('uploaded')" title="Uploaded videos dekho" id="btn_uploaded" aria-label="Uploaded videos">&#10003; Uploaded (<span id="uploaded_count">0</span>)</button>
   <button class="chip" onclick="ytToggle('upload')" title="YouTube upload manager" aria-label="YouTube upload">&#9654;&#65039; YOUTUBE</button>
+  <button class="chip" onclick="socialOpen()" title="TikTok / Instagram / Facebook uploads" aria-label="Social uploads" style="background:#1a0f24;border-color:#ec4899;color:#f472b6">&#128241; SOCIAL</button>
   <button class="chip" onclick="openFolder('videos')" title="Videos folder kholo" aria-label="Open videos folder">&#128193; VIDEOS</button>
   <button class="chip" onclick="openSettings()" title="Settings + History + Voice" aria-label="Settings">&#9881;&#65039;</button>
   <button class="chip" onclick="openVfxStudio()" title="AI se custom VFX patterns/plugins import karo" aria-label="VFX Studio" style="background:#170f2a;border-color:#a855f7;color:#c084fc">&#10022; VFX STUDIO</button>
@@ -664,7 +665,17 @@
     </div>
   </div>
 </div>
+<div id="socialHub" class="panel" style="display:none" role="dialog" aria-label="Social Upload Manager">
+  <div class="panel-head">
+    <div class="yt-tabs" role="tablist">
+      <strong style="padding:6px 10px;color:#f472b6">&#128241; TikTok &middot; Instagram &middot; Facebook</strong>
+    </div>
+    <button class="btn-sm red" onclick="socialClose()" aria-label="Close social panel">&#10005;</button>
+  </div>
+  <div id="socialContainer"></div>
+</div>
 <script src="vendor/wavesurfer.min.js"></script>
 <script src="vfx-schema-ui.js"></script>
 <script src="master-schema-ui.js"></script>
-<script src="app.js?v=0.20.0"></script></body></html>
+<script src="app.js?v=0.20.0"></script>
+  <script src="social.js?v=0.1.2"></script></body></html>
