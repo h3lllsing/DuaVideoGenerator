@@ -206,6 +206,11 @@
       + '<div class="aihint">Ye quota sirf YouTube ke liye hai. TikTok, Instagram aur Facebook ko ye limit nahi karta.</div>';
   }
 
+  function dryLabel(one, good) {
+    if (!good) return 'failed';
+    return (one && one.dry_run === true) ? 'dry-run OK (kuch upload nahi hua)' : 'uploaded';
+  }
+
   function renderPartial(results) {
     var host = el('social_partial');
     if (!host) return;
@@ -214,7 +219,7 @@
       var good = one.ok === true || one.status === GLYPH.done || !!one.url;
       var glyph = typeof one.status === 'string' && one.status ? one.status : (good ? GLYPH.done : GLYPH.fail);
       var line = good
-        ? (one.url ? '<a href="' + esc(one.url) + '" target="_blank" rel="noopener">' + esc(one.url) + '</a>' : esc(one.message || 'uploaded'))
+        ? (one.url ? '<a href="' + esc(one.url) + '" target="_blank" rel="noopener">' + esc(one.url) + '</a>' : esc(dryLabel(one, true)))
         : esc(one.message || one.error || one.failure || 'failed');
       return ''
         + '<div class="yt-form-row">'
@@ -285,7 +290,11 @@
     state.inFlight[platform] = false;
     if (r.status === 200) {
       var url = r.body && (r.body.url || r.body.video_url);
-      setBanner(GLYPH.done + ' ' + PLATFORM_LABEL[platform] + ' upload complete' + (url ? ': ' + url : ''), 'ok');
+      if (r.body && r.body.dry_run === true) {
+        setBanner(GLYPH.done + ' ' + PLATFORM_LABEL[platform] + ' dry-run OK - kuch upload nahi hua.', 'ok');
+      } else {
+        setBanner(GLYPH.done + ' ' + PLATFORM_LABEL[platform] + ' upload complete' + (url ? ': ' + url : ''), 'ok');
+      }
     } else if (r.status === 409) {
       setBanner(GLYPH.busy + ' ' + PLATFORM_LABEL[platform] + ' already chal raha hai, wait karein', 'no');
     } else if (r.status === 429) {
@@ -341,7 +350,8 @@
     PLATFORMS.forEach(function (p) { state.inFlight[p] = false; });
     var b = r.body || {};
     if (r.status === 200) {
-      setBanner(GLYPH.done + ' teeno platforms complete.', 'ok');
+      var allDry = PLATFORMS.every(function (p) { var o = (b.results || {})[p] || {}; return o.dry_run === true; });
+      setBanner(GLYPH.done + (allDry ? ' teeno platforms dry-run OK - kuch upload nahi hua.' : ' teeno platforms complete.'), 'ok');
     } else if (r.status === 207) {
       var results = b.results || {};
       var parts = PLATFORMS.map(function (p) {
@@ -349,9 +359,15 @@
         var good = one.ok === true || one.status === GLYPH.done || !!one.url;
         var glyph = typeof one.status === 'string' && one.status ? one.status : (good ? GLYPH.done : GLYPH.fail);
         return glyph + ' ' + PLATFORM_LABEL[p]
-          + (good ? ' uploaded' : ': ' + (one.message || one.error || one.failure || 'failed'));
+          + (good ? ' ' + dryLabel(one, true) : ': ' + (one.message || one.error || one.failure || 'failed'));
       });
-      setBanner(GLYPH.warn + ' partial result - ' + parts.join(' | '), 'no');
+      var allGood = PLATFORMS.every(function (p) { var o = results[p] || {}; return o.ok === true || !!o.url; });
+      var everyDry = allGood && PLATFORMS.every(function (p) { return (results[p] || {}).dry_run === true; });
+      if (everyDry) {
+        setBanner(GLYPH.done + ' teeno platforms dry-run OK - kuch upload nahi hua.', 'ok');
+      } else {
+        setBanner(GLYPH.warn + ' partial result - ' + parts.join(' | '), 'no');
+      }
       renderPartial(results);
     } else if (r.status === 429) {
       setBanner(GLYPH.warn + ' quota exceed ho gaya (YouTube). Kal try karein.', 'no');
