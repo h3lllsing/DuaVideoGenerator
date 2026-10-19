@@ -154,9 +154,50 @@ jobs:
         working-directory: remotion
         run: npx remotion bundle --public-dir=public 2>&1 | head -20
 
+  server-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      # auth.json is gitignored (holder of the live token); CI generates its own
+      - name: Generate test auth token
+        run: |
+          mkdir -p remotion/dashboard
+          printf '{"token":"ci-test-token-0123456789abcdef0123456789abcdef"}' > remotion/dashboard/auth.json
+
+      - name: Start upload server (7879)
+        run: |
+          PORT=7879 node apps/server/src/server.ts > server.log 2>&1 &
+          echo $! > server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:7879/api/v1/upload/health > /dev/null; then
+              echo "server up"
+              break
+            fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:7879/api/v1/upload/health
+
+      # concurrency/quota suites need the Python upload runner + live data
+      # files, so they stay a manual/local drill (see SYSTEM_DOCS)
+      - name: Server smoke tests
+        run: node apps/server/test/smoke.mjs
+
+      - name: Stop server
+        if: always()
+        run: kill $(cat server.pid) 2>/dev/null || true
+
   notify:
     runs-on: ubuntu-latest
-    needs: [python-tests, syntax-check, remotion-check]
+    needs: [python-tests, syntax-check, remotion-check, server-check]
     if: failure()
 
     steps:

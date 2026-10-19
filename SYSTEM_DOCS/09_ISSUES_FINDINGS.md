@@ -194,7 +194,16 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 - FIX: naya functionality subcommand modules me rakho (scripts/cmd_x)
 
 ### F-25 INFO: apps/server CI coverage se bahar hai (F-14 follow up)
-- ci.yml me apps-server job hai (npm ci + tsc? run steps) lekin local
+- RESOLVED (2026-10-20): ci.yml me **server-check** job add hua (ubuntu,
+  node 24): CI apna test-token generate karta hai (auth.json gitignored
+  hai) → server 7879 spawn → `node apps/server/test/smoke.mjs` (12
+  checks: health/auth-401/Bearer/cookie/CORS/404/busy) → kill. Heavy
+  suites (concurrency/quota) CI me Nahi — unko python upload runner +
+  live data files chahiye; wo local drill (drills isi doc me record).
+  Naya test file: apps/server/test/smoke.mjs; concurrency/quota me
+  hardcoded `H:/DuaVideoGenerator/...` path repo-relative ho gaya
+  (fileURLToPath-based), package.json test script me smoke pre-pended.
+- ORIGINAL: ci.yml me apps-server job hai (npm ci + tsc? run steps) lekin local
   unit-tests sirf python side; apps/server/test/*.mjs (concurrency,
   quota) CI me chalte hain? verification pehlu
 - apps/server/test files: package.json ke via node --test next run me

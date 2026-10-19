@@ -5,8 +5,12 @@
  */
 const BASE = process.env.BASE || "http://127.0.0.1:7879";
 import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
-const AUTH_TOKEN = require("H:/DuaVideoGenerator/remotion/dashboard/auth.json").token;
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(HERE, "..", "..", "..");
+const AUTH_TOKEN = require(path.join(REPO_ROOT, "remotion", "dashboard", "auth.json")).token;
 const AUTH_HDR = { Authorization: `Bearer ${AUTH_TOKEN}` };
 const DUA = "barish_ki_dua";
 

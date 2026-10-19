@@ -10,6 +10,6 @@
   "scripts": {
     "start": "node src/server.ts",
     "dev": "node --watch src/server.ts",
-    "test": "node test/concurrency.mjs && node test/quota.mjs"
+    "test": "node test/smoke.mjs && node test/concurrency.mjs && node test/quota.mjs"
   }
 }
