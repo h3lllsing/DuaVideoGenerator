@@ -9,6 +9,10 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const AUTH_TOKEN = require("H:/DuaVideoGenerator/remotion/dashboard/auth.json").token;
+const AUTH_HDR = { Authorization: `Bearer ${AUTH_TOKEN}` };
 
 const ROOT = "H:\\DuaVideoGenerator";
 const QUOTA_FILE = path.join(ROOT, "data", "quota_state.json");
@@ -26,11 +30,11 @@ const restore = () => {
 };
 
 async function post(url) {
-  const r = await fetch(url, { method: "POST" });
+  const r = await fetch(url, { method: "POST", headers: AUTH_HDR });
   return { code: r.status, body: await r.json().catch(() => ({})) };
 }
 async function get(url) {
-  const r = await fetch(url);
+  const r = await fetch(url, { headers: AUTH_HDR });
   return { code: r.status, body: await r.json().catch(() => ({})) };
 }
 const readUnits = () => {

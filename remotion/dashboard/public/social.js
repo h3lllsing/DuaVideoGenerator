@@ -29,7 +29,7 @@
   }
 
   function request(method, path) {
-    return fetch(API + path, { method: method, headers: { 'Content-Type': 'application/json' } })
+    return fetch(API + path, { method: method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' })
       .then(function (res) {
         return res.text().then(function (txt) {
           var body;

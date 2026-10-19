@@ -5,6 +5,8 @@
  * the server works regardless of the working directory it is launched from.
  */
 import { fileURLToPath } from "node:url";
+import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +23,27 @@ export const PY = process.env.DUA_PYTHON || "python";
 /** Cross-platform ledger written by remotion/scripts/social/state.py */
 export const UPLOAD_STATE = path.join(DATA, "upload_state.json");
 export const CATALOG = path.join(DATA, "duas.json");
+
+/** Shared auth token (same file the 7860 dashboard uses) + crash-log. */
+export const AUTH_PATH = path.join(REMOTION, "dashboard", "auth.json");
+export const CRASH_LOG = path.join(HERE, "..", "crash.log");
+
+export function loadOrCreateToken(): string {
+  try {
+    const data = JSON.parse(fs.readFileSync(AUTH_PATH, "utf8"));
+    if (typeof data.token === "string" && data.token.length >= 16) return data.token;
+  } catch (_) {
+    /* fall through */
+  }
+  const token = crypto.randomBytes(24).toString("hex");
+  try {
+    fs.writeFileSync(AUTH_PATH, JSON.stringify({ token }, null, 2));
+  } catch (_) {
+    /* read-only FS: Bearer-only callers still work this boot */
+  }
+  return token;
+}
+export const AUTH_TOKEN = loadOrCreateToken();
 
 /** Bind to loopback only, matching remotion/dashboard/server.js (port 7860). */
 export const PORT = Number(process.env.PORT || 7871);

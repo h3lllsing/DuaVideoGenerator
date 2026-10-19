@@ -4,6 +4,10 @@
  * Run:  node _phase3_concurrency.mjs
  */
 const BASE = process.env.BASE || "http://127.0.0.1:7879";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const AUTH_TOKEN = require("H:/DuaVideoGenerator/remotion/dashboard/auth.json").token;
+const AUTH_HDR = { Authorization: `Bearer ${AUTH_TOKEN}` };
 const DUA = "barish_ki_dua";
 
 let pass = 0, fail = 0;
@@ -11,7 +15,7 @@ const ok = (n) => { pass++; console.log(`  PASS  ${n}`); };
 const no = (n, extra = "") => { fail++; console.log(`  FAIL  ${n}  ${extra}`); };
 
 async function post(url) {
-  const r = await fetch(url, { method: "POST" });
+  const r = await fetch(url, { method: "POST", headers: AUTH_HDR });
   const body = await r.json().catch(() => ({}));
   return { code: r.status, body };
 }
@@ -68,7 +72,7 @@ if (Number(process.env.EXPECT_TIMEOUT)) {
 
 // --- 3. in_flight must drain to empty (no leaked locks) --------------------
 console.log("\n### /busy must drain after all runs");
-const busy = await (await fetch(`${BASE}/api/v1/upload/busy`)).json();
+const busy = await (await fetch(`${BASE}/api/v1/upload/busy`, { headers: AUTH_HDR })).json();
 if (Array.isArray(busy.in_flight) && busy.in_flight.length === 0) ok("no leaked locks");
 else no("leaked in-flight locks", JSON.stringify(busy.in_flight));
 
