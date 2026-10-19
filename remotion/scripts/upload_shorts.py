@@ -49,14 +49,14 @@ except ImportError:  # package missing -- degrade to channel-only tracking
 
 
 def load_json(path):
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_state():
     if os.path.exists(STATE_PATH):
         try:
-            with open(STATE_PATH, "r", encoding="utf-8") as f:
+            with open(STATE_PATH, encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             pass
@@ -85,7 +85,7 @@ def get_service():
 
 
 def build_meta(dua, rot, fallback=None):
-    from metadata import Rot, build_tags, build_description
+    from metadata import build_description, build_tags
 
     title = dua.get("title") or (fallback or {}).get("title") or "Dua"
     ref = (dua.get("reference") or (fallback or {}).get("reference") or "").strip()

@@ -12,7 +12,6 @@ Idempotent: a thumbnail already custom-set is recorded; optional re-set.
 """
 
 import argparse
-import io
 import json
 import os
 import sys

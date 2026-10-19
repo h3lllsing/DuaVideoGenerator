@@ -17,7 +17,6 @@ import os
 import sys
 import threading
 import time
-from queue import Queue
 
 # Suppress all logging to keep stdout clean for JSON only
 logging.disable(logging.CRITICAL)
@@ -32,7 +31,7 @@ STATE_PATH = os.path.join(_PROJECT, "data", "batch_state.json")
 
 def _load_state():
     try:
-        with open(STATE_PATH, "r", encoding="utf-8") as f:
+        with open(STATE_PATH, encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return None

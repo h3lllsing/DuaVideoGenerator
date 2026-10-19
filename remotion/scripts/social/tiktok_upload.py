@@ -54,6 +54,7 @@ from common import (
     resolve_video,
     retry_call,
 )
+
 from social import state as ustate  # noqa: E402
 
 PLATFORM = "tiktok"

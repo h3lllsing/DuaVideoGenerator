@@ -12,7 +12,6 @@ Write op: videos().update(part=snippet) = 50 quota units each.
 """
 
 import argparse
-import io
 import json
 import os
 import sys
@@ -55,7 +54,7 @@ def get_service():
 
 
 def build_meta(dua, rot, is_short):
-    from metadata import Rot, build_tags, build_description
+    from metadata import build_description, build_tags
 
     title = dua.get("title") or "Dua"
     ref = (dua.get("reference") or "").strip()

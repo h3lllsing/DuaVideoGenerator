@@ -22,7 +22,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-from PIL import Image, ImageFilter, ImageEnhance
+from PIL import Image, ImageEnhance, ImageFilter
 
 __all__ = ["ArabicRenderer", "apply_vertical_gradient", "render_text", "measure_text_width"]
 
@@ -93,8 +93,9 @@ def _split_bidi_runs(text: str) -> list[tuple[str, str]]:
 
 
 # Import fonts from master config - SINGLE SOURCE OF TRUTH
-from core.master_config import MASTER_FONTS
 from typing import cast
+
+from core.master_config import MASTER_FONTS
 
 
 class ArabicRenderer:

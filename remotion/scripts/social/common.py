@@ -114,7 +114,7 @@ def log(message: str, *, err: bool = False) -> None:
 
 def load_json(path: str, default=None):
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             return json.load(fh)
     except FileNotFoundError:
         if default is not None:
@@ -198,7 +198,7 @@ def load_caption(dua_id: str) -> str:
     """Read share_kit/<dua_id>.txt, else fall back to the catalog title."""
     path = os.path.join(SHARE_KIT, f"{dua_id}.txt")
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             return fh.read().strip()
     except FileNotFoundError:
         title = None

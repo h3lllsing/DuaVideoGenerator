@@ -3,7 +3,10 @@
 Local only. Writes data/playlist_plan_channel1.json.
 """
 
-import io, json, os, re, sys
+import io
+import json
+import os
+import sys
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 

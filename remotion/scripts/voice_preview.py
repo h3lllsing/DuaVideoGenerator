@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Generate a 3-second voice preview sample for a given edge-tts voice."""
 
-import os, sys, json, tempfile, asyncio
+import asyncio
+import json
+import os
+import sys
+import tempfile
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT)

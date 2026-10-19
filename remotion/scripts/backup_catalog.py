@@ -160,13 +160,13 @@ def verify_backup(backup_path: str, source: str) -> tuple:
     """
     problems = []
     try:
-        with open(backup_path, "r", encoding="utf-8") as fh:
+        with open(backup_path, encoding="utf-8") as fh:
             data = json.load(fh)
     except Exception as exc:
         return False, [f"backup is not valid readable JSON: {exc}"]
 
     try:
-        with open(source, "r", encoding="utf-8") as fh:
+        with open(source, encoding="utf-8") as fh:
             original = json.load(fh)
     except Exception as exc:
         return False, [f"source became unreadable during backup: {exc}"]
@@ -256,7 +256,7 @@ def do_backup(source: str, dest: str, keep: int, allow_unsafe: bool) -> int:
         print("  WARNING: proceeding despite destination problems (--allow-unsafe-dest)")
 
     try:
-        with open(source, "r", encoding="utf-8") as fh:
+        with open(source, encoding="utf-8") as fh:
             entries = json.load(fh)
     except Exception as exc:
         log_event("failed", reason=f"source unreadable: {exc}")

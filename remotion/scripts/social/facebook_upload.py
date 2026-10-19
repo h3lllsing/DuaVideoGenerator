@@ -61,6 +61,7 @@ from common import (
     retry_call,
     trim_for_platform,
 )
+
 from social import state as ustate  # noqa: E402
 
 PLATFORM = "facebook"

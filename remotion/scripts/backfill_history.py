@@ -64,7 +64,7 @@ PLATFORMS = ("tiktok", "instagram", "facebook")
 
 def load(path, default):
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             return json.load(fh)
     except FileNotFoundError:
         return default
@@ -254,7 +254,7 @@ def main() -> int:
     if os.path.isfile(TARGET):
         bak = TARGET + ".prebackfill"
         try:
-            with open(TARGET, "r", encoding="utf-8") as src, open(bak, "w", encoding="utf-8") as dst:
+            with open(TARGET, encoding="utf-8") as src, open(bak, "w", encoding="utf-8") as dst:
                 dst.write(src.read())
             print(f"  previous ledger saved to {os.path.basename(bak)}")
         except OSError as exc:

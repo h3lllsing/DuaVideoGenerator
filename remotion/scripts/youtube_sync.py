@@ -191,7 +191,7 @@ def main():
         if token_path:
             youtube_auth.set_token_path(os.path.abspath(token_path))
         cred = youtube_auth.get_credentials()
-        if not not cred:
+        if cred:
             pass
         if not cred:
             print(json.dumps({"ok": False, "error": "auth failed - re-login needed"}))

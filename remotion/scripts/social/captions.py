@@ -9,9 +9,8 @@ with a soft call to action, Facebook the fullest text (63k ceiling).
 from __future__ import annotations
 
 import os
-import re
 
-from common import CAPTION_LIMITS, SHARE_KIT, load_json, DATA_DIR
+from common import CAPTION_LIMITS, DATA_DIR, load_json
 
 # Hashtags are appended, not invented, so the caption always reflects the
 # source share_kit file. Keep the block under this many tags for readability.

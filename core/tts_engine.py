@@ -8,8 +8,9 @@ try:
     import edge_tts
 except ImportError:
     edge_tts = None  # type: ignore[assignment]
-from moviepy import AudioFileClip  # Audio duration nikalne ke liye
 from typing import cast
+
+from moviepy import AudioFileClip  # Audio duration nikalne ke liye
 
 logger = logging.getLogger(__name__)
 

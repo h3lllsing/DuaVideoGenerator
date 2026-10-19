@@ -2,7 +2,6 @@ import asyncio
 import logging
 import os
 import re
-import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
 import imageio_ffmpeg

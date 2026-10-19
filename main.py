@@ -10,13 +10,11 @@ import re
 import shutil
 import sys
 import time
-import concurrent.futures
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from queue import Empty, Queue
-from threading import Thread, Event, Lock
+from threading import Event, Lock, Thread
 
 import psutil
-
 from moviepy import AudioFileClip
 
 from core.audio_mixer import AudioMixer

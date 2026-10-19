@@ -6,8 +6,8 @@ Scans sample videos to learn visual styles
 import json
 import logging
 import os
-from typing import Any, cast
 from collections import Counter
+from typing import Any, cast
 
 import cv2
 import numpy as np

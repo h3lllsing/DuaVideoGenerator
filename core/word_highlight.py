@@ -27,8 +27,9 @@ This module contains no audio, layout, or renderer logic.
 
 import logging
 from collections.abc import Callable
-from PIL import Image
 from typing import cast
+
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 

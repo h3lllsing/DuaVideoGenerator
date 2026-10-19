@@ -22,8 +22,8 @@ from tkinter import messagebox
 import customtkinter as ctk
 
 from core.dua_database import DuaDatabase
-from core.project_info import PROJECT
 from core.master_config import MASTER_EFFECTS
+from core.project_info import PROJECT
 from frontend.effect_preview import (
     EFFECT_INFO,
     build_effect_preview,

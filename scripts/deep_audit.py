@@ -1,6 +1,7 @@
 """MASTER_AUDIT_PLAN — Deep audit with exact line numbers and file evidence."""
 
-import sys, re, os
+import re
+import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 from pathlib import Path

@@ -37,9 +37,8 @@ No packages are installed; no external images are downloaded.
 import logging
 import os
 import random
-from typing import Any, cast
 from dataclasses import dataclass, field
-from functools import lru_cache
+from typing import Any, cast
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -101,13 +100,11 @@ _AR_GRADIENT_BOTTOM = (255, 222, 140)
 
 # Import from master config - SINGLE SOURCE OF TRUTH
 from core.master_config import (
+    CORNER_STYLES,
     MASTER_PALETTES,
+    MOTION_KINDS,
     PALETTE_NAMES,
     TEXT_STYLES,
-    MOTION_KINDS,
-    CORNER_STYLES,
-    HIGHLIGHT_BOX_STYLES,
-    BACKGROUND_GRADIENT_KINDS,
 )
 
 
@@ -650,6 +647,7 @@ class SceneRenderer:
         """Extract first frame from video as background."""
         try:
             import subprocess
+
             import imageio_ffmpeg
 
             ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
@@ -842,7 +840,7 @@ class SceneRenderer:
 
     def _apply_highlight(self, frame: Image.Image, highlight: dict, t: float, highlight_style: str = ""):
         """Draw the active word's overlay on the frame at scene time ``t``."""
-        from core.word_highlight import highlight_targets, make_word_overlay, make_word_highlight_box
+        from core.word_highlight import highlight_targets, make_word_highlight_box, make_word_overlay
 
         for role, info in highlight.items():
             rect = highlight_targets(info["events"], info["geometry"], t)

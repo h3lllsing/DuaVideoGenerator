@@ -10,7 +10,7 @@ import shutil
 import sys
 import tempfile
 import wave
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
@@ -19,9 +19,8 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.audio_mixer import AudioMixer
-from core.tts_engine import TTSEngine
 from core.security import SecurityManager, VaultWriteError
-
+from core.tts_engine import TTSEngine
 
 # ============================================================
 # Test Fixtures

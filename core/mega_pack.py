@@ -19,25 +19,22 @@ Usage:
 
 import logging
 import os
-from typing import Any
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Import from master config
 from core.master_config import (
-    MASTER_FONTS,
-    MASTER_EFFECTS,
-    MASTER_PALETTES,
-    EFFECT_MOODS,
-    TEXT_STYLES,
-    MOTION_KINDS,
     CORNER_STYLES,
-    ISLAMIC_CATEGORIES,
+    EFFECT_MOODS,
+    MASTER_EFFECTS,
+    MASTER_FONTS,
+    MASTER_PALETTES,
+    MOTION_KINDS,
+    TEXT_STYLES,
     generate_random_config,
-    UltraConfig,
 )
 
 __all__ = ["MegaPackPipeline", "MegaPackResult"]
@@ -115,7 +112,7 @@ class MegaPackPipeline:
 
         try:
             # 1. Import and initialize randomizer
-            from core.islamic_randomizer import IslamicRandomizer, IslamicConstraints
+            from core.islamic_randomizer import IslamicConstraints, IslamicRandomizer
 
             # 2. Validate content
             if not IslamicConstraints.validate_content(arabic, urdu, title):
@@ -135,8 +132,7 @@ class MegaPackPipeline:
 
             # 5. Load fonts and create renderer
             from core.arabic_renderer import ArabicRenderer
-            from core.effects_engine import EffectsEngine
-            from core.scene_engine import SceneRenderer, Scene, TextLayer, MotionSpec
+            from core.scene_engine import MotionSpec, SceneRenderer
 
             # Create Arabic renderer with selected font
             arabic_renderer = ArabicRenderer(font_key=config.arabic_font)

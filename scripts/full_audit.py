@@ -1,6 +1,7 @@
 """MASTER_AUDIT_PLAN — Full 89-item audit with evidence."""
 
-import sys, re, os
+import re
+import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 from pathlib import Path
@@ -63,7 +64,7 @@ audit(
     "1.1",
     "Replace eval() with json.loads()",
     len(eval_in_sec) == 0,
-    f"No eval() in active code" if not eval_in_sec else f"eval found at: {eval_in_sec}",
+    "No eval() in active code" if not eval_in_sec else f"eval found at: {eval_in_sec}",
 )
 
 # 1.2

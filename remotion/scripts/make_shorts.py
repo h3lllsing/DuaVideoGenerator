@@ -55,7 +55,7 @@ def ffprobe_dur(path):
 def load_state():
     if os.path.exists(STATE_PATH):
         try:
-            with open(STATE_PATH, "r", encoding="utf-8") as f:
+            with open(STATE_PATH, encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             pass
@@ -76,7 +76,7 @@ def find_sources():
         if mf.endswith("ai_api_config.json"):
             continue
         try:
-            with open(mf, "r", encoding="utf-8") as f:
+            with open(mf, encoding="utf-8") as f:
                 m = json.load(f)
         except Exception:
             continue

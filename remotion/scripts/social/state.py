@@ -51,7 +51,7 @@ import json
 import os
 import tempfile
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # --- paths ---------------------------------------------------------------
 SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -92,7 +92,7 @@ _WRITE_LOCKS: dict = {}
 
 def _now() -> str:
     """UTC ISO-8601 with explicit offset, second precision."""
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return datetime.now(UTC).replace(microsecond=0).isoformat()
 
 
 def _blank_state() -> dict:
@@ -160,7 +160,7 @@ def load_state(file_path: str = None):
     fresh skeleton, so a bad write can never brick the upload pipeline."""
     path = file_path or DEFAULT_STATE_PATH
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             return _normalise_state(json.load(fh))
     except FileNotFoundError:
         return _blank_state()

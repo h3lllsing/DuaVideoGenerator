@@ -63,8 +63,8 @@ def sample_dua_data():
 @pytest.fixture
 def mock_tts(monkeypatch):
     """Mock TTS engine for offline testing — generates silent WAV files."""
-    import wave
     import struct
+    import wave
 
     def _mock_generate(text, language, output_path, timing_path=None, voice=None):
         """Generate a 1-second silent WAV as TTS mock."""

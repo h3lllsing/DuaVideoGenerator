@@ -1,6 +1,6 @@
 """MASTER_AUDIT_PLAN — Phase 3-5 detailed audit."""
 
-import sys, re
+import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 from pathlib import Path

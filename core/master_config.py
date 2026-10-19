@@ -22,7 +22,7 @@ Usage:
 
 import os
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, cast
 
 __all__ = [
@@ -878,7 +878,7 @@ def _load_vfx_data():
         return {"patterns": [], "plugins": [], "themes": [], "typography": [], "motion": [], "audio": []}
     import json
 
-    with open(vfx_path, "r", encoding="utf-8") as f:
+    with open(vfx_path, encoding="utf-8") as f:
         return json.load(f)
 
 

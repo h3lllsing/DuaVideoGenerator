@@ -30,7 +30,7 @@ CHANNEL_HANDLE = "Noor-e-Iman"
 
 def load_json(path):
     try:
-        with open(path, "r", encoding="utf-8-sig") as f:
+        with open(path, encoding="utf-8-sig") as f:
             return json.load(f)
     except OSError:
         return {}

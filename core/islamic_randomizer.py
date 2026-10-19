@@ -8,25 +8,17 @@ This file only contains the randomizer logic.
 
 import logging
 import random
-from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
 # Import EVERYTHING from master config
 from core.master_config import (
-    MASTER_FONTS,
-    FONT_COMBOS,
-    MASTER_EFFECTS,
     EFFECT_MOODS,
-    EFFECT_CATEGORIES,
+    FORBIDDEN_CATEGORIES,
+    HALAL_PALETTES,
+    ISLAMIC_CATEGORIES,
     MASTER_PALETTES,
     PALETTE_NAMES,
-    HALAL_PALETTES,
-    TEXT_STYLES,
-    MOTION_KINDS,
-    CORNER_STYLES,
-    ISLAMIC_CATEGORIES,
-    FORBIDDEN_CATEGORIES,
     UltraConfig,
     generate_random_config,
 )
