@@ -6,6 +6,7 @@ Scans sample videos to learn visual styles
 import json
 import logging
 import os
+from typing import Any, cast
 from collections import Counter
 
 import cv2
@@ -89,7 +90,7 @@ class VideoAnalyzer:
 
         return learned_styles
 
-    def analyze_video(self, video_path: str) -> dict:
+    def analyze_video(self, video_path: str) -> dict[str, Any] | None:
         """
         Analyze a single video file.
         
@@ -224,7 +225,7 @@ class VideoAnalyzer:
             all_pixels.append(pixels)
 
         # Combine all pixels
-        all_pixels = np.vstack(all_pixels)
+        all_pixels = cast(Any, np.vstack(all_pixels))
 
         # Get dominant colors using k-means
         from sklearn.cluster import KMeans

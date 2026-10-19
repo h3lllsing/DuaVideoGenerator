@@ -7,8 +7,9 @@ import time
 try:
     import edge_tts
 except ImportError:
-    edge_tts = None
+    edge_tts = None  # type: ignore[assignment]
 from moviepy import AudioFileClip  # Audio duration nikalne ke liye
+from typing import cast
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ class TTSEngine:
                 try:
                     communicate = edge_tts.Communicate(
                         text, voice, boundary="WordBoundary",
-                        rate=rate, pitch=pitch)
+                        rate=cast(str, rate), pitch=cast(str, pitch))
                     await TTSEngine._save_with_timeout(
                         communicate, output_file, metadata_fname=timing_path)
                     return True
@@ -144,7 +145,8 @@ class TTSEngine:
                         except OSError:
                             pass
             communicate = edge_tts.Communicate(
-                text, voice, rate=rate, pitch=pitch)
+                text, voice, rate=cast(str, rate),
+                pitch=cast(str, pitch))
             await TTSEngine._save_with_timeout(communicate, output_file)
             return True
         except Exception as e:
@@ -325,7 +327,7 @@ class TTSEngine:
         """
         try:
             with AudioFileClip(file_path) as clip:
-                return clip.duration
+                return cast(float, clip.duration)
         except Exception as e:
             logger.error(f"Failed to get audio duration: {e}")
             return 0.0

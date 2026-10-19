@@ -37,6 +37,7 @@ No packages are installed; no external images are downloaded.
 import logging
 import os
 import random
+from typing import Any, cast
 from dataclasses import dataclass, field
 from functools import lru_cache
 
@@ -55,7 +56,7 @@ _AR_RENDERER = ArabicRenderer()
 try:
     import config
 except Exception:
-    config = None
+    config = None  # type: ignore[assignment]
 
 # PERFORMANCE FIX: Import AssetRegistry for Pexels backgrounds
 try:
@@ -64,7 +65,7 @@ try:
     _HAS_ASSET_REGISTRY = True
     logger.info(f"AssetRegistry loaded: {len(_ASSET_REGISTRY.get_loadable_assets())} loadable assets")
 except Exception as e:
-    _ASSET_REGISTRY = None
+    _ASSET_REGISTRY = None  # type: ignore[assignment]
     _HAS_ASSET_REGISTRY = False
     logger.debug(f"AssetRegistry not available: {e}")
 
@@ -233,7 +234,7 @@ class Scene:
     gradient_kind: str = ""
 
     def palette_name(self) -> str:
-        return self.palette.get("name", "midnight")
+        return cast(str, self.palette.get("name", "midnight"))
 
 
 @dataclass
@@ -298,7 +299,8 @@ class SceneRenderer:
     @staticmethod
     def _text_w(font, text: str) -> int:
         bb = font.getbbox(text)
-        return bb[2] - bb[0]
+        assert bb is not None
+        return int(bb[2] - bb[0])
 
     @staticmethod
     def _measure(font, text: str, language: str) -> int:
@@ -636,7 +638,7 @@ class SceneRenderer:
     def _load_image_background(self, path: str, bg_w: int, bg_h: int) -> Image.Image | None:
         """Load and resize Pexels image background."""
         try:
-            img = Image.open(path)
+            img: Image.Image = Image.open(path)
             # Convert to RGB if needed
             if img.mode != "RGB":
                 img = img.convert("RGB")
@@ -667,7 +669,7 @@ class SceneRenderer:
             
             if result.returncode == 0 and result.stdout:
                 from io import BytesIO
-                img = Image.open(BytesIO(result.stdout))
+                img: Image.Image = Image.open(BytesIO(result.stdout))
                 if img.mode != "RGB":
                     img = img.convert("RGB")
                 img = self._fit_crop(img, bg_w, bg_h)
@@ -806,16 +808,20 @@ class SceneRenderer:
             lines = layer["lines"]
             # Consume one surface per line to stay in sync with the flat
             # surfaces list, regardless of early skips below.
-            line_spans: list[list] | None = []
+            spans_out: list[list[Any]] = []
+            spans_ok = True
             for line in lines:
                 s = next(surf_iter, None) if surf_iter is not None else None
-                ws = (s or {}).get("words") if s is not None else None
+                ws = s.get("words") if s is not None else None
                 if ws:
+                    assert s is not None
                     fx = s["x"]
-                    line_spans.append(
+                    spans_out.append(
                         [(i, fx + a, fx + b) for (i, a, b) in ws])
                 else:
-                    line_spans = None
+                    spans_ok = False
+            line_spans: list[list[Any]] | None = (
+                spans_out if spans_ok else None)
             events = (scene.word_events or {}).get(role)
             spec = layer_by_role.get(role)
             if not events or lines is None or not lines:
@@ -827,9 +833,12 @@ class SceneRenderer:
             # spurious word/token mismatch fallback.
             clean_events = normalize_events(events)
             font = self._font(lines[0]["font_size"])
+            def _measure_word(w: str, _f: Any = font) -> int:
+                return self._text_w(_f, w)
+
             geometry = build_word_geometry(
                 spec.language, spec.text, lines, len(clean_events),
-                lambda s_, f=font: self._text_w(f, s_),
+                _measure_word,
                 outline_pad=TEXT_OUTLINE_WIDTH,
                 line_spans=(line_spans or None))
             hl[role] = {
@@ -859,10 +868,10 @@ class SceneRenderer:
 
     # -- scene construction ---------------------------------------------
     def build_single_scene(self, seed: str, arabic: str, urdu: str,
-                           title: str = "", duration: float = None,
+                           title: str = "", duration: float | None = None,
                            palette: dict | None = None,
                            motion: MotionSpec | None = None,
-                           font_style: str = None,
+                           font_style: str | None = None,
                            highlight_style: str = "",
                            gradient_kind: str = "") -> Scene:
         """
@@ -938,8 +947,8 @@ class SceneRenderer:
 
     # -- rendering -------------------------------------------------------
     def render_scene(self, scene: Scene, frame_count: int, seed: str,
-                     scene_index: int = 0, dua_id: str = None,
-                     category: str = None):
+                     scene_index: int = 0, dua_id: str | None = None,
+                     category: str | None = None):
         """Render one scene as a generator (memory-efficient streaming).
         
         PERFORMANCE FIX: Uses cached gradients and surfaces to avoid redundant redraws.
@@ -1021,7 +1030,8 @@ class SceneRenderer:
             yield frame.convert("RGB")
 
     def render(self, timeline: Timeline, seed: str = "default",
-               dua_id: str = None, category: str = None) -> list[Image.Image]:
+               dua_id: str | None = None,
+               category: str | None = None) -> list[Image.Image]:
         """Render a full Timeline into a list (backward compatible).
         
         Args:
@@ -1033,7 +1043,7 @@ class SceneRenderer:
         return list(self.render_stream(timeline, seed, dua_id, category))
 
     def render_stream(self, timeline: Timeline, seed: str = "default",
-                      dua_id: str = None, category: str = None):
+                      dua_id: str | None = None, category: str | None = None):
         """Render a full Timeline as a generator (memory-efficient streaming).
         
         Args:

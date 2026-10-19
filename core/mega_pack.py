@@ -19,6 +19,7 @@ Usage:
 
 import logging
 import os
+from typing import Any
 import time
 from dataclasses import dataclass
 from typing import Optional
@@ -65,14 +66,14 @@ class MegaPackPipeline:
     - All random, all halal
     """
     
-    def __init__(self, output_dir: str = None):
+    def __init__(self, output_dir: str | None = None):
         """Initialize Mega Pack pipeline."""
         from core.project_info import PROJECT
         self.output_dir = output_dir or os.path.join(PROJECT.OUTPUT_DIR, "ultra_pack")
         os.makedirs(self.output_dir, exist_ok=True)
         
-        self._pipeline = None
-        self._randomizer = None
+        self._pipeline: Any = None
+        self._randomizer: Any = None
         
         logger.info("MegaPackPipeline initialized")
     
@@ -84,7 +85,7 @@ class MegaPackPipeline:
         return self._pipeline
     
     def generate(self, arabic: str, urdu: str, title: str = "",
-                 mood: str = None, seed: str = None,
+                 mood: str | None = None, seed: str | None = None,
                  **kwargs) -> MegaPackResult:
         """
         Generate a video with full randomization.
@@ -196,7 +197,8 @@ class MegaPackPipeline:
                 generation_time=time.time() - start_time,
             )
     
-    def preview_config(self, seed: str = None, mood: str = None) -> str:
+    def preview_config(self, seed: str | None = None,
+                       mood: str | None = None) -> str:
         """Preview what config would be generated without actually making a video."""
         config = generate_random_config(seed=seed, favor=mood or "peaceful")
         return config.summary()
@@ -219,14 +221,16 @@ class MegaPackPipeline:
 # ============================================================
 
 def ultra_pack_generate(arabic: str, urdu: str, title: str = "",
-                        mood: str = None, **kwargs) -> MegaPackResult:
+                        mood: str | None = None,
+                        **kwargs) -> MegaPackResult:
     """Quick function for frontend to generate Ultra Pack video."""
     mega = MegaPackPipeline()
     return mega.generate(arabic=arabic, urdu=urdu, title=title,
                          mood=mood, **kwargs)
 
 
-def ultra_pack_preview(seed: str = None, mood: str = None) -> str:
+def ultra_pack_preview(seed: str | None = None,
+                       mood: str | None = None) -> str:
     """Quick function for frontend to preview config."""
     mega = MegaPackPipeline()
     return mega.preview_config(seed=seed, mood=mood)

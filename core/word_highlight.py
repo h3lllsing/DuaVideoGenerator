@@ -27,6 +27,8 @@ This module contains no audio, layout, or renderer logic.
 
 import logging
 from collections.abc import Callable
+from PIL import Image
+from typing import cast
 
 logger = logging.getLogger(__name__)
 
@@ -55,9 +57,11 @@ def normalize_events(events: list[dict] | None) -> list[dict]:
     for i, ev in enumerate(events):
         if not isinstance(ev, dict):
             continue
-        start = ev.get("start")
+        raw_start = ev.get("start")
+        if raw_start is None:
+            continue
         try:
-            start = float(start)
+            start = float(raw_start)
         except (TypeError, ValueError):
             continue
         if start != start:        # NaN
@@ -129,8 +133,11 @@ def build_word_geometry(
           targets    {event_index: rect}  rect = (x0, y0, x1, y1) in pixels
           line_boxes [rect, ...]  per display line, in order
     """
-    line_boxes: list[Rect] = [tuple(int(v) for v in ln["bbox"])
-                              for ln in display_lines]
+    line_boxes: list[Rect] = [
+        (int(ln["bbox"][0]), int(ln["bbox"][1]),
+         int(ln["bbox"][2]), int(ln["bbox"][3]))
+        for ln in display_lines
+    ]
 
     def line_fallback() -> dict:
         targets: dict[int, Rect] = {}
@@ -183,7 +190,7 @@ def highlight_targets(events: list[dict], geometry: dict,
     active = resolve_active_word(events, t)
     if active is None:
         return None
-    return geometry["targets"].get(active)
+    return cast("Rect | None", geometry["targets"].get(active))
 
 
 # ----------------------------------------------------------------------

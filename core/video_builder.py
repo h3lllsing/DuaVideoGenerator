@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import cast
 import shutil
 import subprocess
 import traceback
@@ -16,7 +17,7 @@ try:
     import config
 except Exception:
     logger.debug("config not available, using defaults")
-    config = None
+    config = None  # type: ignore[assignment]
 
 __all__ = ["VideoBuilder"]
 
@@ -27,7 +28,8 @@ class VideoBuilder:
     Uses imageio for fast frame writing and moviepy for audio mixing.
     """
 
-    def __init__(self, fps: int = None, resolution: tuple = (1080, 1920)):
+    def __init__(self, fps: int | None = None,
+                 resolution: tuple = (1080, 1920)):
         """
         Args:
             fps: Frames per second. Defaults to config.VIDEO_FPS (30) so the
@@ -183,7 +185,7 @@ class VideoBuilder:
             with imageio.get_writer(
                 temp_video_path,
                 fps=self.fps,
-                format='FFMPEG',
+                format='FFMPEG',  # type: ignore[arg-type]
                 codec='libx264',
                 pixelformat='yuv420p',
                 macro_block_size=2,
@@ -197,9 +199,9 @@ class VideoBuilder:
                     if isinstance(frame, Image.Image):
                         if frame.size != (self.width, self.height):
                             frame = frame.resize((self.width, self.height), Image.Resampling.LANCZOS)
-                        writer.append_data(np.array(frame))
+                        writer.append_data(np.array(frame))  # type: ignore[attr-defined]
                     elif isinstance(frame, np.ndarray):
-                        writer.append_data(frame)
+                        writer.append_data(frame)  # type: ignore[attr-defined]
                     else:
                         raise TypeError(f"Unsupported frame type: {type(frame)}")
                     if (i + 1) % 100 == 0:

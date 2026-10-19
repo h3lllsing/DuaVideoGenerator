@@ -200,7 +200,7 @@ def word_pulse_events(word_events, offsets, fps: int,
 class EffectDirector:
     """Small deterministic brain that plans effects per video."""
 
-    def __init__(self, fps: int = None, canvas=(1080, 1920)):
+    def __init__(self, fps: int | None = None, canvas=(1080, 1920)):
         if fps is None:
             from core.project_info import PROJECT
             fps = PROJECT.FPS
@@ -209,7 +209,8 @@ class EffectDirector:
 
     # ------------------------------------------------------------------
     def plan(self, dua_data, timeline_plan, word_events,
-             effect_request: str = "auto", dua_id: str = None) -> dict:
+             effect_request: str = "auto",
+             dua_id: str | None = None) -> dict:
         """
         Build the per-frame effect stack.
 
@@ -257,7 +258,7 @@ class EffectDirector:
             return (frame - scene["start"]) / (scene["end"] - scene["start"])
 
         # ---- build the per-frame plan ----
-        plan = [[] for _ in range(total)]
+        plan: list[list[dict]] = [[] for _ in range(total)]
 
         for f in range(total):
             plan[f].append({"effect": "vignette", "params": {"strength": 0.35},

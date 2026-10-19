@@ -8,6 +8,7 @@ import hmac
 import json
 import logging
 import os
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 from cryptography.fernet import Fernet
@@ -191,7 +192,7 @@ class SecurityManager:
             Decrypted dictionary
         """
         json_str = self.decrypt(encrypted)
-        return json.loads(json_str)
+        return cast(dict[str, Any], json.loads(json_str))
 
     def save_vault(self, data: dict):
         """

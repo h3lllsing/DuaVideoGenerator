@@ -12,7 +12,7 @@ import sys
 import time
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from queue import Queue
+from queue import Empty, Queue
 from threading import Thread, Event, Lock
 
 import psutil
@@ -338,7 +338,7 @@ class DuaVideoPipeline:
             try:
                 self._batch_queue.get_nowait()
                 self._batch_queue.task_done()
-            except Queue.Empty:
+            except Empty:
                 break
         # Send sentinel so worker exits its loop
         self._batch_queue.put(self._SENTINEL)
@@ -638,7 +638,7 @@ class DuaVideoPipeline:
             self._cleanup_temp(temp_files)
 
     def _run_pipeline(self, dua_data, ar_audio, ur_audio, ar_timing, ur_timing,
-                      temp_files, start_time, dua_id, theme, effect):
+                      temp_files, start_time, dua_id, theme, effect) -> bool:
         category = dua_data.get('category', 'general')
         arabic_text = dua_data.get('arabic', '')
         urdu_text = dua_data.get('urdu', '')
@@ -834,7 +834,7 @@ class DuaVideoPipeline:
 
     def _run_custom_pipeline(self, arabic_text, urdu_text, title, effect,
                              category, ar_audio, ur_audio, ar_timing, ur_timing,
-                             start_time):
+                             start_time) -> bool:
 
         ar_ok, ur_ok = self.tts.generate_both(
             arabic_text, urdu_text, ar_audio, ur_audio,

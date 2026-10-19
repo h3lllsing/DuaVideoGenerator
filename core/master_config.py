@@ -23,7 +23,7 @@ Usage:
 import os
 import random
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 __all__ = [
     # Font system
@@ -72,7 +72,7 @@ PROJECT_NAME = "Islamic Ultra Pack"
 # 1. MASTER FONT SYSTEM
 # ============================================================
 
-MASTER_FONTS = {
+MASTER_FONTS: dict[str, dict[str, Any]] = {
     "amiri_bold": {
         "key": "amiri_bold",
         "name": "Amiri Bold",
@@ -256,7 +256,7 @@ MASTER_EFFECTS = {
 
 EFFECT_CATEGORIES = list(set(e["category"] for e in MASTER_EFFECTS.values()))
 
-EFFECT_MOODS = {
+EFFECT_MOODS: dict[str, dict[str, Any]] = {
     "peaceful": {
         "name": "Peaceful",
         "desc": "Sukoon aur itminan",
@@ -292,7 +292,7 @@ EFFECT_MOODS = {
 # 3. MASTER PALETTE SYSTEM
 # ============================================================
 
-MASTER_PALETTES = {
+MASTER_PALETTES: dict[str, dict[str, Any]] = {
     "midnight": {
         "name": "midnight",
         "desc": "Raat ka asman",
@@ -613,9 +613,9 @@ class UltraConfig:
 
 
 def generate_random_config(
-    seed: str = None,
-    favor: str = None,
-    overrides: dict = None,
+    seed: str | None = None,
+    favor: str | None = None,
+    overrides: dict | None = None,
 ) -> UltraConfig:
     """
     Generate a fully random video configuration.
@@ -633,7 +633,8 @@ def generate_random_config(
     
     # 1. Random mood (weighted)
     mood_names = list(EFFECT_MOODS.keys())
-    mood_weights = [EFFECT_MOODS[m]["weight"] for m in mood_names]
+    mood_weights: list[float] = [float(EFFECT_MOODS[m]["weight"])
+                                 for m in mood_names]
     
     if favor and favor in EFFECT_MOODS:
         idx = mood_names.index(favor)
@@ -656,12 +657,12 @@ def generate_random_config(
         title_font = rng.choice(font_keys)
     
     # 3. Random effect (mood-based)
-    mood_effects = EFFECT_MOODS[mood]["effects"]
-    text_effect = rng.choice(mood_effects)
+    mood_effects: list[str] = EFFECT_MOODS[mood]["effects"]
+    text_effect: str = rng.choice(mood_effects)
     
     # 4. Random style (mood-based)
     mood_styles = EFFECT_MOODS[mood]["text_styles"]
-    text_style = rng.choice(mood_styles)
+    text_style: str = rng.choice(mood_styles)
     
     # 5. Random background
     background_category = rng.choice(ISLAMIC_CATEGORIES)
@@ -722,7 +723,7 @@ def generate_random_config(
 # 7. HELPER FUNCTIONS
 # ============================================================
 
-def get_font_path(font_key: str) -> str:
+def get_font_path(font_key: str) -> str | None:
     """Get full path to a font file."""
     font = MASTER_FONTS.get(font_key)
     if not font:
@@ -743,10 +744,10 @@ def get_random_palette(dark_only: bool = False) -> dict:
     return dict(MASTER_PALETTES[name])
 
 
-def get_random_effect(mood: str = None) -> str:
+def get_random_effect(mood: str | None = None) -> str:
     """Get a random effect, optionally mood-based."""
     if mood and mood in EFFECT_MOODS:
-        return random.choice(EFFECT_MOODS[mood]["effects"])
+        return cast(str, random.choice(EFFECT_MOODS[mood]["effects"]))
     return random.choice(list(MASTER_EFFECTS.keys()))
 
 
@@ -797,7 +798,7 @@ def _load_vfx_data():
 _vfx_data = _load_vfx_data()
 
 # --- Patterns (164) ---
-MASTER_VFX_PATTERNS = {}
+MASTER_VFX_PATTERNS: dict[str, Any] = {}
 for _p in _vfx_data.get("patterns", []):
     pid = _p.get("id", _p.get("label", f"pattern-{len(MASTER_VFX_PATTERNS)}"))
     MASTER_VFX_PATTERNS[pid] = _p
@@ -805,7 +806,7 @@ for _p in _vfx_data.get("patterns", []):
 VFX_PATTERN_IDS = list(MASTER_VFX_PATTERNS.keys())
 
 # --- Plugins (69) ---
-MASTER_VFX_PLUGINS = {}
+MASTER_VFX_PLUGINS: dict[str, Any] = {}
 for _pl in _vfx_data.get("plugins", []):
     plid = _pl.get("id", f"plugin-{len(MASTER_VFX_PLUGINS)}")
     MASTER_VFX_PLUGINS[plid] = _pl
@@ -818,7 +819,7 @@ VFX_THEME_DECORS = (
     "dunes", "royal", "lanterns", "festive", "qadr",
 )
 
-MASTER_VFX_THEMES = {}
+MASTER_VFX_THEMES: dict[str, Any] = {}
 for _t in _vfx_data.get("themes", []):
     tid = _t.get("id", _t.get("label", f"theme-{len(MASTER_VFX_THEMES)}"))
     MASTER_VFX_THEMES[tid] = _t
@@ -828,7 +829,7 @@ VFX_THEME_IDS = list(MASTER_VFX_THEMES.keys())
 # --- Typography (63) ---
 VFX_TYPOGRAPHY_FAMILIES = ("amiri-quran", "noto-nastaliq-urdu", "scheherazade-new")
 
-MASTER_VFX_TYPOGRAPHY = {}
+MASTER_VFX_TYPOGRAPHY: dict[str, Any] = {}
 for _ty in _vfx_data.get("typography", []):
     tyid = _ty.get("id", _ty.get("label", f"typo-{len(MASTER_VFX_TYPOGRAPHY)}"))
     MASTER_VFX_TYPOGRAPHY[tyid] = _ty
@@ -840,7 +841,7 @@ VFX_MOTION_CAMERAS = ("static", "zoomin", "panx", "kenburns", "driftbreathe")
 VFX_MOTION_TEXT_FX = ("glide", "fade", "none", "typewriter", "popwave", "blurin")
 VFX_MOTION_INTRO_FX = ("classic", "crescentfade", "patternwipe")
 
-MASTER_VFX_MOTION = {}
+MASTER_VFX_MOTION: dict[str, Any] = {}
 for _m in _vfx_data.get("motion", []):
     mid = _m.get("id", _m.get("label", f"motion-{len(MASTER_VFX_MOTION)}"))
     MASTER_VFX_MOTION[mid] = _m
@@ -848,7 +849,7 @@ for _m in _vfx_data.get("motion", []):
 VFX_MOTION_IDS = list(MASTER_VFX_MOTION.keys())
 
 # --- Audio (4) ---
-MASTER_VFX_AUDIO = {}
+MASTER_VFX_AUDIO: dict[str, Any] = {}
 for _a in _vfx_data.get("audio", []):
     aid = _a.get("id", _a.get("label", f"audio-{len(MASTER_VFX_AUDIO)}"))
     MASTER_VFX_AUDIO[aid] = _a

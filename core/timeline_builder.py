@@ -26,13 +26,14 @@ WordBoundary absolute-offset mapping is exposed for Phase 4 but not applied.
 import logging
 
 logger = logging.getLogger(__name__)
+from typing import cast
 
 from core.scene_engine import Scene, SceneRenderer, Timeline, Transition
 
 try:
     import config as _config
 except Exception:
-    _config = None
+    _config = None  # type: ignore[assignment]
 
 __all__ = ["TimelineBuilder"]
 
@@ -62,8 +63,9 @@ class TimelineBuilder:
     # ------------------------------------------------------------------
     def build(self, dua_id: str, arabic_text: str, urdu_text: str,
               title: str = "", arabic_duration: float = 0.0,
-              urdu_duration: float = 0.0, final_duration: float = None,
-              category: str = None, palette: dict | None = None,
+              urdu_duration: float = 0.0,
+              final_duration: float | None = None,
+              category: str | None = None, palette: dict | None = None,
               motion=None, word_events: dict[str, list] | None = None,
               highlight_style: str = "",
               gradient_kind: str = "") -> dict:
@@ -228,7 +230,7 @@ class TimelineBuilder:
             offsets.get("arabic_base", 0.0)
         if base is None:
             return None
-        return round(base + float(word_offset), 6)
+        return cast(float, round(base + float(word_offset), 6))
 
     @staticmethod
     def map_words_absolute(offsets: dict, language: str,
@@ -241,7 +243,8 @@ class TimelineBuilder:
         for w in words:
             copy = dict(w)
             copy["abs_offset"] = TimelineBuilder.absolute_word_offset(
-                offsets, language, w.get("offset", 0.0))
+                offsets, language,
+                cast(float, w.get("offset", 0.0)))
             result.append(copy)
         return result
 
@@ -267,8 +270,12 @@ class TimelineBuilder:
             if not isinstance(w, dict):
                 continue
             try:
-                start = round(float(w.get("offset")), 6)
-                end = round(float(w.get("end")), 6)
+                raw_start = w.get("offset")
+                raw_end = w.get("end")
+                if raw_start is None or raw_end is None:
+                    continue
+                start = round(float(raw_start), 6)
+                end = round(float(raw_end), 6)
             except (TypeError, ValueError):
                 continue
             clean.append({"start": start, "end": end,

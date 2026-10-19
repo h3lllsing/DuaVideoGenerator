@@ -16,6 +16,7 @@ Nothing here is ever imported from the frozen render modules.
 import logging
 import multiprocessing as mp
 import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,7 @@ def profile_summary(frames_total: int = 0) -> str:
             f"backend: {backend}")
 
 
-_OCL = {}  # cached OpenCL context/program per (platform, device)
+_OCL: dict[str, Any] = {}  # cached OpenCL context/program per (platform, device)
 
 # Small masks are faster on CPU (cv2); GPU wins only above this pixel count.
 _GPU_MIN_PIXELS = 250_000

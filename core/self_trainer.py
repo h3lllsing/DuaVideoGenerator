@@ -6,6 +6,7 @@ AI learns from user feedback and sample videos
 import json
 import logging
 import os
+from typing import Any, cast
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -156,14 +157,14 @@ class SelfTrainer:
         ratings = [f.get("rating", 0) for f in feedback]
         return sum(ratings) / len(ratings) if ratings else 0.0
 
-    def _load_feedback(self) -> list:
+    def _load_feedback(self) -> list[Any]:
         """Load feedback from file."""
         if not os.path.exists(self.feedback_file):
             return []
 
         try:
             with open(self.feedback_file, encoding='utf-8') as f:
-                return json.load(f)
+                return cast(list[Any], json.load(f))
         except Exception:
             return []
 
@@ -185,14 +186,14 @@ class SelfTrainer:
                 pass
             raise
 
-    def _load_preferences(self) -> dict:
+    def _load_preferences(self) -> dict[str, Any]:
         """Load preferences from file."""
         if not os.path.exists(self.preferences_file):
             return {}
 
         try:
             with open(self.preferences_file, encoding='utf-8') as f:
-                return json.load(f)
+                return cast(dict[str, Any], json.load(f))
         except Exception:
             return {}
 
@@ -201,7 +202,7 @@ class SelfTrainer:
         with open(self.preferences_file, 'w', encoding='utf-8') as f:
             json.dump(prefs, f, indent=2, ensure_ascii=False)
 
-    def _load_master_patterns(self) -> dict:
+    def _load_master_patterns(self) -> dict[str, Any] | None:
         """Load master patterns from video analysis."""
         master_patterns_file = os.path.join(self.learning_dir, "master_patterns.json")
 
@@ -210,7 +211,7 @@ class SelfTrainer:
 
         try:
             with open(master_patterns_file, encoding='utf-8') as f:
-                return json.load(f)
+                return cast(dict[str, Any], json.load(f))
         except Exception:
             return None
 

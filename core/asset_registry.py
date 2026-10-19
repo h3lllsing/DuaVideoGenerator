@@ -25,7 +25,7 @@ try:
     import config
 except Exception:
     logger.debug("config not available for asset registry")
-    config = None
+    config = None  # type: ignore[assignment]
 
 __all__ = ["BackgroundAsset", "AssetRegistry", "is_video_file", "normalize_license"]
 
@@ -335,7 +335,7 @@ class AssetRegistry:
 
     def _pick_theme(self, dua_id: str, preferred_theme: str | None = None) -> str:
         """Deterministically pick a procedural theme seeded by dua_id."""
-        themes = list(getattr(config, "THEMES", {}) or {})
+        themes: list[str] = list(getattr(config, "THEMES", {}) or {})
         if preferred_theme and preferred_theme in themes:
             return preferred_theme
         if not themes:

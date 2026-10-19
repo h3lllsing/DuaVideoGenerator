@@ -15,7 +15,7 @@ try:
     import config
 except Exception:
     logger.debug("config not available for audio mixer")
-    config = None
+    config = None  # type: ignore[assignment]
 
 __all__ = ["AudioMixer"]
 
@@ -41,8 +41,8 @@ class AudioMixer:
     @staticmethod
     def compute_video_timeline(
         speech_duration: float,
-        min_duration: float = None,
-        max_duration: float = None,
+        min_duration: float | None = None,
+        max_duration: float | None = None,
         default_hold: float = 0.5,
     ) -> dict:
         """
@@ -137,8 +137,8 @@ class AudioMixer:
         audio_paths: list,
         output_path: str,
         gap_seconds: float = 0.5,
-        pad_to_duration: float = None,
-        sample_rate: int = None,
+        pad_to_duration: float | None = None,
+        sample_rate: int | None = None,
     ) -> bool:
         """
         Merges multiple audio files one after another with a small gap.
@@ -238,8 +238,8 @@ class AudioMixer:
         audio_paths: list,
         output_path: str,
         crossfade_seconds: float = 0.3,
-        pad_to_duration: float = None,
-        sample_rate: int = None,
+        pad_to_duration: float | None = None,
+        sample_rate: int | None = None,
     ) -> bool:
         """
         Merges multiple audio files with a cross-fade overlap between clips.
@@ -379,7 +379,7 @@ class AudioMixer:
 
     @staticmethod
     async def _normalize_loudness_async(input_path: str, output_path: str,
-                                        sample_rate: int = None) -> tuple:
+                                        sample_rate: int | None = None) -> tuple:
         """
         Async: AUDIO-001 two-pass LINEAR ffmpeg loudnorm.
         Non-blocking subprocess calls.
@@ -429,7 +429,7 @@ class AudioMixer:
 
     @staticmethod
     def normalize_loudness(input_path: str, output_path: str,
-                           sample_rate: int = None) -> tuple:
+                           sample_rate: int | None = None) -> tuple:
         """
         AUDIO-001: two-pass LINEAR ffmpeg loudnorm.
 

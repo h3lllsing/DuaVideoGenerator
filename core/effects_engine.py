@@ -4,6 +4,7 @@ Effects Engine Module
 """
 
 import logging
+from typing import Any
 
 import cv2
 import numpy as np
@@ -27,7 +28,8 @@ class EffectsEngine:
     6. Glitch - Modern glitch effect
     """
 
-    def __init__(self, width: int = None, height: int = None):
+    def __init__(self, width: int | None = None,
+                 height: int | None = None):
         """Initialize effects engine."""
         self.width = width or PROJECT.VIDEO_WIDTH
         self.height = height or PROJECT.VIDEO_HEIGHT
@@ -44,8 +46,9 @@ class EffectsEngine:
             "slide_left": self.slide_left,
             "scale_up": self.scale_up,
         }
-        self._summary_cache = {}
+        self._summary_cache: dict[Any, Any] = {}
         self._buffers: dict[str, Image.Image] = {}
+        self._vignette_mask: Any = None
 
     def apply_effect(self, effect_name: str, text_img: Image.Image,
                      frame_num: int, total_frames: int) -> Image.Image:

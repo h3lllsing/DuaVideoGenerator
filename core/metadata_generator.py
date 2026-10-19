@@ -6,6 +6,7 @@ Auto-generates YouTube metadata (title, description, tags, hashtags)
 import json
 import logging
 import os
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -179,7 +180,7 @@ Like & Share if you benefited from this dua.
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
 
-    def load_metadata(self, metadata_path: str) -> dict:
+    def load_metadata(self, metadata_path: str) -> dict[str, Any] | None:
         """
         Load metadata from JSON file.
         
@@ -193,7 +194,7 @@ Like & Share if you benefited from this dua.
             return None
 
         with open(metadata_path, encoding='utf-8') as f:
-            return json.load(f)
+            return cast(dict[str, Any], json.load(f))
 
 
 # Test function

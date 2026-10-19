@@ -94,12 +94,14 @@ def _split_bidi_runs(text: str) -> list[tuple[str, str]]:
 
 # Import fonts from master config - SINGLE SOURCE OF TRUTH
 from core.master_config import MASTER_FONTS
+from typing import cast
 
 
 class ArabicRenderer:
     """Cached HarfBuzz + FreeType renderer for Arabic-script text."""
 
-    def __init__(self, font_path: str = None, font_key: str = None):
+    def __init__(self, font_path: str | None = None,
+                 font_key: str | None = None):
         if font_key and font_key in MASTER_FONTS:
             font_info = MASTER_FONTS[font_key]
             font_path = os.path.join(
@@ -138,6 +140,7 @@ class ArabicRenderer:
             with open(self.font_path, "rb") as f:
                 self._hb_face = hb.Face(f.read())
             self._hb_font = hb.Font(self._hb_face)
+            assert self._hb_face is not None
             self._upem = self._hb_face.upem
             self._ft_face = freetype.Face(self.font_path)
 
@@ -206,14 +209,15 @@ class ArabicRenderer:
         if not text:
             return 0.0
         self._load()
-        total = sum(g[1] for g in self._shape(text, size))
+        total = float(sum(g[1] for g in self._shape(text, size)))
         return total * size / self._upem
 
     # -- rendering -----------------------------------------------------
     def render_line(self, text: str, size: int,
                     color=(255, 255, 255),
                     outline_color=(10, 12, 20), outline_width=0,
-                    direction: str = "rtl", pad: int = None) -> Image.Image:
+                    direction: str = "rtl",
+                    pad: int | None = None) -> Image.Image:
         """
         Render one shaped line to an ink-tight RGBA surface.
 
@@ -289,6 +293,7 @@ class ArabicRenderer:
         glyphs = self._shape(text, size, direction)
         scale = size / self._upem
         face = self._ft_face
+        assert face is not None
         face.set_pixel_sizes(0, size)
 
         pieces = []
@@ -366,11 +371,13 @@ class ArabicRenderer:
         elif style == "gradient":
             base = self.render_line(text, size, color=(255, 255, 255),
                                     direction=direction)
-            return apply_vertical_gradient(base, gradient_top, gradient_bottom)
+            return cast(Image.Image, apply_vertical_gradient(
+                base, gradient_top, gradient_bottom))
         elif style == "gold_gradient":
             base = self.render_line(text, size, color=(255, 255, 255),
                                     direction=direction)
-            return apply_vertical_gradient(base, (255, 240, 185), (216, 178, 80))
+            return cast(Image.Image, apply_vertical_gradient(
+                base, (255, 240, 185), (216, 178, 80)))
         elif style == "shadow":
             base = self.render_line(text, size, color=color,
                                     direction=direction)
@@ -412,6 +419,7 @@ class ArabicRenderer:
         glyphs = self._shape(text, size, "rtl")
         scale = size / self._upem
         face = self._ft_face
+        assert face is not None
         face.set_pixel_sizes(0, size)
 
         # logical char index -> token index
@@ -433,7 +441,7 @@ class ArabicRenderer:
                     hi = mid - 1
             return lo
 
-        spans = {}          # token idx -> [min_x, max_x]
+        spans: dict[int, list[float]] = {}  # token idx -> [min_x, max_x]
         ink_min = 1 << 30
         ink_max = -(1 << 30)
         pen_x = 0.0

@@ -43,7 +43,7 @@ class IslamicConstraints:
         return not any(f in cat_lower for f in cls.FORBIDDEN_CATEGORIES)
     
     @classmethod
-    def get_halal_palette(cls, rng: random.Random = None) -> dict:
+    def get_halal_palette(cls, rng: random.Random | None = None) -> dict:
         """Get a random halal color palette."""
         r = rng or random.Random()
         name = r.choice(PALETTE_NAMES)
@@ -73,7 +73,8 @@ class IslamicRandomizer:
         # Use config to generate video
     """
     
-    def __init__(self, seed: str = None, favor: str = "peaceful"):
+    def __init__(self, seed: str | None = None,
+                 favor: str = "peaceful"):
         self.seed = seed or str(random.randint(100000, 999999))
         self.rng = random.Random(self.seed)
         self.favor = favor if favor in EFFECT_MOODS else "peaceful"

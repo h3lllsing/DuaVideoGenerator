@@ -5,6 +5,7 @@ Video quality validation for YouTube Shorts
 
 import logging
 import os
+from typing import Any
 
 import cv2
 
@@ -14,7 +15,7 @@ try:
     import config as _config
 except Exception:
     logger.debug("config not available for quality checker")
-    _config = None
+    _config = None  # type: ignore[assignment]
 
 __all__ = ["QualityChecker"]
 
@@ -52,7 +53,7 @@ class QualityChecker:
         Returns:
             Quality check results
         """
-        results = {
+        results: dict[str, Any] = {
             "valid": True,
             "issues": [],
             "passed": [],
