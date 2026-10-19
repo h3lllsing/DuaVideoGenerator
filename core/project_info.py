@@ -40,6 +40,35 @@ class ProjectInfo:
 
     def __post_init__(self):
         """Auto-calculate absolute paths relative to project root."""
+        # F-22: single source of truth = root config.py (agar importable ho).
+        # Aaj dono layers ke values same hain to behavior change zero hai,
+        # lekin future config.py change ab PROJECT.* me bhi propagate hoga.
+        try:
+            import config as _cfg
+
+            if self.PROJECT_NAME == ProjectInfo.PROJECT_NAME:
+                self.PROJECT_NAME = getattr(_cfg, "APP_NAME", self.PROJECT_NAME)
+            if self.VERSION == ProjectInfo.VERSION:
+                self.VERSION = str(getattr(_cfg, "VERSION", self.VERSION))
+            if self.VIDEO_WIDTH == ProjectInfo.VIDEO_WIDTH:
+                self.VIDEO_WIDTH = int(getattr(_cfg, "VIDEO_WIDTH", self.VIDEO_WIDTH))
+            if self.VIDEO_HEIGHT == ProjectInfo.VIDEO_HEIGHT:
+                self.VIDEO_HEIGHT = int(getattr(_cfg, "VIDEO_HEIGHT", self.VIDEO_HEIGHT))
+            if self.FPS == ProjectInfo.FPS:
+                self.FPS = int(getattr(_cfg, "VIDEO_FPS", self.FPS))
+            if self.VOICE_AR == ProjectInfo.VOICE_AR:
+                self.VOICE_AR = str(getattr(_cfg, "DEFAULT_VOICE_ARABIC", self.VOICE_AR))
+            if self.VOICE_UR == ProjectInfo.VOICE_UR:
+                self.VOICE_UR = str(getattr(_cfg, "DEFAULT_VOICE_URDU", self.VOICE_UR))
+            logger.debug(
+                "project_info: config.py se sync ho gaya (%sx%s@%s)",
+                self.VIDEO_WIDTH,
+                self.VIDEO_HEIGHT,
+                self.FPS,
+            )
+        except Exception:
+            logger.debug("project_info: config.py import nahi hua, defaults istemal")
+
         if not self.PROJECT_ROOT:
             # Get the directory where this file is located (core folder), then go up one level
             self.PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
