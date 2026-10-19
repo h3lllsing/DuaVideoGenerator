@@ -27,41 +27,70 @@ from typing import Any, cast
 
 __all__ = [
     # Font system
-    "MASTER_FONTS", "FONT_COMBOS", "FONT_FAMILY",
+    "MASTER_FONTS",
+    "FONT_COMBOS",
+    "FONT_FAMILY",
     # Effect system
-    "MASTER_EFFECTS", "EFFECT_MOODS", "EFFECT_CATEGORIES",
+    "MASTER_EFFECTS",
+    "EFFECT_MOODS",
+    "EFFECT_CATEGORIES",
     # Palette system
-    "MASTER_PALETTES", "PALETTE_NAMES", "DARK_PALETTES",
+    "MASTER_PALETTES",
+    "PALETTE_NAMES",
+    "DARK_PALETTES",
     # Visual system
-    "TEXT_STYLES", "MOTION_KINDS", "CORNER_STYLES",
+    "TEXT_STYLES",
+    "MOTION_KINDS",
+    "CORNER_STYLES",
     # Islamic constraints
-    "ISLAMIC_CATEGORIES", "FORBIDDEN_CATEGORIES", "HALAL_PALETTES",
+    "ISLAMIC_CATEGORIES",
+    "FORBIDDEN_CATEGORIES",
+    "HALAL_PALETTES",
     # VFX Pattern system
-    "VFX_PATTERN_KINDS", "VFX_TILE_ZONES", "VFX_COLOR_TOKENS",
-    "VFX_STYLE_OVERRIDES", "MASTER_VFX_PATTERNS", "VFX_PATTERN_IDS",
+    "VFX_PATTERN_KINDS",
+    "VFX_TILE_ZONES",
+    "VFX_COLOR_TOKENS",
+    "VFX_STYLE_OVERRIDES",
+    "MASTER_VFX_PATTERNS",
+    "VFX_PATTERN_IDS",
     # VFX Plugin system
-    "MASTER_VFX_PLUGINS", "VFX_PLUGIN_IDS",
+    "MASTER_VFX_PLUGINS",
+    "VFX_PLUGIN_IDS",
     # VFX Theme system
-    "VFX_THEME_DECORS", "MASTER_VFX_THEMES", "VFX_THEME_IDS",
+    "VFX_THEME_DECORS",
+    "MASTER_VFX_THEMES",
+    "VFX_THEME_IDS",
     # VFX Typography system
-    "VFX_TYPOGRAPHY_FAMILIES", "MASTER_VFX_TYPOGRAPHY", "VFX_TYPOGRAPHY_IDS",
+    "VFX_TYPOGRAPHY_FAMILIES",
+    "MASTER_VFX_TYPOGRAPHY",
+    "VFX_TYPOGRAPHY_IDS",
     # VFX Motion system
-    "VFX_MOTION_CAMERAS", "VFX_MOTION_TEXT_FX", "VFX_MOTION_INTRO_FX",
-    "MASTER_VFX_MOTION", "VFX_MOTION_IDS",
+    "VFX_MOTION_CAMERAS",
+    "VFX_MOTION_TEXT_FX",
+    "VFX_MOTION_INTRO_FX",
+    "MASTER_VFX_MOTION",
+    "VFX_MOTION_IDS",
     # VFX Audio system
-    "MASTER_VFX_AUDIO", "VFX_AUDIO_IDS",
+    "MASTER_VFX_AUDIO",
+    "VFX_AUDIO_IDS",
     # Highlight box styles (Reels/TikTok trending)
     "HIGHLIGHT_BOX_STYLES",
     # Background gradient kinds
     "BACKGROUND_GRADIENT_KINDS",
     # Randomizer
-    "generate_random_config", "UltraConfig",
+    "generate_random_config",
+    "UltraConfig",
     # VFX helpers
-    "get_random_vfx_pattern", "get_random_vfx_plugin", "get_random_vfx_theme",
-    "get_random_vfx_typography", "get_random_vfx_motion", "get_random_vfx_audio",
+    "get_random_vfx_pattern",
+    "get_random_vfx_plugin",
+    "get_random_vfx_theme",
+    "get_random_vfx_typography",
+    "get_random_vfx_motion",
+    "get_random_vfx_audio",
     "get_vfx_stats",
     # Metadata
-    "VERSION", "PROJECT_NAME",
+    "VERSION",
+    "PROJECT_NAME",
 ]
 
 VERSION = "2.0.0"
@@ -437,28 +466,28 @@ HALAL_PALETTES = list(MASTER_PALETTES.keys())  # All are halal
 # ============================================================
 
 TEXT_STYLES = (
-    "solid",      # Plain text
-    "outline",    # With stroke outline
-    "gold",       # Gold metallic
-    "glow",       # Neon glow
-    "gradient",   # Vertical gradient
-    "shadow",     # Drop shadow
+    "solid",  # Plain text
+    "outline",  # With stroke outline
+    "gold",  # Gold metallic
+    "glow",  # Neon glow
+    "gradient",  # Vertical gradient
+    "shadow",  # Drop shadow
 )
 
 MOTION_KINDS = (
-    "static",     # No motion
-    "zoom_in",    # Slow zoom in
-    "zoom_out",   # Slow zoom out
-    "pan_left",   # Pan left
+    "static",  # No motion
+    "zoom_in",  # Slow zoom in
+    "zoom_out",  # Slow zoom out
+    "pan_left",  # Pan left
     "pan_right",  # Pan right
-    "pan_up",     # Pan up
-    "pan_down",   # Pan down
+    "pan_up",  # Pan up
+    "pan_down",  # Pan down
 )
 
 CORNER_STYLES = (
-    "classic",    # Simple corners
-    "double",     # Double line corners
-    "dot",        # Dot at corner
+    "classic",  # Simple corners
+    "double",  # Double line corners
+    "dot",  # Dot at corner
 )
 
 
@@ -467,10 +496,10 @@ CORNER_STYLES = (
 # ============================================================
 
 HIGHLIGHT_BOX_STYLES = (
-    "",         # Legacy subtle overlay (default)
-    "gold",     # Gold pill with warm glow
-    "teal",     # Teal/cyan pill with cool glow
-    "rose",     # Rose/pink pill with soft glow
+    "",  # Legacy subtle overlay (default)
+    "gold",  # Gold pill with warm glow
+    "teal",  # Teal/cyan pill with cool glow
+    "rose",  # Rose/pink pill with soft glow
 )
 
 
@@ -479,8 +508,8 @@ HIGHLIGHT_BOX_STYLES = (
 # ============================================================
 
 BACKGROUND_GRADIENT_KINDS = (
-    "",         # Default static linear gradient
-    "aurora",   # Animated shifting aurora/northern-lights gradient
+    "",  # Default static linear gradient
+    "aurora",  # Animated shifting aurora/northern-lights gradient
 )
 
 
@@ -489,19 +518,52 @@ BACKGROUND_GRADIENT_KINDS = (
 # ============================================================
 
 FORBIDDEN_CATEGORIES = {
-    "alcohol", "gambling", "pork", "music_instruments",
-    "dancing", "nightclub", "bar", "tattoo",
-    "astrology", "occult", "magic", "violence",
-    "nudity", "weapons", "drugs",
+    "alcohol",
+    "gambling",
+    "pork",
+    "music_instruments",
+    "dancing",
+    "nightclub",
+    "bar",
+    "tattoo",
+    "astrology",
+    "occult",
+    "magic",
+    "violence",
+    "nudity",
+    "weapons",
+    "drugs",
 }
 
 ISLAMIC_CATEGORIES = [
-    "nature", "ocean", "mountains", "sky", "stars",
-    "sunrise", "sunset", "clouds", "rain", "flowers",
-    "trees", "desert", "water", "forest", "night_sky",
-    "moon", "river", "lake", "greenery", "hills",
-    "mosque", "calligraphy", "geometric", "arabesque",
-    "lantern", "crescent", "star_light", "dome",
+    "nature",
+    "ocean",
+    "mountains",
+    "sky",
+    "stars",
+    "sunrise",
+    "sunset",
+    "clouds",
+    "rain",
+    "flowers",
+    "trees",
+    "desert",
+    "water",
+    "forest",
+    "night_sky",
+    "moon",
+    "river",
+    "lake",
+    "greenery",
+    "hills",
+    "mosque",
+    "calligraphy",
+    "geometric",
+    "arabesque",
+    "lantern",
+    "crescent",
+    "star_light",
+    "dome",
 ]
 
 
@@ -509,36 +571,38 @@ ISLAMIC_CATEGORIES = [
 # 6. MASTER RANDOMIZER
 # ============================================================
 
+
 @dataclass
 class UltraConfig:
     """Complete video configuration - sab kuch ek jagah!"""
+
     # Seed
     seed: str = ""
-    
+
     # Fonts
     arabic_font: str = "amiri_bold"
     urdu_font: str = "noto_regular"
     title_font: str = "aref_bold"
-    
+
     # Effects
     text_effect: str = "neon_glow"
     text_style: str = "solid"
     mood: str = "peaceful"
-    
+
     # Background
     background_category: str = "nature"
     background_type: str = "auto"
-    
+
     # Visual
     corner_style: str = "classic"
     particle_density: int = 40
     motion_kind: str = "static"
-    highlight_style: str = ""        # "" / "gold" / "teal" / "rose"
-    gradient_kind: str = ""          # "" / "aurora"
-    
+    highlight_style: str = ""  # "" / "gold" / "teal" / "rose"
+    gradient_kind: str = ""  # "" / "aurora"
+
     # Palette
     palette: str = "midnight"
-    
+
     # VFX (from Remotion VFX Studio)
     vfx_pattern: str = ""
     vfx_plugin: str = ""
@@ -546,7 +610,7 @@ class UltraConfig:
     vfx_typography: str = ""
     vfx_motion: str = ""
     vfx_audio: str = ""
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
@@ -572,13 +636,13 @@ class UltraConfig:
             "vfx_motion": self.vfx_motion,
             "vfx_audio": self.vfx_audio,
         }
-    
+
     def summary(self) -> str:
         """Human-readable summary."""
         font_info = MASTER_FONTS.get(self.arabic_font, {})
         effect_info = MASTER_EFFECTS.get(self.text_effect, {})
         palette_info = MASTER_PALETTES.get(self.palette, {})
-        
+
         vfx_lines = ""
         if self.vfx_pattern:
             pat = MASTER_VFX_PATTERNS.get(self.vfx_pattern, {})
@@ -589,11 +653,11 @@ class UltraConfig:
         if self.vfx_motion:
             mot = MASTER_VFX_MOTION.get(self.vfx_motion, {})
             vfx_lines += f"  VFX MOTION: {mot.get('label', self.vfx_motion)}\n"
-        
+
         return (
-            f"{'='*40}\n"
+            f"{'=' * 40}\n"
             f"  ISLAMIC ULTRA PACK v{VERSION}\n"
-            f"{'='*40}\n\n"
+            f"{'=' * 40}\n\n"
             f"  MOOD: {self.mood.upper()}\n"
             f"  SEED: {self.seed}\n\n"
             f"  FONTS:\n"
@@ -608,7 +672,7 @@ class UltraConfig:
             f"  MOTION: {self.motion_kind}\n"
             f"  PARTICLES: {self.particle_density}\n"
             f"\n{vfx_lines}"
-            f"{'='*40}"
+            f"{'=' * 40}"
         )
 
 
@@ -619,31 +683,30 @@ def generate_random_config(
 ) -> UltraConfig:
     """
     Generate a fully random video configuration.
-    
+
     Args:
         seed: Random seed (auto-generated if None)
         favor: Preferred mood (peaceful/powerful/mystical/energetic)
         overrides: Dict of specific values to override
-    
+
     Returns:
         UltraConfig with all random selections
     """
     seed = seed or str(random.randint(100000, 999999))
     rng = random.Random(seed)
-    
+
     # 1. Random mood (weighted)
     mood_names = list(EFFECT_MOODS.keys())
-    mood_weights: list[float] = [float(EFFECT_MOODS[m]["weight"])
-                                 for m in mood_names]
-    
+    mood_weights: list[float] = [float(EFFECT_MOODS[m]["weight"]) for m in mood_names]
+
     if favor and favor in EFFECT_MOODS:
         idx = mood_names.index(favor)
         mood_weights[idx] *= 2.0
-    
+
     total_weight = sum(mood_weights)
     mood_weights = [w / total_weight for w in mood_weights]
     mood = rng.choices(mood_names, weights=mood_weights, k=1)[0]
-    
+
     # 2. Random fonts (from combos or pure random)
     if rng.random() < 0.7:
         combo = rng.choice(FONT_COMBOS)
@@ -655,29 +718,29 @@ def generate_random_config(
         arabic_font = rng.choice(font_keys)
         urdu_font = rng.choice(font_keys)
         title_font = rng.choice(font_keys)
-    
+
     # 3. Random effect (mood-based)
     mood_effects: list[str] = EFFECT_MOODS[mood]["effects"]
     text_effect: str = rng.choice(mood_effects)
-    
+
     # 4. Random style (mood-based)
     mood_styles = EFFECT_MOODS[mood]["text_styles"]
     text_style: str = rng.choice(mood_styles)
-    
+
     # 5. Random background
     background_category = rng.choice(ISLAMIC_CATEGORIES)
     background_type = rng.choice(["auto", "video", "image", "auto"])
-    
+
     # 6. Random visual options
     corner_style = rng.choice(CORNER_STYLES)
     particle_density = rng.randint(20, 60)
     motion_kind = rng.choice(MOTION_KINDS)
     highlight_style = rng.choice(HIGHLIGHT_BOX_STYLES)  # "" most of the time
     gradient_kind = rng.choice(BACKGROUND_GRADIENT_KINDS)  # "" most of the time
-    
+
     # 7. Random palette
     palette = rng.choice(PALETTE_NAMES)
-    
+
     config = UltraConfig(
         seed=seed,
         arabic_font=arabic_font,
@@ -695,7 +758,7 @@ def generate_random_config(
         gradient_kind=gradient_kind,
         palette=palette,
     )
-    
+
     # 8. Random VFX selections (if data available)
     if VFX_PATTERN_IDS:
         config.vfx_pattern = rng.choice(VFX_PATTERN_IDS)
@@ -709,13 +772,13 @@ def generate_random_config(
         config.vfx_motion = rng.choice(VFX_MOTION_IDS)
     if VFX_AUDIO_IDS:
         config.vfx_audio = rng.choice(VFX_AUDIO_IDS)
-    
+
     # Apply overrides
     if overrides:
         for key, value in overrides.items():
             if hasattr(config, key):
                 setattr(config, key, value)
-    
+
     return config
 
 
@@ -723,13 +786,15 @@ def generate_random_config(
 # 7. HELPER FUNCTIONS
 # ============================================================
 
+
 def get_font_path(font_key: str) -> str | None:
     """Get full path to a font file."""
     font = MASTER_FONTS.get(font_key)
     if not font:
         return None
-    
+
     from core.project_info import PROJECT
+
     return os.path.join(PROJECT.FONTS_DIR, font["file"])
 
 
@@ -739,7 +804,7 @@ def get_random_palette(dark_only: bool = False) -> dict:
         names = DARK_PALETTES
     else:
         names = PALETTE_NAMES
-    
+
     name = random.choice(names)
     return dict(MASTER_PALETTES[name])
 
@@ -767,8 +832,14 @@ def validate_category(category: str) -> bool:
 # ============================================================
 
 VFX_PATTERN_KINDS = (
-    "girih-band", "girih-corners", "arabesque-strip", "arabesque-corners",
-    "bead-band", "starfield-dots", "meander-band", "geometric-rosette",
+    "girih-band",
+    "girih-corners",
+    "arabesque-strip",
+    "arabesque-corners",
+    "bead-band",
+    "starfield-dots",
+    "meander-band",
+    "geometric-rosette",
 )
 
 VFX_TILE_ZONES = ("top", "bottom", "frame", "corners")
@@ -776,11 +847,26 @@ VFX_TILE_ZONES = ("top", "bottom", "frame", "corners")
 VFX_COLOR_TOKENS = ("accent", "glowColor", "particleColor", "solid")
 
 VFX_STYLE_OVERRIDES = (
-    "cornerInset", "cornerSize", "cornerOpacity", "frameEnabled",
-    "frameOpacity1", "frameOpacity2", "ornamentScale", "ornamentSwayDeg",
-    "raysOpacity", "orbsOpacity", "particlesScale", "grainOpacityDark",
-    "grainOpacityPaper", "vignetteScale", "bokehCount", "bokehOpacity",
-    "chromaticAberration", "shimmerStrength", "noiseVeilOpacity", "raysAngleDeg",
+    "cornerInset",
+    "cornerSize",
+    "cornerOpacity",
+    "frameEnabled",
+    "frameOpacity1",
+    "frameOpacity2",
+    "ornamentScale",
+    "ornamentSwayDeg",
+    "raysOpacity",
+    "orbsOpacity",
+    "particlesScale",
+    "grainOpacityDark",
+    "grainOpacityPaper",
+    "vignetteScale",
+    "bokehCount",
+    "bokehOpacity",
+    "chromaticAberration",
+    "shimmerStrength",
+    "noiseVeilOpacity",
+    "raysAngleDeg",
 )
 
 
@@ -791,6 +877,7 @@ def _load_vfx_data():
     if not os.path.exists(vfx_path):
         return {"patterns": [], "plugins": [], "themes": [], "typography": [], "motion": [], "audio": []}
     import json
+
     with open(vfx_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -815,8 +902,17 @@ VFX_PLUGIN_IDS = list(MASTER_VFX_PLUGINS.keys())
 
 # --- Themes (76) ---
 VFX_THEME_DECORS = (
-    "stars", "mosque", "sun", "paper", "pattern", "waves",
-    "dunes", "royal", "lanterns", "festive", "qadr",
+    "stars",
+    "mosque",
+    "sun",
+    "paper",
+    "pattern",
+    "waves",
+    "dunes",
+    "royal",
+    "lanterns",
+    "festive",
+    "qadr",
 )
 
 MASTER_VFX_THEMES: dict[str, Any] = {}
@@ -860,6 +956,7 @@ VFX_AUDIO_IDS = list(MASTER_VFX_AUDIO.keys())
 # ============================================================
 # 9. VFX HELPER FUNCTIONS
 # ============================================================
+
 
 def get_random_vfx_pattern(kind=None, zone=None):
     """Get a random VFX pattern, optionally filtered by kind or zone."""
@@ -921,8 +1018,11 @@ def get_vfx_stats():
         "motion": len(MASTER_VFX_MOTION),
         "audio": len(MASTER_VFX_AUDIO),
         "total": (
-            len(MASTER_VFX_PATTERNS) + len(MASTER_VFX_PLUGINS) +
-            len(MASTER_VFX_THEMES) + len(MASTER_VFX_TYPOGRAPHY) +
-            len(MASTER_VFX_MOTION) + len(MASTER_VFX_AUDIO)
+            len(MASTER_VFX_PATTERNS)
+            + len(MASTER_VFX_PLUGINS)
+            + len(MASTER_VFX_THEMES)
+            + len(MASTER_VFX_TYPOGRAPHY)
+            + len(MASTER_VFX_MOTION)
+            + len(MASTER_VFX_AUDIO)
         ),
     }

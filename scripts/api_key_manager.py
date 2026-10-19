@@ -68,9 +68,7 @@ def encrypt_config():
         "encrypted": True,
         "data": token.decode("utf-8"),
     }
-    ENCRYPTED_PATH.write_text(
-        json.dumps(encrypted_payload, indent=2), encoding="utf-8"
-    )
+    ENCRYPTED_PATH.write_text(json.dumps(encrypted_payload, indent=2), encoding="utf-8")
     print(f"Encrypted config written to {ENCRYPTED_PATH}")
 
 

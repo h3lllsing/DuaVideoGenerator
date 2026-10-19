@@ -7,13 +7,13 @@ Usage:
 
 Writes to H:\\DuaVideoGenerator\\share_kit\\<dua_id>.txt plus INDEX.md.
 """
+
 import io
 import json
 import os
 import sys
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
-                              errors="replace")
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(os.path.dirname(SCRIPTS))
@@ -43,11 +43,13 @@ def get_channel_id():
         return cid, cached
     sys.path.insert(0, SCRIPTS)
     import youtube_auth
+
     youtube_auth.set_token_path(os.path.abspath(TOKEN_PATH))
     cred = youtube_auth.get_credentials()
     if not cred:
         return None, None
     from googleapiclient.discovery import build
+
     yt = build("youtube", "v3", credentials=cred)
     r = yt.channels().list(part="snippet,statistics", mine=True).execute()
     item = (r.get("items") or [{}])[0]
@@ -74,8 +76,7 @@ def build_text(dua, video_id, is_short, cid, cinfo):
         watch = "https://youtube.com/shorts/%s" % video_id
     else:
         watch = "https://youtu.be/%s" % video_id
-    sub = ("https://www.youtube.com/channel/%s?sub_confirmation=1" % cid
-           if cid else "")
+    sub = "https://www.youtube.com/channel/%s?sub_confirmation=1" % cid if cid else ""
     lines = []
     head = title
     if ref:
@@ -105,8 +106,7 @@ def main():
     cid, cinfo = get_channel_id()
     if not cinfo:
         return {"ok": False, "note": "no channel info"}
-    print("channel:", cinfo.get("title"), "| subs:", cinfo.get("subs"),
-          "| videos:", cinfo.get("videos"), flush=True)
+    print("channel:", cinfo.get("title"), "| subs:", cinfo.get("subs"), "| videos:", cinfo.get("videos"), flush=True)
 
     written = 0
     index = []
@@ -115,8 +115,7 @@ def main():
         if rec and rec.get("video_id") and dua_id:
             ids.add((dua_id, "short", rec["video_id"]))
     for dua_id, rec in ut.items():
-        if rec and rec.get("status") == "uploaded" and rec.get("video_id") \
-                and dua_id:
+        if rec and rec.get("status") == "uploaded" and rec.get("video_id") and dua_id:
             ids.add((dua_id, "long", rec["video_id"]))
 
     for dua_id, kind, video_id in sorted(ids):
@@ -124,28 +123,28 @@ def main():
         if not dua:
             dua = {"title": dua_id.replace("_", " ").title()}
         text = build_text(dua, video_id, kind == "short", cid, cinfo)
-        with open(os.path.join(KIT_DIR, dua_id + ".txt"), "w",
-                  encoding="utf-8") as f:
+        with open(os.path.join(KIT_DIR, dua_id + ".txt"), "w", encoding="utf-8") as f:
             f.write(text + "\n")
         if dua_id not in {x[0] for x in index}:
-            index.append((dua_id, dua.get("title") or "",
-                          kind, video_id, (dua.get("reference") or "")))
+            index.append((dua_id, dua.get("title") or "", kind, video_id, (dua.get("reference") or "")))
         written += 1
 
     sub = "https://www.youtube.com/channel/%s?sub_confirmation=1" % cid
-    md = ["# Share Kit — %s" % (cinfo.get("title") or "Noor-e-Iman"), "",
-          "Subs: %s | Videos: %s" % (cinfo.get("subs"), cinfo.get("videos")),
-          "Subscribe: %s" % sub, "",
-          "| dua_id | title | kind | video_id | reference |",
-          "|---|---|---|---|---|"]
+    md = [
+        "# Share Kit — %s" % (cinfo.get("title") or "Noor-e-Iman"),
+        "",
+        "Subs: %s | Videos: %s" % (cinfo.get("subs"), cinfo.get("videos")),
+        "Subscribe: %s" % sub,
+        "",
+        "| dua_id | title | kind | video_id | reference |",
+        "|---|---|---|---|---|",
+    ]
     for dua_id, title, kind, video_id, ref in sorted(index):
-        md.append("| %s | %s | %s | %s | %s |"
-                  % (dua_id, title, kind, video_id, ref))
+        md.append("| %s | %s | %s | %s | %s |" % (dua_id, title, kind, video_id, ref))
     with open(os.path.join(KIT_DIR, "INDEX.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(md) + "\n")
 
-    return {"ok": True, "written": written, "channel": cinfo.get("title"),
-            "subs": cinfo.get("subs")}
+    return {"ok": True, "written": written, "channel": cinfo.get("title"), "subs": cinfo.get("subs")}
 
 
 if __name__ == "__main__":

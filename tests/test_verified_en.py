@@ -4,6 +4,7 @@ These are pure-logic tests (no network): reference strings from duas.json must
 map to the correct Quran/hadith source, and English subtitles may never be
 attached to YouTube unless the review queue has approved them.
 """
+
 import json
 import os
 import sys
@@ -17,32 +18,40 @@ sys.path.insert(0, SCRIPTS)
 import verified_en as ve  # noqa: E402
 
 
-@pytest.mark.parametrize("ref,expected", [
-    ("Surah Al-Baqarah 2:255", [2, 255, 255]),
-    ("Al-A'raf 7:126", [7, 126, 126]),
-    ("Surah Taha 20:25-26", [20, 25, 26]),
-    ("Surah Ibrahim 40", [14, 40, 40]),
-    ("Quran Surah Al-Asr 103", [103, None, None]),  # whole surah
-])
+@pytest.mark.parametrize(
+    "ref,expected",
+    [
+        ("Surah Al-Baqarah 2:255", [2, 255, 255]),
+        ("Al-A'raf 7:126", [7, 126, 126]),
+        ("Surah Taha 20:25-26", [20, 25, 26]),
+        ("Surah Ibrahim 40", [14, 40, 40]),
+        ("Quran Surah Al-Asr 103", [103, None, None]),  # whole surah
+    ],
+)
 def test_quran_reference_parsing(ref, expected):
     assert ve.parse_reference(ref)["quran"] == expected
 
 
-@pytest.mark.parametrize("ref,expected", [
-    ("Sahih Muslim 476", [["sahih muslim", 476]]),
-    ("Sunan an-Nasa'i 896", [["sunan an-nasa'i", 896]]),
-    ("Sahih Bukhari 1234; Sahih Muslim 567",
-     [["sahih bukhari", 1234], ["sahih muslim", 567]]),
-])
+@pytest.mark.parametrize(
+    "ref,expected",
+    [
+        ("Sahih Muslim 476", [["sahih muslim", 476]]),
+        ("Sunan an-Nasa'i 896", [["sunan an-nasa'i", 896]]),
+        ("Sahih Bukhari 1234; Sahih Muslim 567", [["sahih bukhari", 1234], ["sahih muslim", 567]]),
+    ],
+)
 def test_hadith_reference_parsing(ref, expected):
     assert ve.parse_reference(ref)["hadith"] == expected
 
 
-@pytest.mark.parametrize("ref", [
-    "",
-    "Eid Aur Ayyam E Hajj Ki Sunnat",
-    "\u06a9\u0648\u0626\u06cc \u0645\u0633\u062a\u0646\u062f \u062d\u062f\u06cc\u062b \u0646\u06c1\u06cc\u06ba",
-])
+@pytest.mark.parametrize(
+    "ref",
+    [
+        "",
+        "Eid Aur Ayyam E Hajj Ki Sunnat",
+        "\u06a9\u0648\u0626\u06cc \u0645\u0633\u062a\u0646\u062f \u062d\u062f\u06cc\u062b \u0646\u06c1\u06cc\u06ba",
+    ],
+)
 def test_non_source_reference_is_empty(ref):
     parsed = ve.parse_reference(ref)
     assert parsed["quran"] is None
@@ -72,6 +81,7 @@ class TestCaptionGate:
     @pytest.fixture
     def upload(self, tmp_path, monkeypatch):
         import upload
+
         review = tmp_path / "en_review.json"
         monkeypatch.setattr(upload, "EN_REVIEW_PATH", str(review))
         return upload, review
@@ -82,26 +92,22 @@ class TestCaptionGate:
 
     def test_pending_denies(self, upload):
         mod, review = upload
-        review.write_text(json.dumps(
-            {"dua_a": {"status": "pending"}}), encoding="utf-8")
+        review.write_text(json.dumps({"dua_a": {"status": "pending"}}), encoding="utf-8")
         assert mod.en_caption_allowed("dua_a") is False
 
     def test_rejected_denies(self, upload):
         mod, review = upload
-        review.write_text(json.dumps(
-            {"dua_a": {"status": "rejected"}}), encoding="utf-8")
+        review.write_text(json.dumps({"dua_a": {"status": "rejected"}}), encoding="utf-8")
         assert mod.en_caption_allowed("dua_a") is False
 
     def test_unknown_dua_denies(self, upload):
         mod, review = upload
-        review.write_text(json.dumps(
-            {"dua_a": {"status": "approved"}}), encoding="utf-8")
+        review.write_text(json.dumps({"dua_a": {"status": "approved"}}), encoding="utf-8")
         assert mod.en_caption_allowed("dua_b") is False
 
     def test_approved_allows(self, upload):
         mod, review = upload
-        review.write_text(json.dumps(
-            {"dua_a": {"status": "approved"}}), encoding="utf-8")
+        review.write_text(json.dumps({"dua_a": {"status": "approved"}}), encoding="utf-8")
         assert mod.en_caption_allowed("dua_a") is True
 
     def test_corrupt_file_denies(self, upload):

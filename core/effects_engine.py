@@ -28,8 +28,7 @@ class EffectsEngine:
     6. Glitch - Modern glitch effect
     """
 
-    def __init__(self, width: int | None = None,
-                 height: int | None = None):
+    def __init__(self, width: int | None = None, height: int | None = None):
         """Initialize effects engine."""
         self.width = width or PROJECT.VIDEO_WIDTH
         self.height = height or PROJECT.VIDEO_HEIGHT
@@ -50,17 +49,16 @@ class EffectsEngine:
         self._buffers: dict[str, Image.Image] = {}
         self._vignette_mask: Any = None
 
-    def apply_effect(self, effect_name: str, text_img: Image.Image,
-                     frame_num: int, total_frames: int) -> Image.Image:
+    def apply_effect(self, effect_name: str, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Apply specified effect to text image.
-        
+
         Args:
             effect_name: Name of the effect
             text_img: Text image to apply effect
             frame_num: Current frame number
             total_frames: Total number of frames
-            
+
         Returns:
             Processed image with effect
         """
@@ -70,34 +68,32 @@ class EffectsEngine:
             # Default: return original with fade-in
             return self._default_fade(text_img, frame_num, total_frames)
 
-    def _default_fade(self, text_img: Image.Image, frame_num: int,
-                      total_frames: int) -> Image.Image:
+    def _default_fade(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """Default fade-in effect."""
         alpha = int(255 * min(1.0, (frame_num / total_frames) * 2))
 
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
 
-        return Image.merge('RGBA', (r, g, b, a))
+        return Image.merge("RGBA", (r, g, b, a))
 
-    def neon_glow(self, text_img: Image.Image, frame_num: int,
-                  total_frames: int) -> Image.Image:
+    def neon_glow(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Neon Glow Effect - Glowing text with animated intensity.
-        
+
         Args:
             text_img: Text image
             frame_num: Current frame
             total_frames: Total frames
-            
+
         Returns:
             Image with neon glow effect
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         # Calculate glow intensity (pulsing)
         progress = frame_num / total_frames
@@ -113,30 +109,29 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        main_text = Image.merge('RGBA', (r, g, b, a))
+        main_text = Image.merge("RGBA", (r, g, b, a))
 
         # Combine glow and main text
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         result = Image.alpha_composite(result, glow)
         result = Image.alpha_composite(result, main_text)
 
         return result
 
-    def metallic_gold(self, text_img: Image.Image, frame_num: int,
-                      total_frames: int) -> Image.Image:
+    def metallic_gold(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Metallic Gold Effect - Shiny gold metallic text.
-        
+
         Args:
             text_img: Text image
             frame_num: Current frame
             total_frames: Total frames
-            
+
         Returns:
             Image with metallic gold effect
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         W, H = text_img.size
@@ -159,22 +154,21 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
         # Combine gold gradient with text
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         result = Image.alpha_composite(result, gold_layer_img)
         result = Image.alpha_composite(result, text_faded)
 
         return result
 
-    def silver_chrome(self, text_img: Image.Image, frame_num: int,
-                      total_frames: int) -> Image.Image:
+    def silver_chrome(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Silver Chrome Effect - Shiny silver metallic text with cold shimmer.
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         W, H = text_img.size
@@ -195,34 +189,33 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         result = Image.alpha_composite(result, silver_layer_img)
         result = Image.alpha_composite(result, text_faded)
 
         return result
 
-    def three_d_shadow(self, text_img: Image.Image, frame_num: int,
-                       total_frames: int) -> Image.Image:
+    def three_d_shadow(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         3D Shadow Effect - Text with depth shadow and perspective.
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         W, H = text_img.size
 
-        result = Image.new('RGBA', (W + 20, H + 20), (0, 0, 0, 0))
+        result = Image.new("RGBA", (W + 20, H + 20), (0, 0, 0, 0))
 
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
-        shadow = Image.new('RGBA', text_faded.size, (0, 0, 0, 0))
-        shadow_alpha = Image.new('L', shadow.size, 0)
+        shadow = Image.new("RGBA", text_faded.size, (0, 0, 0, 0))
+        shadow_alpha = Image.new("L", shadow.size, 0)
         alpha_draw = ImageDraw.Draw(shadow_alpha)
         W_s, H_s = shadow.size
         for i in range(8, 0, -1):
@@ -236,13 +229,12 @@ class EffectsEngine:
 
         return result.crop((0, 0, W, H))
 
-    def neon_outline(self, text_img: Image.Image, frame_num: int,
-                     total_frames: int) -> Image.Image:
+    def neon_outline(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Neon Outline Effect - Glowing outline text with animated color.
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         W, H = text_img.size
@@ -250,32 +242,30 @@ class EffectsEngine:
         glow_color = (
             int(127 + 128 * np.sin(progress * np.pi * 2)),
             int(127 + 128 * np.sin(progress * np.pi * 2 + 2)),
-            255
+            255,
         )
 
         outline_mask = text_img.split()[3].point(lambda p: 255 if p > 0 else 0)
-        outline_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(outline_layer).rectangle(
-            [(0, 0), (W, H)], fill=glow_color + (100,))
+        outline_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(outline_layer).rectangle([(0, 0), (W, H)], fill=glow_color + (100,))
         outline_layer.putalpha(outline_mask)
 
         glow = outline_layer.filter(ImageFilter.GaussianBlur(radius=6))
         enhancer = ImageEnhance.Brightness(glow)
         glow = enhancer.enhance(1.5)
 
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         result = Image.alpha_composite(result, glow)
         result = Image.alpha_composite(result, text_img)
 
         return result
 
-    def fade_in_out(self, text_img: Image.Image, frame_num: int,
-                    total_frames: int) -> Image.Image:
+    def fade_in_out(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Fade In/Out Effect - Smooth fade in then fade out.
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         if progress < 0.3:
@@ -289,15 +279,14 @@ class EffectsEngine:
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
 
-        return Image.merge('RGBA', (r, g, b, a))
+        return Image.merge("RGBA", (r, g, b, a))
 
-    def slide_left(self, text_img: Image.Image, frame_num: int,
-                   total_frames: int) -> Image.Image:
+    def slide_left(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Slide Left Effect - Text slides in from the right.
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         W, H = text_img.size
@@ -311,20 +300,19 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         result.paste(text_faded, (max(0, offset_x), 0), text_faded)
 
         return result
 
-    def scale_up(self, text_img: Image.Image, frame_num: int,
-                 total_frames: int) -> Image.Image:
+    def scale_up(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Scale Up Effect - Text scales up from small to full size.
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
         W, H = text_img.size
@@ -341,28 +329,27 @@ class EffectsEngine:
 
         scaled = text_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         paste_x = (W - new_w) // 2
         paste_y = (H - new_h) // 2
         result.paste(scaled, (paste_x, paste_y), scaled)
 
         return result
 
-    def typewriter(self, text_img: Image.Image, frame_num: int,
-                   total_frames: int) -> Image.Image:
+    def typewriter(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Typewriter Effect - Character by character reveal.
-        
+
         Args:
             text_img: Text image
             frame_num: Current frame
             total_frames: Total frames
-            
+
         Returns:
             Image with typewriter effect
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
 
@@ -370,36 +357,35 @@ class EffectsEngine:
         visible_width = int(text_img.size[0] * min(1.0, progress * 2))
 
         # Create mask for visible portion (reuse buffer across frames)
-        mask = self._buffers.get('typewriter_mask')
+        mask = self._buffers.get("typewriter_mask")
         if mask is None or mask.size != text_img.size:
-            mask = Image.new('L', text_img.size, 0)
-            self._buffers['typewriter_mask'] = mask
+            mask = Image.new("L", text_img.size, 0)
+            self._buffers["typewriter_mask"] = mask
         else:
             mask.paste(0)  # Clear to black
         draw = ImageDraw.Draw(mask)
         draw.rectangle([(0, 0), (visible_width, text_img.size[1])], fill=255)
 
         # Apply mask to text
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         result.paste(text_img, (0, 0), mask)
 
         return result
 
-    def bounce(self, text_img: Image.Image, frame_num: int,
-               total_frames: int) -> Image.Image:
+    def bounce(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Bounce Effect - Text bounces in from top.
-        
+
         Args:
             text_img: Text image
             frame_num: Current frame
             total_frames: Total frames
-            
+
         Returns:
             Image with bounce effect
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
 
@@ -417,30 +403,29 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
         # Create result with offset (clamped to canvas)
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
         paste_y = max(0, offset_y)  # Clamp to prevent off-screen clipping
         result.paste(text_faded, (0, paste_y), text_faded)
 
         return result
 
-    def wave(self, text_img: Image.Image, frame_num: int,
-             total_frames: int) -> Image.Image:
+    def wave(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Wave Effect - Wave animation.
-        
+
         Args:
             text_img: Text image
             frame_num: Current frame
             total_frames: Total frames
-            
+
         Returns:
             Image with wave effect
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
 
@@ -448,7 +433,7 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
         # Vectorized wave distortion using numpy advanced indexing
         arr = np.array(text_faded)
@@ -462,21 +447,20 @@ class EffectsEngine:
 
         return result
 
-    def glitch(self, text_img: Image.Image, frame_num: int,
-               total_frames: int) -> Image.Image:
+    def glitch(self, text_img: Image.Image, frame_num: int, total_frames: int) -> Image.Image:
         """
         Glitch Effect - Modern glitch with color separation.
-        
+
         Args:
             text_img: Text image
             frame_num: Current frame
             total_frames: Total frames
-            
+
         Returns:
             Image with glitch effect
         """
-        if text_img.mode != 'RGBA':
-            text_img = text_img.convert('RGBA')
+        if text_img.mode != "RGBA":
+            text_img = text_img.convert("RGBA")
 
         progress = frame_num / total_frames
 
@@ -484,32 +468,31 @@ class EffectsEngine:
         alpha = int(255 * min(1.0, progress * 2))
         r, g, b, a = text_img.split()
         a = a.point(lambda p: int(p * (alpha / 255.0)))
-        text_faded = Image.merge('RGBA', (r, g, b, a))
+        text_faded = Image.merge("RGBA", (r, g, b, a))
 
         # Deterministic glitch offset
         glitch_offset = int(5 * np.sin(progress * np.pi * 10))
 
         # Create color channels with offset
-        result = Image.new('RGBA', text_img.size, (0, 0, 0, 0))
+        result = Image.new("RGBA", text_img.size, (0, 0, 0, 0))
 
         # Red channel
         r, g, b, a = text_faded.split()
-        gray = Image.new('L', r.size, 128)
-        red_channel = Image.merge('RGBA', (r, gray, gray, a))
+        gray = Image.new("L", r.size, 128)
+        red_channel = Image.merge("RGBA", (r, gray, gray, a))
         result.paste(red_channel, (glitch_offset, 0), red_channel)
 
         # Green channel
-        green_channel = Image.merge('RGBA', (gray, g, gray, a))
+        green_channel = Image.merge("RGBA", (gray, g, gray, a))
         result.paste(green_channel, (0, 0), green_channel)
 
         # Blue channel
-        blue_channel = Image.merge('RGBA', (gray, gray, b, a))
+        blue_channel = Image.merge("RGBA", (gray, gray, b, a))
         result.paste(blue_channel, (-glitch_offset, 0), blue_channel)
 
         return result
 
-    def apply_to_frames(self, frames: list[Image.Image],
-                        effect_name: str = "neon_glow") -> list[Image.Image]:
+    def apply_to_frames(self, frames: list[Image.Image], effect_name: str = "neon_glow") -> list[Image.Image]:
         """
         Apply a frame-level effect to a whole list of frames.
         'none'/'empty' returns the frames untouched.
@@ -520,14 +503,14 @@ class EffectsEngine:
         out = []
         for i, frame in enumerate(frames):
             try:
-                if frame.mode != 'RGBA':
-                    frame = frame.convert('RGBA')
+                if frame.mode != "RGBA":
+                    frame = frame.convert("RGBA")
                 res = self.apply_effect(effect_name, frame, i, total)
-                out.append(res.convert('RGB'))
+                out.append(res.convert("RGB"))
             except Exception as e:
                 logger.warning("Effect '%s' failed on frame %d: %s", effect_name, i, e)
                 # Return original frame on failure
-                out.append(frame.convert('RGB') if frame.mode != 'RGB' else frame)
+                out.append(frame.convert("RGB") if frame.mode != "RGB" else frame)
         return out
 
     # ------------------------------------------------------------------
@@ -574,8 +557,7 @@ class EffectsEngine:
             # collect new word pulses for THIS frame
             for spec in specs:
                 if spec.get("effect") == "word_pulse":
-                    active_pulses.append(
-                        (int(spec.get("params", {}).get("decay", 8)), spec))
+                    active_pulses.append((int(spec.get("params", {}).get("decay", 8)), spec))
 
             # decaying pulses
             if active_pulses:
@@ -661,14 +643,12 @@ class EffectsEngine:
         mask = (gray > threshold).astype(np.float32)
         try:
             from core.hardware import gaussian_blur
+
             m = gaussian_blur(mask, 8.0)
         except Exception:
             logger.debug("gaussian_blur import failed, using cv2 fallback")
             m = cv2.GaussianBlur(mask, (0, 0), 8)
-        glow = np.stack(
-            [m * (tint[0] * intensity),
-             m * (tint[1] * intensity),
-             m * (tint[2] * intensity)], axis=2)
+        glow = np.stack([m * (tint[0] * intensity), m * (tint[1] * intensity), m * (tint[2] * intensity)], axis=2)
         glow = np.clip(glow, 0, 255).astype(np.uint8)
         glow = cv2.resize(glow, (w, h), interpolation=cv2.INTER_LINEAR)
         return cv2.add(arr, glow)
@@ -685,9 +665,8 @@ class EffectsEngine:
         xcoord = x[None, :] - off
         band = np.exp(-(((xcoord - xc) / (sw * 0.14)) ** 2))
         gold = np.stack(
-            [band * (tint[0] * intensity),
-             band * (tint[1] * intensity),
-             band * (tint[2] * intensity)], axis=2)
+            [band * (tint[0] * intensity), band * (tint[1] * intensity), band * (tint[2] * intensity)], axis=2
+        )
         gold = np.clip(gold, 0, 255).astype(np.uint8)
         gold = cv2.resize(gold, (w, h), interpolation=cv2.INTER_LINEAR)
         return cv2.add(arr, gold)
@@ -709,7 +688,7 @@ class EffectsEngine:
         bound = int(right - (right - left) * fraction)
         col = np.ones(half_w, dtype=np.float32)
         col[:bound] = 0.35
-        col[bound:bound + 2] = np.linspace(0.35, 1.0, 2)
+        col[bound : bound + 2] = np.linspace(0.35, 1.0, 2)
         small = (small.astype(np.float32) * col[None, :, None]).astype(np.uint8)
         return cv2.resize(small, (w, h), interpolation=cv2.INTER_LINEAR)
 
@@ -762,13 +741,11 @@ class EffectsEngine:
         sw, sh = max(2, w // 4), max(2, h // 4)
         yy, xx = np.mgrid[0:sh, 0:sw].astype(np.float32)
         acc = np.zeros((sh, sw), np.float32)
-        for k, (cx0, cy0, rx, ry) in enumerate(
-                [(0.22, 0.10, 0.32, 0.16), (0.78, 0.92, 0.32, 0.16)]):
+        for k, (cx0, cy0, rx, ry) in enumerate([(0.22, 0.10, 0.32, 0.16), (0.78, 0.92, 0.32, 0.16)]):
             cx = sw * (cx0 + 0.07 * np.sin(phase * 2 * np.pi + k * 2.0))
             cy = sh * (cy0 + 0.05 * np.cos(phase * 2 * np.pi + k * 1.3))
-            r = np.sqrt(((xx - cx) / (sw * rx)) ** 2 +
-                        ((yy - cy) / (sh * ry)) ** 2)
-            acc += np.exp(-(r ** 2))
+            r = np.sqrt(((xx - cx) / (sw * rx)) ** 2 + ((yy - cy) / (sh * ry)) ** 2)
+            acc += np.exp(-(r**2))
         m = np.clip(acc, 0, 1) * intensity
         glow = np.stack([m * tint[0], m * tint[1], m * tint[2]], axis=2)
         glow = np.clip(glow, 0, 255).astype(np.uint8)
@@ -789,8 +766,7 @@ class EffectsEngine:
             zoom = 1.0 + 0.045 * (1.0 - phase)
             cw, ch = int(w / zoom), int(h / zoom)
             x0, y0 = (w - cw) // 2, (h - ch) // 2
-            out = cv2.resize(arr[y0:y0 + ch, x0:x0 + cw], (w, h),
-                             interpolation=cv2.INTER_LINEAR)
+            out = cv2.resize(arr[y0 : y0 + ch, x0 : x0 + cw], (w, h), interpolation=cv2.INTER_LINEAR)
             flash = 0.45 * (1.0 - phase)
             if flash > 0:
                 sw, sh = max(2, w // 8), max(2, h // 8)
@@ -799,11 +775,9 @@ class EffectsEngine:
                 r = np.sqrt((xx - cx) ** 2 + ((yy - cy) / 1.1) ** 2)
                 m = np.exp(-((r / (sh * 0.35)) ** 2))
                 m = np.clip(m * flash, 0, 1)
-                glow = np.stack(
-                    [m * tint[0], m * tint[1], m * tint[2]], axis=2)
+                glow = np.stack([m * tint[0], m * tint[1], m * tint[2]], axis=2)
                 glow = np.clip(glow, 0, 255).astype(np.uint8)
-                glow = cv2.resize(glow, (w, h),
-                                  interpolation=cv2.INTER_LINEAR)
+                glow = cv2.resize(glow, (w, h), interpolation=cv2.INTER_LINEAR)
                 out = cv2.add(out, glow)
             return out
         return arr
@@ -823,8 +797,7 @@ class EffectsEngine:
         if not (arabic or urdu):
             return arr
 
-        key = ("sc", arabic, urdu, title, tuple(tint),
-               self.width, self.height)
+        key = ("sc", arabic, urdu, title, tuple(tint), self.width, self.height)
         card = self._summary_cache.get(key)
         if card is None:
             card = self._build_summary_card(arabic, urdu, title, tint)
@@ -837,20 +810,20 @@ class EffectsEngine:
         if alpha <= 0:
             return arr
         f = alpha
-        out = (arr.astype(np.float32)
-               * (1.0 - card_alpha * f)[:, :, None]
-               + card_img.astype(np.float32)
-               * (card_alpha * f)[:, :, None])
+        out = (
+            arr.astype(np.float32) * (1.0 - card_alpha * f)[:, :, None]
+            + card_img.astype(np.float32) * (card_alpha * f)[:, :, None]
+        )
         return np.clip(out, 0, 255).astype(np.uint8)
 
-    def _build_summary_card(self, arabic: str, urdu: str, title: str,
-                            tint=(212, 175, 55)):
+    def _build_summary_card(self, arabic: str, urdu: str, title: str, tint=(212, 175, 55)):
         """Build the cached outro card as (RGB uint8 HxWx3, alpha float HxW).
 
         Modern glass style: soft drop shadow, translucent panel with top
         sheen, gold gradient border, gradient-gold Arabic, clean Urdu.
         """
         from core.arabic_renderer import ArabicRenderer, _is_arabic, apply_vertical_gradient
+
         ar = ArabicRenderer()
         W, H = self.width, self.height
         card_w, card_h = int(W * 0.86), int(H * 0.58)
@@ -865,36 +838,32 @@ class EffectsEngine:
         # 1) soft drop shadow
         shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         ImageDraw.Draw(shadow).rounded_rectangle(
-            [x0, y0 + 12, x0 + card_w, y0 + card_h + 12], radius=radius,
-            fill=(0, 0, 0, 150))
+            [x0, y0 + 12, x0 + card_w, y0 + card_h + 12], radius=radius, fill=(0, 0, 0, 150)
+        )
         shadow = shadow.filter(ImageFilter.GaussianBlur(18))
         canvas = Image.alpha_composite(canvas, shadow)
 
         # 2) glass panel with subtle top sheen
         panel = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         ImageDraw.Draw(panel).rounded_rectangle(
-            [x0, y0, x0 + card_w, y0 + card_h], radius=radius,
-            fill=(12, 15, 32, 226))
+            [x0, y0, x0 + card_w, y0 + card_h], radius=radius, fill=(12, 15, 32, 226)
+        )
         sheen = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         sd = ImageDraw.Draw(sheen)
         sheen_h = int(card_h * 0.16)
         for i in range(sheen_h):
             a = int(30 * (1 - i / sheen_h))
-            sd.line([(x0 + radius, y0 + i),
-                     (x0 + card_w - radius, y0 + i)], fill=(255, 255, 255, a))
+            sd.line([(x0 + radius, y0 + i), (x0 + card_w - radius, y0 + i)], fill=(255, 255, 255, a))
         panel = Image.alpha_composite(panel, sheen)
         canvas = Image.alpha_composite(canvas, panel)
 
         # 3) gold gradient border ring
         ring = Image.new("L", (W, H), 0)
-        ImageDraw.Draw(ring).rounded_rectangle(
-            [x0, y0, x0 + card_w, y0 + card_h], radius=radius,
-            outline=255, width=4)
+        ImageDraw.Draw(ring).rounded_rectangle([x0, y0, x0 + card_w, y0 + card_h], radius=radius, outline=255, width=4)
         rows = np.linspace(0.0, 1.0, H)[:, None]
         g_top, g_bot = np.array([255, 233, 168]), np.array([186, 146, 58])
         grad = np.zeros((H, W, 4), dtype=np.uint8)
-        grad[:, :, :3] = (g_top * (1 - rows) + g_bot * rows
-                          ).astype(np.uint8)[:, None, :]
+        grad[:, :, :3] = (g_top * (1 - rows) + g_bot * rows).astype(np.uint8)[:, None, :]
         grad[:, :, 3] = 255
         border = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         border.paste(Image.fromarray(grad), (0, 0), ring)
@@ -920,53 +889,39 @@ class EffectsEngine:
         # title (centered)
         if title:
             if _is_arabic(title):
-                t_img = ar.render_line(title, 36, color=tuple(tint),
-                                       outline_color=(10, 12, 20),
-                                       outline_width=2)
+                t_img = ar.render_line(title, 36, color=tuple(tint), outline_color=(10, 12, 20), outline_width=2)
                 canvas.paste(t_img, ((W - t_img.width) // 2, cy), t_img)
             else:
                 tmp = Image.new("RGBA", (inner_w, 60), (0, 0, 0, 0))
                 td = ImageDraw.Draw(tmp)
                 tfont = ImageFont.truetype(ar.font_path, 36)
                 bb = td.textbbox((0, 0), title, font=tfont)
-                td.text((-bb[0], -bb[1]), title, font=tfont,
-                        fill=tuple(tint) + (255,))
-                t_img = tmp.crop((max(0, bb[0]), max(0, bb[1]),
-                                  min(inner_w, bb[2]), min(60, bb[3])))
+                td.text((-bb[0], -bb[1]), title, font=tfont, fill=tuple(tint) + (255,))
+                t_img = tmp.crop((max(0, bb[0]), max(0, bb[1]), min(inner_w, bb[2]), min(60, bb[3])))
                 canvas.paste(t_img, ((W - t_img.width) // 2, cy), t_img)
             cy += 72
 
         # divider with center diamond ornament
         dy = cy
-        d.line([(x0 + int(card_w * 0.15), dy),
-                (x0 + int(card_w * 0.46), dy)], fill=tuple(tint) + (200,),
-               width=2)
-        d.line([(x0 + int(card_w * 0.54), dy),
-                (x0 + int(card_w * 0.85), dy)], fill=tuple(tint) + (200,),
-               width=2)
+        d.line([(x0 + int(card_w * 0.15), dy), (x0 + int(card_w * 0.46), dy)], fill=tuple(tint) + (200,), width=2)
+        d.line([(x0 + int(card_w * 0.54), dy), (x0 + int(card_w * 0.85), dy)], fill=tuple(tint) + (200,), width=2)
         r = 7
-        d.polygon([(W // 2, dy - r), (W // 2 + r, dy), (W // 2, dy + r),
-                   (W // 2 - r, dy)], fill=tuple(tint) + (255,))
+        d.polygon([(W // 2, dy - r), (W // 2 + r, dy), (W // 2, dy + r), (W // 2 - r, dy)], fill=tuple(tint) + (255,))
         cy += 26
 
         def paste_block(text, size, color, cy_in, line_gap, grad=None):
             lines = wrap_ar(text, size)
             for ln in lines:
-                surf = ar.render_line(ln, size, color=color,
-                                      outline_color=(10, 12, 20),
-                                      outline_width=2)
+                surf = ar.render_line(ln, size, color=color, outline_color=(10, 12, 20), outline_width=2)
                 if grad:
                     surf = apply_vertical_gradient(surf, grad[0], grad[1])
                 slot = int(size * line_gap)
-                canvas.paste(surf, ((W - surf.width) // 2,
-                                    cy_in + max(0, (slot - surf.height) // 2)),
-                             surf)
+                canvas.paste(surf, ((W - surf.width) // 2, cy_in + max(0, (slot - surf.height) // 2)), surf)
                 cy_in += slot
             return cy_in
 
         # arabic: gradient gold
-        cy = paste_block(arabic, 56, (255, 215, 0), cy, 1.45,
-                         grad=((255, 240, 185), (216, 178, 80)))
+        cy = paste_block(arabic, 56, (255, 215, 0), cy, 1.45, grad=((255, 240, 185), (216, 178, 80)))
         cy += 22
         # urdu: soft white
         cy = paste_block(urdu, 44, (244, 247, 255), cy, 1.45)
@@ -977,7 +932,6 @@ class EffectsEngine:
         return card_img, card_alpha
 
 
-
 # Test function
 if __name__ == "__main__":
     print("Testing Effects Engine...")
@@ -985,12 +939,12 @@ if __name__ == "__main__":
     engine = EffectsEngine()
 
     # Create test image
-    test_img = Image.new('RGBA', (400, 200), (0, 0, 0, 0))
+    test_img = Image.new("RGBA", (400, 200), (0, 0, 0, 0))
     draw = ImageDraw.Draw(test_img)
     draw.text((50, 80), "Test Text", fill=(255, 215, 0, 255))
 
     # Test each effect
-    effects = ['neon_glow', 'metallic_gold', 'typewriter', 'bounce', 'wave', 'glitch']
+    effects = ["neon_glow", "metallic_gold", "typewriter", "bounce", "wave", "glitch"]
 
     for effect_name in effects:
         print(f"\nTesting effect: {effect_name}")

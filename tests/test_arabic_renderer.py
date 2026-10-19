@@ -23,22 +23,23 @@ from core.arabic_renderer import (
 )
 
 BISMILLAH = "\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650"
-RABBANA = ("\u0631\u0628\u064e\u0646\u064e\u0627 \u0622\u062a\u0650\u0646\u064e\u0627 \u0641\u064a "
-           "\u0627\u0644\u0642\u064e\u0644\u0652\u0628\u0650 \u0633\u064e\u062e\u0651\u0631\u064e\u062a\u064e\u0646\u064e\u0627 "
-           "\u0641\u064e\u0627\u0633\u0652\u062e\u0651\u0631\u064e\u0644\u064e\u0646\u064e\u0627 "
-           "\u0642\u064e\u0644\u0652\u0628\u064b\u0627 \u0637\u064e\u064a\u0651\u0650\u0628\u064b\u0627")
+RABBANA = (
+    "\u0631\u0628\u064e\u0646\u064e\u0627 \u0622\u062a\u0650\u0646\u064e\u0627 \u0641\u064a "
+    "\u0627\u0644\u0642\u064e\u0644\u0652\u0628\u0650 \u0633\u064e\u062e\u0651\u0631\u064e\u062a\u064e\u0646\u064e\u0627 "
+    "\u0641\u064e\u0627\u0633\u0652\u062e\u0651\u0631\u064e\u0644\u064e\u0646\u064e\u0627 "
+    "\u0642\u064e\u0644\u0652\u0628\u064b\u0627 \u0637\u064e\u064a\u0651\u0650\u0628\u064b\u0627"
+)
 SHORT_AR = "\u0627\u0644\u0644\u0647\u0645 \u0627\u0646\u064a \u0627\u0633\u0623\u0644\u0643 \u0627\u0644\u0639\u0627\u0641\u064a\u0629"
 LATIN_TEXT = "Hello World"
 MIXED_TEXT = "\u0627\u0644\u0644\u0647\u0645 Hello 123"
 SINGLE_CHAR = "\u0627\u0644\u0644\u0647"
 LONG_TEXT = "\u0627\u0644\u0644\u0647\u0645 " * 30
 
-FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        'assets', 'fonts')
+FONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "fonts")
 
 
 def _pick_font():
-    for name in ('Amiri-Bold.ttf', 'Amiri-Regular.ttf', 'NotoNaskhArabic-Regular.ttf'):
+    for name in ("Amiri-Bold.ttf", "Amiri-Regular.ttf", "NotoNaskhArabic-Regular.ttf"):
         fp = os.path.join(FONT_DIR, name)
         if os.path.exists(fp):
             return fp
@@ -95,7 +96,7 @@ class TestInstantiation:
 
     def test_font_is_amiri_bold(self):
         r = ArabicRenderer()
-        assert 'Amiri' in os.path.basename(r.font_path)
+        assert "Amiri" in os.path.basename(r.font_path)
 
     def test_upem_positive(self):
         r = ArabicRenderer()
@@ -201,7 +202,7 @@ class TestRenderLine:
 
     def test_rgba_mode(self):
         img = self.r.render_line(BISMILLAH, 48, (255, 255, 255), None, 0)
-        assert img.mode == 'RGBA'
+        assert img.mode == "RGBA"
 
     def test_has_content(self):
         img = self.r.render_line(BISMILLAH, 48, (255, 255, 255), None, 0)
@@ -263,14 +264,14 @@ class TestHarakat:
         img = self.r.render_line(BISMILLAH, 72, (255, 255, 255), None, 0)
         arr = np.array(img)
         h = arr.shape[0]
-        top_half = arr[:h // 2, :, 3]
+        top_half = arr[: h // 2, :, 3]
         assert top_half.max() > 0, "No pixels in top half (harakat above baseline)"
 
     def test_bismillah_has_content_below_baseline(self):
         img = self.r.render_line(BISMILLAH, 72, (255, 255, 255), None, 0)
         arr = np.array(img)
         h = arr.shape[0]
-        bottom_half = arr[h // 2:, :, 3]
+        bottom_half = arr[h // 2 :, :, 3]
         assert bottom_half.max() > 0, "No pixels in bottom half (kasra below baseline)"
 
     def test_with_harakat_wider_than_without(self):
@@ -382,7 +383,7 @@ class TestGradient:
     def test_returns_rgba(self):
         img = self.r.render_line(BISMILLAH, 48, (255, 255, 255), None, 0)
         result = apply_vertical_gradient(img, (255, 215, 0), (180, 120, 0))
-        assert result.mode == 'RGBA'
+        assert result.mode == "RGBA"
 
     def test_preserves_alpha(self):
         img = self.r.render_line(BISMILLAH, 48, (255, 255, 255), None, 0)
@@ -417,7 +418,7 @@ class TestModuleHelpers:
     def test_render_text_returns_image(self):
         img = render_text(BISMILLAH, 48, (255, 255, 255), None, 0)
         assert isinstance(img, Image.Image)
-        assert img.mode == 'RGBA'
+        assert img.mode == "RGBA"
 
     def test_measure_text_width_returns_positive(self):
         w = measure_text_width(BISMILLAH, 48)

@@ -43,6 +43,7 @@ def detect_gpu() -> dict:
     # 1) PyOpenCL (the real GPU compute path for AMD/Intel/NVIDIA).
     try:
         import pyopencl as cl
+
         platforms = cl.get_platforms()
         if platforms:
             dev = platforms[0].get_devices()
@@ -59,6 +60,7 @@ def detect_gpu() -> dict:
     # 2) OpenCV CUDA build (very rare on pip wheels, try anyway).
     try:
         import cv2
+
         if hasattr(cv2, "cuda"):
             n = cv2.cuda.getCudaEnabledDeviceCount()
             if n and n > 0:
@@ -74,18 +76,30 @@ def detect_gpu() -> dict:
     if os.name == "nt":
         try:
             import subprocess
+
             out = subprocess.run(
-                ["powershell", "-NoProfile", "-Command",
-                 "Get-CimInstance Win32_VideoController | "
-                 "Select-Object -ExpandProperty Name"],
-                capture_output=True, text=True, timeout=10)
-            names = [ln.strip() for ln in out.stdout.splitlines()
-                     if ln.strip() and "Name" not in ln]
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    "Get-CimInstance Win32_VideoController | Select-Object -ExpandProperty Name",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            names = [ln.strip() for ln in out.stdout.splitlines() if ln.strip() and "Name" not in ln]
             if names:
                 info["name"] = names[0]
-                info["vendor"] = ("AMD" if "AMD" in names[0] else
-                                  "NVIDIA" if "NVIDIA" in names[0] else
-                                  "Intel" if "Intel" in names[0] else "GPU")
+                info["vendor"] = (
+                    "AMD"
+                    if "AMD" in names[0]
+                    else "NVIDIA"
+                    if "NVIDIA" in names[0]
+                    else "Intel"
+                    if "Intel" in names[0]
+                    else "GPU"
+                )
                 # WMI gives us a GPU name but no compute access.
                 return info
         except Exception:
@@ -101,6 +115,7 @@ def pick_backend(frames_total: int = 0) -> str:
     # GPU compute only if PyOpenCL is actually importable.
     try:
         import pyopencl as cl  # noqa: F401
+
         return "opencl_gpu"
     except Exception:
         logger.debug("pyopencl import check failed")
@@ -118,8 +133,7 @@ def profile_summary(frames_total: int = 0) -> str:
     gpu = detect_gpu()
     backend = pick_backend(frames_total)
     gpu_txt = gpu.get("name") if gpu.get("name") != "unknown" else "None"
-    return (f"CPU {cores} cores | GPU: {gpu_txt} | "
-            f"backend: {backend}")
+    return f"CPU {cores} cores | GPU: {gpu_txt} | backend: {backend}"
 
 
 _OCL: dict[str, Any] = {}  # cached OpenCL context/program per (platform, device)
@@ -133,11 +147,14 @@ def _ocl_resources():
     if _OCL:
         return _OCL
     import pyopencl as cl
+
     plats = cl.get_platforms()
     dev = plats[0].get_devices()[0]
     ctx = cl.Context([dev])
     queue = cl.CommandQueue(ctx)
-    prg = cl.Program(ctx, """
+    prg = cl.Program(
+        ctx,
+        """
         __kernel void gblur(__global const float* in,
                             __global float* out,
                             int w, int h, int k) {
@@ -156,10 +173,10 @@ def _ocl_resources():
             }
             out[y * w + x] = s / c;
         }
-    """).build()
+    """,
+    ).build()
     kernel = cl.Kernel(prg, "gblur")
-    _OCL["ctx"], _OCL["queue"], _OCL["prg"], _OCL["kernel"] = \
-        ctx, queue, prg, kernel
+    _OCL["ctx"], _OCL["queue"], _OCL["prg"], _OCL["kernel"] = ctx, queue, prg, kernel
     return _OCL
 
 
@@ -171,9 +188,11 @@ def gaussian_blur(mask, sigma: float, kernel=None):
       Falls back to CPU automatically on any OpenCL failure.
     """
     import numpy as np
+
     try:
         if mask.size >= _GPU_MIN_PIXELS:
             import pyopencl as cl
+
             res = _ocl_resources()
             ctx, queue, kernel = res["ctx"], res["queue"], res["kernel"]
             m = np.ascontiguousarray(mask, dtype=np.float32)
@@ -184,8 +203,7 @@ def gaussian_blur(mask, sigma: float, kernel=None):
             mf = cl.mem_flags
             m_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=m)
             o_buf = cl.Buffer(ctx, mf.WRITE_ONLY, m.nbytes)
-            kernel(queue, (w, h), None, m_buf, o_buf,
-                   np.int32(w), np.int32(h), np.int32(k))
+            kernel(queue, (w, h), None, m_buf, o_buf, np.int32(w), np.int32(h), np.int32(k))
             res_arr = np.empty_like(m)
             cl.enqueue_copy(queue, res_arr, o_buf)
             return res_arr.astype(mask.dtype)
@@ -193,12 +211,14 @@ def gaussian_blur(mask, sigma: float, kernel=None):
         logger.debug("OpenCL GPU blur failed, falling back to CPU")
         pass
     import cv2
+
     return cv2.GaussianBlur(mask, (0, 0), sigma)
 
 
 # ----------------------------------------------------------------------
 # Optional CPU-parallel frame processing (used only for very long videos).
 # ----------------------------------------------------------------------
+
 
 def _worker_pool(chunk, worker, params):
     return [worker(f, params) for f in chunk]
@@ -216,13 +236,12 @@ def parallel_map(worker, frames, params=None, min_total: int = 500):
 
     n = min(cores, total)
     chunk = max(1, total // n)
-    chunks = [frames[i:i + chunk] for i in range(0, total, chunk)]
+    chunks = [frames[i : i + chunk] for i in range(0, total, chunk)]
 
     try:
         ctx = mp.get_context("spawn")
         with ctx.Pool(processes=n) as pool:
-            results = pool.starmap(
-                _worker_pool, [(c, worker, params) for c in chunks])
+            results = pool.starmap(_worker_pool, [(c, worker, params) for c in chunks])
         out = []
         for r in results:
             out.extend(r)

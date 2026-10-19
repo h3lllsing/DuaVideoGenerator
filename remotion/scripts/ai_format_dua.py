@@ -6,6 +6,7 @@ Usage:
 Reads API config from data/ai_api_config.json.
 Returns JSON: {"ok":true,"added":1,"duas":[{"id":"...","title":"..."}]}
 """
+
 import argparse
 import json
 import os
@@ -14,8 +15,7 @@ import time
 import urllib.error
 import urllib.request
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "..", "remotion", "scripts"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "remotion", "scripts"))
 from ai_import import API_KEYS, FREE_MODELS, _is_empty_block, api_base_url, load_existing, save_duas
 
 SYSTEM_PROMPT = """You are an expert Islamic Sunni scholar. The user will paste a dua in any format (Arabic, Urdu, Roman Urdu, mixed). Your job:
@@ -55,20 +55,25 @@ def format_and_add(text, category="general"):
     existing_ids = {d.get("id") for d in existing}
 
     for m in FREE_MODELS:
-        payload = json.dumps({
-            "model": m,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 2000,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "model": m,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 2000,
+            }
+        ).encode("utf-8")
 
         for api_key in API_KEYS:
-            req = urllib.request.Request(api_base_url() + "/chat/completions",
-                data=payload, headers={
+            req = urllib.request.Request(
+                api_base_url() + "/chat/completions",
+                data=payload,
+                headers={
                     "Authorization": "Bearer " + api_key,
                     "Content-Type": "application/json",
                     "User-Agent": "DuaStudio/0.11",
-                })
+                },
+            )
             try:
                 resp = urllib.request.urlopen(req, timeout=60)
                 body = resp.read().decode("utf-8", errors="replace")
@@ -91,8 +96,7 @@ def format_and_add(text, category="general"):
                         d["id"] = base_id + "_v" + str(suffix)
                         suffix += 1
                 added = save_duas(duas)
-                return {"ok": True, "added": len(added),
-                        "duas": [{"id": d["id"], "title": d["title"]} for d in added]}
+                return {"ok": True, "added": len(added), "duas": [{"id": d["id"], "title": d["title"]} for d in added]}
             except Exception:
                 continue
         time.sleep(0.5)

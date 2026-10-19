@@ -8,6 +8,7 @@ Usage:
 
 Output: JSON on the LAST stdout line.
 """
+
 import argparse
 import glob
 import io
@@ -17,8 +18,7 @@ import shutil
 import subprocess
 import sys
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
-                              errors="replace")
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(os.path.dirname(SCRIPTS))
@@ -35,14 +35,17 @@ MAX_SHORT_SECS = 58.0
 
 def safe_title(title):
     import re
+
     s = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "", title or "Dua").strip()
     return re.sub(r"[. ]+$", "", s) or "Dua"
 
 
 def ffprobe_dur(path):
-    r = subprocess.run([FFPROBE, "-v", "error", "-show_entries",
-                        "format=duration", "-of", "csv=p=0", path],
-                       capture_output=True, text=True)
+    r = subprocess.run(
+        [FFPROBE, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+        capture_output=True,
+        text=True,
+    )
     try:
         return float(r.stdout.strip().split("\n")[0])
     except Exception:
@@ -84,10 +87,14 @@ def find_sources():
             continue
         src = os.path.join(OUT_DIR, safe_title(title) + ".mp4")
         if os.path.exists(src):
-            out[did] = {"title": title, "src": src,
-                        "duration": float(dur), "manifest": mf,
-                        "reference": m.get("reference") or "",
-                        "channel": m.get("channel") or ""}
+            out[did] = {
+                "title": title,
+                "src": src,
+                "duration": float(dur),
+                "manifest": mf,
+                "reference": m.get("reference") or "",
+                "channel": m.get("channel") or "",
+            }
     return out
 
 
@@ -98,39 +105,67 @@ def encode_one(did, info, force):
     if os.path.exists(target) and not force and prev.get("video_id"):
         return {"duaId": did, "status": "skipped", "note": "already done"}
     if os.path.exists(target) and not force and prev.get("shortHref") == target:
-        return {"duaId": did, "status": "skipped", "note": "exists",
-                "path": target}
+        return {"duaId": did, "status": "skipped", "note": "exists", "path": target}
 
     src_dur = ffprobe_dur(info["src"]) or info["duration"]
     cap = min(src_dur, MAX_SHORT_SECS)
-    filter_spec = ("scale=1080:1920:force_original_aspect_ratio=decrease,"
-                   "pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black")
-    cmd = [FFMPEG, "-y", "-i", info["src"], "-t", str(cap),
-           "-vf", filter_spec, "-r", "30", "-c:v", "libx264",
-           "-preset", "medium", "-crf", "21", "-pix_fmt", "yuv420p",
-           "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
-           "-shortest", target]
+    filter_spec = "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=black"
+    cmd = [
+        FFMPEG,
+        "-y",
+        "-i",
+        info["src"],
+        "-t",
+        str(cap),
+        "-vf",
+        filter_spec,
+        "-r",
+        "30",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "medium",
+        "-crf",
+        "21",
+        "-pix_fmt",
+        "yuv420p",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        "-movflags",
+        "+faststart",
+        "-shortest",
+        target,
+    ]
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(target):
-        return {"duaId": did, "status": "error",
-                "note": (r.stderr or r.stdout)[-200:]}
+        return {"duaId": did, "status": "error", "note": (r.stderr or r.stdout)[-200:]}
     out_dur = ffprobe_dur(target)
     size_mb = round(os.path.getsize(target) / 1048576, 1)
     state.setdefault(did, {})["shortHref"] = target
-    state.setdefault(did, {}).update({"title": info["title"],
-                                      "reference": info.get("reference", ""),
-                                      "duration": round(out_dur or cap, 1),
-                                      "sizeMB": size_mb})
+    state.setdefault(did, {}).update(
+        {
+            "title": info["title"],
+            "reference": info.get("reference", ""),
+            "duration": round(out_dur or cap, 1),
+            "sizeMB": size_mb,
+        }
+    )
     save_state(state)
-    return {"duaId": did, "status": "made", "path": target,
-            "dur": round(out_dur or cap, 1), "sizeMB": size_mb,
-            "fromDur": round(src_dur, 1)}
+    return {
+        "duaId": did,
+        "status": "made",
+        "path": target,
+        "dur": round(out_dur or cap, 1),
+        "sizeMB": size_mb,
+        "fromDur": round(src_dur, 1),
+    }
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", default=None,
-                    help="comma-separated dua_ids")
+    ap.add_argument("--only", default=None, help="comma-separated dua_ids")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
@@ -141,9 +176,9 @@ def main():
         want = [x.strip() for x in args.only.split(",") if x.strip()]
         sources = {k: v for k, v in sources.items() if k in want}
         order = sorted(sources)
-        missing = [w for w in want if w not in sources and
-                   not os.path.exists(os.path.join(
-                       SHORT_DIR, w + ".short.mp4"))]
+        missing = [
+            w for w in want if w not in sources and not os.path.exists(os.path.join(SHORT_DIR, w + ".short.mp4"))
+        ]
     else:
         missing = []
 
@@ -151,17 +186,20 @@ def main():
         items = []
         for did in order:
             info = sources[did]
-            items.append({"duaId": did, "title": info["title"],
-                          "srcDur": round(info["duration"], 1),
-                          "plan": "encode" if sources else "n/a"})
-        print(json.dumps({"ok": True, "dryRun": True, "total": len(items),
-                          "items": items}, ensure_ascii=False))
+            items.append(
+                {
+                    "duaId": did,
+                    "title": info["title"],
+                    "srcDur": round(info["duration"], 1),
+                    "plan": "encode" if sources else "n/a",
+                }
+            )
+        print(json.dumps({"ok": True, "dryRun": True, "total": len(items), "items": items}, ensure_ascii=False))
         return 0
 
     results = [encode_one(did, sources[did], args.force) for did in order]
     made = [r for r in results if r["status"] == "made"]
-    print(json.dumps({"ok": True, "total": len(results), "made": len(made),
-                      "items": results}, ensure_ascii=False))
+    print(json.dumps({"ok": True, "total": len(results), "made": len(made), "items": results}, ensure_ascii=False))
     return 0 if len(made) == len(results) else 2
 
 

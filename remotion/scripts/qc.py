@@ -14,18 +14,18 @@ Output: single-line JSON {"pass": bool, "reason": str|null, "checks": {...}}
 Exit code hamesha 0 (server JSON parse karta hai); lint modes me
 hard-fail par exit 2 (CI/scheduled runs pakad saken).
 """
+
 import json
 import os
 import re
 import subprocess
 import sys
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DUAS_FILE = os.path.join(PROJECT_ROOT, "data", "duas.json")
 
-URDU_WARN_WORDS = 60   # comfort limit (VIDEO-002 40s budget)
-URDU_HARD_WORDS = 75   # server /api/add-dua cap
+URDU_WARN_WORDS = 60  # comfort limit (VIDEO-002 40s budget)
+URDU_HARD_WORDS = 75  # server /api/add-dua cap
 ARABIC_HARAKAT_MIN_LEN = 15  # isse lambi text me harakat honi chahiye
 
 # PHASE 2 P0 · theme-aware variance floors. Light/soft scenes (manuscript
@@ -34,8 +34,8 @@ ARABIC_HARAKAT_MIN_LEN = 15  # isse lambi text me harakat honi chahiye
 # scenes keep the strict 1.0 gate (encoding noise < 0.5 caught either way).
 LIGHT_VAR_FLOOR = 0.30
 DARK_VAR_FLOOR = 1.00
-LIGHT_THEMES = ("manuscript",)   # only light palette in remotion/src/themes.ts
-BRIGHTNESS_LIGHT_CUE = 128.0     # avg gray 0-255: above = light scene
+LIGHT_THEMES = ("manuscript",)  # only light palette in remotion/src/themes.ts
+BRIGHTNESS_LIGHT_CUE = 128.0  # avg gray 0-255: above = light scene
 MANIFEST_DIR = os.path.join(PROJECT_ROOT, "remotion", "src", "data")
 
 _DIACRITICS = re.compile(r"[\u064b-\u0652\u0670]")
@@ -77,11 +77,9 @@ def lint_dua(dua, all_norm_arabic=None):
     urdu = str(dua.get("urdu") or "").strip()
     urdu_words = len(urdu.split()) if urdu else 0
     if urdu_words > URDU_HARD_WORDS:
-        issues.append(f"urdu {urdu_words} words > {URDU_HARD_WORDS} "
-                      f"(VIDEO-002 cap)")
+        issues.append(f"urdu {urdu_words} words > {URDU_HARD_WORDS} (VIDEO-002 cap)")
     elif urdu_words > URDU_WARN_WORDS:
-        warnings.append(f"urdu {urdu_words} words > {URDU_WARN_WORDS} "
-                        f"comfort")
+        warnings.append(f"urdu {urdu_words} words > {URDU_WARN_WORDS} comfort")
 
     arabic = str(dua.get("arabic") or "").strip()
     bare = _norm_arabic(arabic)
@@ -101,11 +99,9 @@ def lint_dua(dua, all_norm_arabic=None):
         # duplicate = accidental double-add -> hard issue.
         same_cat = {t for t in twins if t[1] == dua.get("category")}
         if same_cat:
-            issues.append("duplicate arabic in same category with: "
-                          + ", ".join(sorted(t[0] for t in same_cat)))
+            issues.append("duplicate arabic in same category with: " + ", ".join(sorted(t[0] for t in same_cat)))
         elif twins:
-            warnings.append("arabic reused across categories: "
-                            + ", ".join(sorted(t[0] for t in twins)))
+            warnings.append("arabic reused across categories: " + ", ".join(sorted(t[0] for t in twins)))
     return {"id": did, "issues": issues, "warnings": warnings}
 
 
@@ -114,8 +110,7 @@ def _build_arabic_index(duas):
     for d in duas:
         bare = _norm_arabic(str(d.get("arabic") or ""))
         if bare:
-            idx.setdefault(bare, set()).add(
-                (d.get("id", "?"), d.get("category", "")))
+            idx.setdefault(bare, set()).add((d.get("id", "?"), d.get("category", "")))
     return idx
 
 
@@ -127,22 +122,25 @@ def run_lint(target=None):
     failed = [r for r in results if r["issues"]]
     warned = [r for r in results if not r["issues"] and r["warnings"]]
     passed = not failed
-    print(json.dumps({
-        "pass": passed,
-        "reason": None if passed else "; ".join(
-            f"{r['id']}: {r['issues'][0]}" for r in failed[:5]),
-        "checks": {
-            "mode": "content-lint",
-            "scanned": len(results),
-            "failed_count": len(failed),
-            "warned_count": len(warned),
-            "failed": [{"id": r["id"], "issues": r["issues"]}
-                       for r in failed],
-            "warnings": [{"id": r["id"], "warnings": r["warnings"]}
-                         for r in warned[:25]],
-        },
-    }, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "pass": passed,
+                "reason": None if passed else "; ".join(f"{r['id']}: {r['issues'][0]}" for r in failed[:5]),
+                "checks": {
+                    "mode": "content-lint",
+                    "scanned": len(results),
+                    "failed_count": len(failed),
+                    "warned_count": len(warned),
+                    "failed": [{"id": r["id"], "issues": r["issues"]} for r in failed],
+                    "warnings": [{"id": r["id"], "warnings": r["warnings"]} for r in warned[:25]],
+                },
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0 if passed else 2
+
 
 import imageio_ffmpeg
 
@@ -165,10 +163,25 @@ def get_duration(path):
 
 def frame_mean(path, ts):
     r = subprocess.run(
-        [FF, "-ss", f"{ts:.2f}", "-i", path, "-frames:v", "1",
-         "-vf", f"scale={FRAME_W}:{FRAME_H}", "-pix_fmt", "gray",
-         "-f", "rawvideo", "-"],
-        capture_output=True, timeout=60)
+        [
+            FF,
+            "-ss",
+            f"{ts:.2f}",
+            "-i",
+            path,
+            "-frames:v",
+            "1",
+            "-vf",
+            f"scale={FRAME_W}:{FRAME_H}",
+            "-pix_fmt",
+            "gray",
+            "-f",
+            "rawvideo",
+            "-",
+        ],
+        capture_output=True,
+        timeout=60,
+    )
     data = r.stdout
     if len(data) < FRAME_W * FRAME_H:
         return None
@@ -176,8 +189,7 @@ def frame_mean(path, ts):
 
 
 def get_loudness(path):
-    r = run(["-i", path, "-af", "loudnorm=print_format=json", "-f", "null", "-"],
-            timeout=300)
+    r = run(["-i", path, "-af", "loudnorm=print_format=json", "-f", "null", "-"], timeout=300)
     txt = r.stderr.decode("utf8", "ignore")
     blocks = re.findall(r"\{[^{}]*input_i[^{}]*\}", txt)
     if not blocks:
@@ -240,20 +252,21 @@ def main():
     checks["loudness_lufs"] = round(loud["i"], 1) if loud else None
     checks["loudness_tp"] = round(loud["tp"], 1) if loud else None
     # PILLAR 2 · broadcast gate: -14 LUFS anchor (±1.0), true peak <= -1.0 dBTP.
-    loud_ok = (loud is not None
-               and abs(loud["i"] - (-14.0)) <= 1.0
-               and loud["tp"] <= -1.0)
+    loud_ok = loud is not None and abs(loud["i"] - (-14.0)) <= 1.0 and loud["tp"] <= -1.0
     checks["loud_ok"] = loud_ok
     if not loud_ok:
-        reasons.append("audio loudness gate fail "
-                       "(target -14±1 LUFS, TP <= -1.0 dBTP)")
+        reasons.append("audio loudness gate fail (target -14±1 LUFS, TP <= -1.0 dBTP)")
 
     passed = not reasons
-    print(json.dumps({
-        "pass": passed,
-        "reason": None if passed else "; ".join(reasons),
-        "checks": checks,
-    }))
+    print(
+        json.dumps(
+            {
+                "pass": passed,
+                "reason": None if passed else "; ".join(reasons),
+                "checks": checks,
+            }
+        )
+    )
 
 
 if __name__ == "__main__":

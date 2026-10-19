@@ -18,6 +18,7 @@ def _load_backup_module():
     sys.path.insert(0, str(PROJECT / "scripts"))
     try:
         from backup import BACKUP_FILES, decrypt_backup_file
+
         return BACKUP_FILES, decrypt_backup_file
     except ImportError:
         return None, None
@@ -49,17 +50,12 @@ def auto_backup():
             backed_up += 1
 
     # Save manifest
-    manifest = {
-        "timestamp": timestamp,
-        "type": "pre_restore",
-        "files_count": backed_up
-    }
-    (backup_path / "manifest.json").write_text(
-        json.dumps(manifest, indent=2), encoding="utf-8"
-    )
+    manifest = {"timestamp": timestamp, "type": "pre_restore", "files_count": backed_up}
+    (backup_path / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     print(f"Auto-backup created: {backup_path.name} ({backed_up} files)")
     return backup_path
+
 
 def restore_backup(backup_name=None, force=False, target=None):
     """Restore from a backup. If no name given, restore latest.
@@ -107,11 +103,10 @@ def restore_backup(backup_name=None, force=False, target=None):
 
     # Confirmation prompt
     if not force and target is None:
-        file_count = len([f for f in backup_path.rglob("*")
-                          if f.is_file() and f.name != "manifest.json"])
+        file_count = len([f for f in backup_path.rglob("*") if f.is_file() and f.name != "manifest.json"])
         print(f"\nThis will overwrite {file_count} files in the project.")
         confirm = input("Are you sure? (y/N): ").strip().lower()
-        if confirm != 'y':
+        if confirm != "y":
             print("Restore cancelled.")
             return False
 
@@ -132,8 +127,7 @@ def restore_backup(backup_name=None, force=False, target=None):
                 dst.write_bytes(data)
                 print(f"  Restored: {rel} [decrypted]")
             elif rel in encrypted_files:
-                print(f"  WARN: {rel} marked encrypted but decrypt "
-                      f"unavailable - copied raw")
+                print(f"  WARN: {rel} marked encrypted but decrypt unavailable - copied raw")
                 shutil.copy2(item, dst)
             else:
                 shutil.copy2(item, dst)
@@ -142,6 +136,7 @@ def restore_backup(backup_name=None, force=False, target=None):
 
     print(f"\nRestored {restored} files.")
     return True
+
 
 def list_backups():
     """List available backups."""
@@ -166,6 +161,7 @@ def list_backups():
         else:
             print(f"  {backup.name}")
 
+
 if __name__ == "__main__":
     import argparse
 
@@ -175,15 +171,12 @@ if __name__ == "__main__":
         pass
 
     ap = argparse.ArgumentParser(prog="restore.py")
-    ap.add_argument("command", nargs="?", default="list",
-                    help="list | restore")
-    ap.add_argument("backup_name", nargs="?", default=None,
-                    help="backup directory name (optional)")
-    ap.add_argument("--yes", action="store_true",
-                    help="restore without confirmation")
-    ap.add_argument("--to", default=None,
-                    help="restore into this target directory instead of "
-                         "the project (safe test-restore)")
+    ap.add_argument("command", nargs="?", default="list", help="list | restore")
+    ap.add_argument("backup_name", nargs="?", default=None, help="backup directory name (optional)")
+    ap.add_argument("--yes", action="store_true", help="restore without confirmation")
+    ap.add_argument(
+        "--to", default=None, help="restore into this target directory instead of the project (safe test-restore)"
+    )
     args = ap.parse_args()
 
     if args.command == "list":

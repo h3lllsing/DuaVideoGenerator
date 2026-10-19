@@ -56,7 +56,7 @@ def ease_out_expo(p):
 
 def ease_in(p):
     p = clamp01(p)
-    return p ** 3
+    return p**3
 
 
 def ease_in_out(p):

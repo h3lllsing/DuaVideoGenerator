@@ -40,19 +40,19 @@ class TestDetectCpuCores:
         assert cores >= 1
 
     def test_mock_none_returns_one(self):
-        with patch('core.hardware.mp.cpu_count', return_value=None):
+        with patch("core.hardware.mp.cpu_count", return_value=None):
             assert detect_cpu_cores() == 1
 
     def test_mock_zero_returns_one(self):
-        with patch('core.hardware.mp.cpu_count', return_value=0):
+        with patch("core.hardware.mp.cpu_count", return_value=0):
             assert detect_cpu_cores() == 1
 
     def test_mock_sixteen_returns_sixteen(self):
-        with patch('core.hardware.mp.cpu_count', return_value=16):
+        with patch("core.hardware.mp.cpu_count", return_value=16):
             assert detect_cpu_cores() == 16
 
     def test_mock_exception_returns_one(self):
-        with patch('core.hardware.mp.cpu_count', side_effect=RuntimeError("fail")):
+        with patch("core.hardware.mp.cpu_count", side_effect=RuntimeError("fail")):
             assert detect_cpu_cores() == 1
 
 
@@ -83,6 +83,7 @@ class TestDetectGpu:
 
     def test_no_opencl_no_cuda_no_wmi(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -90,8 +91,8 @@ class TestDetectGpu:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.os.name', 'posix'):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.os.name", "posix"):
                 gpu = detect_gpu()
                 assert gpu["available"] is False
                 assert gpu["name"] == "unknown"
@@ -108,6 +109,7 @@ class TestDetectGpu:
         mock_cl.get_platforms.return_value = [mock_platform]
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -115,7 +117,7 @@ class TestDetectGpu:
                 return mock_cl
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             gpu = detect_gpu()
             assert gpu["available"] is True
             assert gpu["name"] == "RTX 4090"
@@ -126,6 +128,7 @@ class TestDetectGpu:
         mock_cl.get_platforms.return_value = []
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -133,7 +136,7 @@ class TestDetectGpu:
                 return mock_cl
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             gpu = detect_gpu()
             assert gpu["available"] is False
 
@@ -145,6 +148,7 @@ class TestDetectGpu:
         mock_cl.get_platforms.return_value = [mock_platform]
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -152,7 +156,7 @@ class TestDetectGpu:
                 return mock_cl
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             gpu = detect_gpu()
             assert gpu["available"] is False
 
@@ -161,6 +165,7 @@ class TestDetectGpu:
         mock_cv2.cuda.getCudaEnabledDeviceCount.return_value = 1
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -170,7 +175,7 @@ class TestDetectGpu:
                 return mock_cv2
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             gpu = detect_gpu()
             assert gpu["available"] is True
             assert gpu["name"] == "CUDA device"
@@ -181,6 +186,7 @@ class TestDetectGpu:
         mock_cv2.cuda.getCudaEnabledDeviceCount.return_value = 0
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -190,7 +196,7 @@ class TestDetectGpu:
                 return mock_cv2
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             gpu = detect_gpu()
             assert gpu["available"] is False
 
@@ -199,6 +205,7 @@ class TestDetectGpu:
         mock_result.stdout = "Name\nAMD Radeon RX 7900 XTX\n"
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -210,8 +217,8 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.os.name', 'nt'):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.os.name", "nt"):
                 gpu = detect_gpu()
                 assert gpu["name"] == "AMD Radeon RX 7900 XTX"
                 assert gpu["vendor"] == "AMD"
@@ -222,6 +229,7 @@ class TestDetectGpu:
         mock_result.stdout = "Name\nIntel Arc A770\n"
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -233,8 +241,8 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.os.name', 'nt'):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.os.name", "nt"):
                 gpu = detect_gpu()
                 assert gpu["vendor"] == "Intel"
 
@@ -243,6 +251,7 @@ class TestDetectGpu:
         mock_result.stdout = ""
 
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -254,13 +263,14 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.os.name', 'nt'):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.os.name", "nt"):
                 gpu = detect_gpu()
                 assert gpu["available"] is False
 
     def test_wmi_timeout(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -272,8 +282,8 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.os.name', 'nt'):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.os.name", "nt"):
                 gpu = detect_gpu()
                 assert gpu["available"] is False
 
@@ -290,6 +300,7 @@ class TestPickBackend:
 
     def test_cpu_when_no_gpu(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -297,11 +308,12 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             assert pick_backend(0) == "cpu"
 
     def test_cpu_parallel_when_many_frames(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -309,12 +321,13 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.detect_cpu_cores', return_value=4):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.detect_cpu_cores", return_value=4):
                 assert pick_backend(500) == "cpu_parallel"
 
     def test_cpu_when_few_frames(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -322,12 +335,13 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.detect_cpu_cores', return_value=4):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.detect_cpu_cores", return_value=4):
                 assert pick_backend(100) == "cpu"
 
     def test_cpu_when_single_core(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -335,12 +349,13 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.detect_cpu_cores', return_value=1):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.detect_cpu_cores", return_value=1):
                 assert pick_backend(1000) == "cpu"
 
     def test_opencl_gpu_when_available(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -348,11 +363,12 @@ class TestPickBackend:
                 return MagicMock()
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             assert pick_backend() == "opencl_gpu"
 
     def test_boundary_499_is_cpu(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -360,12 +376,13 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.detect_cpu_cores', return_value=4):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.detect_cpu_cores", return_value=4):
                 assert pick_backend(499) == "cpu"
 
     def test_boundary_500_is_parallel(self):
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -373,8 +390,8 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
-            with patch('core.hardware.detect_cpu_cores', return_value=2):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with patch("core.hardware.detect_cpu_cores", return_value=2):
                 assert pick_backend(500) == "cpu_parallel"
 
 
@@ -401,17 +418,21 @@ class TestProfileSummary:
         assert "backend" in s
 
     def test_format_with_known_cores(self):
-        with patch('core.hardware.detect_cpu_cores', return_value=8):
+        with patch("core.hardware.detect_cpu_cores", return_value=8):
             s = profile_summary()
             assert "CPU 8 cores" in s
 
     def test_unknown_gpu_shows_none(self):
-        with patch('core.hardware.detect_gpu', return_value={"name": "unknown", "vendor": "unknown", "available": False}):
+        with patch(
+            "core.hardware.detect_gpu", return_value={"name": "unknown", "vendor": "unknown", "available": False}
+        ):
             s = profile_summary()
             assert "GPU: None" in s
 
     def test_known_gpu_shows_name(self):
-        with patch('core.hardware.detect_gpu', return_value={"name": "RTX 4090", "vendor": "NVIDIA", "available": True}):
+        with patch(
+            "core.hardware.detect_gpu", return_value={"name": "RTX 4090", "vendor": "NVIDIA", "available": True}
+        ):
             s = profile_summary()
             assert "RTX 4090" in s
 
@@ -454,6 +475,7 @@ class TestGaussianBlur:
     def test_large_mask_cpu_fallback(self):
         m = np.random.rand(600, 600).astype(np.float32)
         import builtins
+
         real_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -461,7 +483,7 @@ class TestGaussianBlur:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, '__import__', side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):
             out = gaussian_blur(m, 5.0)
             assert out.shape == m.shape
             assert np.isfinite(out).all()
@@ -510,20 +532,20 @@ class TestParallelMap:
 
     def test_parallel_path_when_many_frames(self):
         frames = list(range(600))
-        with patch('core.hardware.detect_cpu_cores', return_value=4):
+        with patch("core.hardware.detect_cpu_cores", return_value=4):
             result = parallel_map(self._double, frames, min_total=500)
         assert len(result) == 600
         assert result == [x * 2 for x in frames]
 
     def test_serial_when_single_core(self):
         frames = list(range(600))
-        with patch('core.hardware.detect_cpu_cores', return_value=1):
+        with patch("core.hardware.detect_cpu_cores", return_value=1):
             result = parallel_map(self._double, frames, min_total=500)
         assert result == [x * 2 for x in frames]
 
     def test_preserves_order(self):
         frames = list(range(100))
-        with patch('core.hardware.detect_cpu_cores', return_value=4):
+        with patch("core.hardware.detect_cpu_cores", return_value=4):
             result = parallel_map(self._double, frames, min_total=50)
         assert result == sorted(result)
 

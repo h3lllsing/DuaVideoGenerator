@@ -6,6 +6,7 @@ bytes to the platform's own wire protocol. Keeping this in one place is what
 stops ``load_state``/``load_json``/retry logic from being copy-pasted a third,
 fourth and fifth time.
 """
+
 from __future__ import annotations
 
 import io
@@ -16,10 +17,8 @@ import sys
 import time
 
 try:
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
-                                  errors="replace")
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8",
-                                  errors="replace")
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 except Exception:
     pass
 
@@ -33,9 +32,11 @@ TRIM_DIR = os.path.join(PROJECT_ROOT, "remotion", "out", "_platform_trim")
 
 FFMPEG_CANDIDATES = (
     r"C:\Program Files\iGoWeb\Video2Master\tools\ffmpeg.exe",
-    os.path.join(os.environ.get("LOCALAPPDATA", ""),
-                 r"Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget"
-                 r"_Source_8wekyb3d8bbwe\ffmpeg-9.0.1-full_build\bin\ffmpeg.exe"),
+    os.path.join(
+        os.environ.get("LOCALAPPDATA", ""),
+        r"Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget"
+        r"_Source_8wekyb3d8bbwe\ffmpeg-9.0.1-full_build\bin\ffmpeg.exe",
+    ),
     r"C:\ffmpeg\bin\ffmpeg.exe",
 )
 CHUNK_BYTES = 8 * 1024 * 1024
@@ -60,12 +61,14 @@ def _resolve_binary(name: str):
         found = candidate
     if not found:
         import shutil
+
         which = shutil.which(name)
         if which:
             found = which
     if not found and name == "ffmpeg":
         try:
             import imageio_ffmpeg
+
             exe = imageio_ffmpeg.get_ffmpeg_exe()
             if exe and os.path.isfile(exe):
                 found = exe
@@ -90,6 +93,7 @@ def ffmpeg_path() -> str:
 def ffprobe_path() -> str:
     return _resolve_binary("ffprobe")
 
+
 # Caption ceilings. Kept in one table so the UI and every uploader agree.
 CAPTION_LIMITS = {
     "youtube_long": 5000,
@@ -105,8 +109,7 @@ class UploadError(Exception):
 
 
 def log(message: str, *, err: bool = False) -> None:
-    print(("  [err] " if err else "  ") + message, file=sys.stderr if err else sys.stdout,
-          flush=True)
+    print(("  [err] " if err else "  ") + message, file=sys.stderr if err else sys.stdout, flush=True)
 
 
 def load_json(path: str, default=None):
@@ -157,19 +160,18 @@ def resolve_video(dua_id: str, kind: str = "short", require_short: bool = False)
     title = title_for(dua_id)
     candidates = []
     if kind == "short":
-        candidates += [os.path.join(SHORT_OUT, f"{dua_id}.short.mp4"),
-                       os.path.join(SHORT_OUT, f"{dua_id}.mp4")]
+        candidates += [os.path.join(SHORT_OUT, f"{dua_id}.short.mp4"), os.path.join(SHORT_OUT, f"{dua_id}.mp4")]
     if kind == "long" or not require_short:
         if title:
             candidates += [os.path.join(LONG_OUT, f"{title}.mp4")]
-        candidates += [os.path.join(LONG_OUT, f"{dua_id}.mp4"),
-                       os.path.join(LONG_OUT, f"{dua_id}.long.mp4")]
+        candidates += [os.path.join(LONG_OUT, f"{dua_id}.mp4"), os.path.join(LONG_OUT, f"{dua_id}.long.mp4")]
     for path in candidates:
         if os.path.isfile(path) and os.path.getsize(path) > 0:
             return path
     raise UploadError(
         "no rendered video for '%s' (looked in: %s)"
-        % (dua_id, ", ".join(os.path.relpath(c, PROJECT_ROOT) for c in candidates)))
+        % (dua_id, ", ".join(os.path.relpath(c, PROJECT_ROOT) for c in candidates))
+    )
 
 
 def probe_duration(path: str):
@@ -180,13 +182,15 @@ def probe_duration(path: str):
         return None
     try:
         out = subprocess.run(
-            [probe, "-v", "error", "-show_entries", "format=duration",
-             "-of", "json", path],
-            capture_output=True, text=True, timeout=60, check=True)
+            [probe, "-v", "error", "-show_entries", "format=duration", "-of", "json", path],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=True,
+        )
         return round(float(json.loads(out.stdout)["format"]["duration"]), 2)
     except (subprocess.SubprocessError, ValueError, KeyError, OSError) as exc:
-        log(f"ffprobe could not read duration of {os.path.basename(path)}: {exc}",
-            err=True)
+        log(f"ffprobe could not read duration of {os.path.basename(path)}: {exc}", err=True)
         return None
 
 
@@ -224,7 +228,7 @@ def format_caption(text: str, platform: str) -> str:
     if tags.startswith("#") and len(tags) < limit:
         room = limit - len(tags) - 1
         head = body[:room] if body else text[:room]
-        head = head[:head.rfind("\n") + 1] or head
+        head = head[: head.rfind("\n") + 1] or head
         return (head + tags)[:limit]
     return text[:limit].rsplit("\n", 1)[0]
 
@@ -239,21 +243,22 @@ def load_tokens(platform: str, required=(), allow_placeholder: bool = False) -> 
     path = os.path.join(DATA_DIR, f"{platform}_tokens.json")
     if not os.path.isfile(path):
         raise UploadError(
-            f"missing {os.path.basename(path)} -- see "
-            f"remotion/scripts/social/AUTH_SETUP.md for how to create it")
+            f"missing {os.path.basename(path)} -- see remotion/scripts/social/AUTH_SETUP.md for how to create it"
+        )
     data = load_json(path, {})
     if not isinstance(data, dict):
         raise UploadError(f"{os.path.basename(path)} must contain a JSON object")
     if data.get("_placeholder"):
-        message = (f"{os.path.basename(path)} still holds PLACEHOLDER values -- "
-                   f"replace them with real credentials (see AUTH_SETUP.md)")
+        message = (
+            f"{os.path.basename(path)} still holds PLACEHOLDER values -- "
+            f"replace them with real credentials (see AUTH_SETUP.md)"
+        )
         if not allow_placeholder:
             raise UploadError(message)
         log("WARNING: " + message, err=True)
     missing = [k for k in required if not data.get(k)]
     if missing:
-        raise UploadError(
-            f"{os.path.basename(path)} missing required field(s): {', '.join(missing)}")
+        raise UploadError(f"{os.path.basename(path)} missing required field(s): {', '.join(missing)}")
     return data
 
 
@@ -267,25 +272,39 @@ def trim_for_platform(src: str, dua_id: str, platform: str, seconds: float) -> s
     dst = os.path.join(TRIM_DIR, f"{dua_id}_{platform}_trimmed.mp4")
     ffmpeg = ffmpeg_path()
     if not ffmpeg:
-        raise UploadError(
-            "ffmpeg not found (set DUAVID_FFMPEG to the full path) -- "
-            f"cannot trim for {platform}")
+        raise UploadError(f"ffmpeg not found (set DUAVID_FFMPEG to the full path) -- cannot trim for {platform}")
     if os.path.isfile(dst) and probe_duration(dst) and probe_duration(dst) <= seconds + 1:
         return dst
-    cmd = [ffmpeg, "-y", "-i", src, "-t", str(seconds), "-c:v", "libx264",
-           "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-b:a", "128k",
-           "-movflags", "+faststart", dst]
+    cmd = [
+        ffmpeg,
+        "-y",
+        "-i",
+        src,
+        "-t",
+        str(seconds),
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "23",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "128k",
+        "-movflags",
+        "+faststart",
+        dst,
+    ]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0 or not os.path.isfile(dst):
         tail = (proc.stderr or "").strip().splitlines()[-3:]
         raise UploadError(f"ffmpeg trim failed for {platform}: {' | '.join(tail)}")
-    log(f"trimmed {os.path.basename(src)} -> {os.path.basename(dst)} "
-        f"(cap {seconds:.0f}s)")
+    log(f"trimmed {os.path.basename(src)} -> {os.path.basename(dst)} (cap {seconds:.0f}s)")
     return dst
 
 
-def chunked_put(url: str, path: str, headers=None, chunk=CHUNK_BYTES,
-                progress: bool = True) -> None:
+def chunked_put(url: str, path: str, headers=None, chunk=CHUNK_BYTES, progress: bool = True) -> None:
     """PUT a file to ``url`` in chunks. Used by the resumable protocols."""
     import urllib.request
 
@@ -312,8 +331,9 @@ def chunked_put(url: str, path: str, headers=None, chunk=CHUNK_BYTES,
         print(file=sys.stderr)
 
 
-def retry_call(label: str, fn, *args, max_attempts=MAX_ATTEMPTS,
-               backoff_base=BACKOFF_BASE, retry_on=(UploadError,), **kwargs):
+def retry_call(
+    label: str, fn, *args, max_attempts=MAX_ATTEMPTS, backoff_base=BACKOFF_BASE, retry_on=(UploadError,), **kwargs
+):
     """Call ``fn`` with bounded exponential backoff.
 
     Reuses :func:`upload_shorts._is_retryable` semantics by treating an
@@ -329,8 +349,7 @@ def retry_call(label: str, fn, *args, max_attempts=MAX_ATTEMPTS,
                 raise
             attempts += 1
             wait = backoff_base * (2 ** (attempts - 1))
-            log(f"{label}: retry {attempts}/{max_attempts} in {wait:.1f}s "
-                f"({str(exc)[:90]})", err=True)
+            log(f"{label}: retry {attempts}/{max_attempts} in {wait:.1f}s ({str(exc)[:90]})", err=True)
             time.sleep(wait)
 
 
@@ -338,8 +357,10 @@ def _looks_transient(exc: Exception) -> bool:
     text = str(exc).lower()
     if isinstance(exc, (TimeoutError, ConnectionError)):
         return True
-    if any(k in text for k in ("http 5", "http 429", "timeout", "temporarily",
-                               "connection reset", "timed out", "try again")):
+    if any(
+        k in text
+        for k in ("http 5", "http 429", "timeout", "temporarily", "connection reset", "timed out", "try again")
+    ):
         return True
     return False
 

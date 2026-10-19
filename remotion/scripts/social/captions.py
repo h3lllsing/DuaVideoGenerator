@@ -5,6 +5,7 @@
 TikTok rewards a short hook plus hashtags, Instagram a longer description
 with a soft call to action, Facebook the fullest text (63k ceiling).
 """
+
 from __future__ import annotations
 
 import os
@@ -22,8 +23,7 @@ def _strip_existing_tags(text: str) -> tuple:
     body, tags = [], []
     for line in lines:
         stripped = line.strip()
-        if stripped.startswith("#") and all(
-                w.startswith("#") for w in stripped.split() if w):
+        if stripped.startswith("#") and all(w.startswith("#") for w in stripped.split() if w):
             tags.extend(stripped.split())
         elif stripped:
             body.append(stripped)
@@ -37,9 +37,8 @@ def _tags_for(dua_id: str) -> list:
         duas = load_json(path, []) or []
     except Exception:
         return ["#dua", "#islamicreminder"]
-    entry = next((d for d in duas
-                  if isinstance(d, dict) and d.get("id") == dua_id), {})
-    tags = ["#dua", "#islamicreminder", "#shorts" ]
+    entry = next((d for d in duas if isinstance(d, dict) and d.get("id") == dua_id), {})
+    tags = ["#dua", "#islamicreminder", "#shorts"]
     title = (entry.get("title") or dua_id).replace("_", " ")
     head = "".join(w[0] for w in title.split()[:3])
     if head:
@@ -48,11 +47,11 @@ def _tags_for(dua_id: str) -> list:
     return tags
 
 
-def build_caption(dua_id: str, platform: str, text: str = None,
-                  include_tags: bool = True) -> str:
+def build_caption(dua_id: str, platform: str, text: str = None, include_tags: bool = True) -> str:
     """Return the caption body for one platform, limit-enforced."""
     if text is None:
         from common import load_caption
+
         text = load_caption(dua_id)
     body, tags = _strip_existing_tags(text)
     if not include_tags:
@@ -70,7 +69,7 @@ def build_caption(dua_id: str, platform: str, text: str = None,
         if room < 40:
             merged = merged[:5]
             room = limit - sum(len(t) + 1 for t in merged) - 1
-        body = body[:max(room, 0)]
+        body = body[: max(room, 0)]
     joined = (body + "\n" if body else "") + " ".join(merged)
     return _limit(joined, platform)
 
@@ -86,6 +85,11 @@ def preview(dua_id: str, platform: str) -> dict:
     """Caption length report for the dashboard / debugging."""
     caption = build_caption(dua_id, platform)
     limit = CAPTION_LIMITS.get(platform, 2200)
-    return {"dua_id": dua_id, "platform": platform, "length": len(caption),
-            "limit": limit, "within_limit": len(caption) <= limit,
-            "caption": caption}
+    return {
+        "dua_id": dua_id,
+        "platform": platform,
+        "length": len(caption),
+        "limit": limit,
+        "within_limit": len(caption) <= limit,
+        "caption": caption,
+    }

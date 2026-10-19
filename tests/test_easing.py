@@ -184,4 +184,4 @@ class TestMonotonicity:
                 continue  # skip overshoot curve
             values = [fn(p) for p in points]
             for i in range(1, len(values)):
-                assert values[i] >= values[i-1], f"{name} not monotonic"
+                assert values[i] >= values[i - 1], f"{name} not monotonic"

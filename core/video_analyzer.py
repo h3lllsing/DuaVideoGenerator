@@ -25,13 +25,9 @@ class VideoAnalyzer:
 
     def __init__(self):
         """Initialize video analyzer."""
-        self.samples_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "samples"
-        )
+        self.samples_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "samples")
         self.learned_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data", "learned_styles"
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "learned_styles"
         )
 
         # Create directories if not exist
@@ -41,7 +37,7 @@ class VideoAnalyzer:
     def scan_all_samples(self) -> list[dict]:
         """
         Scan all sample videos in the samples directory.
-        
+
         Returns:
             List of learned styles from all samples
         """
@@ -76,9 +72,9 @@ class VideoAnalyzer:
                 style_name = os.path.splitext(video_file)[0]
                 self.save_style(style_name, style)
 
-                logger.info("  - Colors: %s", style['colors']['primary'])
-                logger.info("  - Effects: %s", style['effects'])
-                logger.info("  - Timing: %.1fs", style['timing']['duration'])
+                logger.info("  - Colors: %s", style["colors"]["primary"])
+                logger.info("  - Effects: %s", style["effects"])
+                logger.info("  - Timing: %.1fs", style["timing"]["duration"])
                 logger.info("  - Style saved!")
 
         # Create master patterns
@@ -93,10 +89,10 @@ class VideoAnalyzer:
     def analyze_video(self, video_path: str) -> dict[str, Any] | None:
         """
         Analyze a single video file.
-        
+
         Args:
             video_path: Path to video file
-            
+
         Returns:
             Learned style dictionary
         """
@@ -147,14 +143,14 @@ class VideoAnalyzer:
             "effects": effects,
             "timing": timing,
             "resolution": {"width": width, "height": height},
-            "fps": fps
+            "fps": fps,
         }
 
         return style
 
     def _get_video_files(self) -> list[str]:
         """Get all video files from samples directory."""
-        video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm']
+        video_extensions = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
 
         video_files = []
 
@@ -168,12 +164,12 @@ class VideoAnalyzer:
     def _extract_frames(self, cap, fps: float, frame_count: int) -> list[np.ndarray]:
         """
         Extract frames from video (1 per second).
-        
+
         Args:
             cap: Video capture object
             fps: Frames per second
             frame_count: Total number of frames
-            
+
         Returns:
             List of extracted frames
         """
@@ -205,10 +201,10 @@ class VideoAnalyzer:
     def _analyze_colors(self, frames: list[np.ndarray]) -> dict:
         """
         Analyze dominant colors in frames.
-        
+
         Args:
             frames: List of video frames
-            
+
         Returns:
             Color analysis dictionary
         """
@@ -244,9 +240,7 @@ class VideoAnalyzer:
 
             # Sort by count
             sorted_colors = sorted(
-                zip(colors, [label_counts[i] for i in range(n_colors)]),
-                key=lambda x: x[1],
-                reverse=True
+                zip(colors, [label_counts[i] for i in range(n_colors)]), key=lambda x: x[1], reverse=True
             )
 
             # Extract primary and secondary colors
@@ -260,7 +254,7 @@ class VideoAnalyzer:
                 "primary": primary_color,
                 "secondary": secondary_color,
                 "background": background_color,
-                "palette": [c[0].tolist() for c in sorted_colors]
+                "palette": [c[0].tolist() for c in sorted_colors],
             }
 
         except Exception as e:
@@ -270,27 +264,23 @@ class VideoAnalyzer:
                 "primary": [255, 215, 0],
                 "secondary": [210, 210, 210],
                 "background": [15, 20, 30],
-                "palette": [[255, 215, 0], [210, 210, 210], [15, 20, 30]]
+                "palette": [[255, 215, 0], [210, 210, 210], [15, 20, 30]],
             }
 
     def _detect_text_positions(self, frames: list[np.ndarray]) -> dict:
         """
         Detect text positions in frames.
-        
+
         Args:
             frames: List of video frames
-            
+
         Returns:
             Text position dictionary
         """
         # Simple approach: detect bright regions (likely text)
         # This is a basic heuristic - could be improved with OCR
 
-        positions = {
-            "arabic": {"x": 0, "y": 300},
-            "urdu": {"x": 0, "y": 800},
-            "title": {"x": 0, "y": 50}
-        }
+        positions = {"arabic": {"x": 0, "y": 300}, "urdu": {"x": 0, "y": 800}, "title": {"x": 0, "y": 50}}
 
         # Analyze first frame
         if frames:
@@ -329,10 +319,10 @@ class VideoAnalyzer:
     def _identify_effects(self, frames: list[np.ndarray]) -> list[str]:
         """
         Identify visual effects in frames.
-        
+
         Args:
             frames: List of video frames
-            
+
         Returns:
             List of identified effects
         """
@@ -343,7 +333,7 @@ class VideoAnalyzer:
 
         # Check for fade-in (brightness change)
         first_frame = cv2.cvtColor(frames[0], cv2.COLOR_BGR2GRAY)
-        mid_frame = cv2.cvtColor(frames[len(frames)//2], cv2.COLOR_BGR2GRAY)
+        mid_frame = cv2.cvtColor(frames[len(frames) // 2], cv2.COLOR_BGR2GRAY)
 
         first_brightness = np.mean(first_frame)
         mid_brightness = np.mean(mid_frame)
@@ -369,11 +359,11 @@ class VideoAnalyzer:
     def _analyze_timing(self, frames: list[np.ndarray], fps: float) -> dict:
         """
         Analyze timing patterns.
-        
+
         Args:
             frames: List of video frames
             fps: Frames per second
-            
+
         Returns:
             Timing dictionary
         """
@@ -386,7 +376,7 @@ class VideoAnalyzer:
         if len(frames) >= 3:
             # Check brightness changes between frames
             for i in range(1, len(frames)):
-                prev_gray = cv2.cvtColor(frames[i-1], cv2.COLOR_BGR2GRAY)
+                prev_gray = cv2.cvtColor(frames[i - 1], cv2.COLOR_BGR2GRAY)
                 curr_gray = cv2.cvtColor(frames[i], cv2.COLOR_BGR2GRAY)
 
                 diff = np.mean(np.abs(curr_gray.astype(float) - prev_gray.astype(float)))
@@ -398,32 +388,28 @@ class VideoAnalyzer:
         # Calculate text delay (first text appearance)
         text_delay = text_appearances[0] if text_appearances else 1.0
 
-        return {
-            "duration": duration,
-            "text_delay": text_delay,
-            "fps": fps
-        }
+        return {"duration": duration, "text_delay": text_delay, "fps": fps}
 
     def save_style(self, style_name: str, style: dict):
         """
         Save learned style to file.
-        
+
         Args:
             style_name: Name of the style
             style: Style dictionary
         """
         file_path = os.path.join(self.learned_dir, f"{style_name}_style.json")
 
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(style, f, indent=2, ensure_ascii=False)
 
     def create_master_patterns(self, styles: list[dict]) -> dict:
         """
         Create master patterns from multiple styles.
-        
+
         Args:
             styles: List of style dictionaries
-            
+
         Returns:
             Master patterns dictionary
         """
@@ -453,24 +439,17 @@ class VideoAnalyzer:
         avg_duration = np.mean(durations) if durations else 7.0
 
         return {
-            "colors": {
-                "primary": avg_primary,
-                "secondary": avg_secondary,
-                "background": avg_background
-            },
+            "colors": {"primary": avg_primary, "secondary": avg_secondary, "background": avg_background},
             "effects": common_effects,
-            "timing": {
-                "duration": avg_duration,
-                "text_delay": 1.0
-            },
-            "total_samples": len(styles)
+            "timing": {"duration": avg_duration, "text_delay": 1.0},
+            "total_samples": len(styles),
         }
 
     def save_master_patterns(self, patterns: dict):
         """Save master patterns to file."""
         file_path = os.path.join(self.learned_dir, "master_patterns.json")
 
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(patterns, f, indent=2, ensure_ascii=False)
 
 

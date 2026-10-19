@@ -53,8 +53,7 @@ class ProjectInfo:
         self.LOGS_DIR = self._abs_path(self.LOGS_DIR)
 
         # Create all directories if they don't exist
-        for dir_path in [self.OUTPUT_DIR, self.TEMP_DIR, self.ASSETS_DIR,
-                         self.DATA_DIR, self.FONTS_DIR, self.LOGS_DIR]:
+        for dir_path in [self.OUTPUT_DIR, self.TEMP_DIR, self.ASSETS_DIR, self.DATA_DIR, self.FONTS_DIR, self.LOGS_DIR]:
             os.makedirs(dir_path, exist_ok=True)
 
     def _abs_path(self, relative_path: str) -> str:
@@ -76,7 +75,7 @@ class ProjectInfo:
             f"Root      : {self.PROJECT_ROOT}",
             f"Output    : {self.OUTPUT_DIR}",
             f"Temp      : {self.TEMP_DIR}",
-            "=" * 50
+            "=" * 50,
         ]
         return "\n".join(lines)
 

@@ -47,14 +47,13 @@ import signal
 def _load_known_dua_ids():
     """Return the set of dua ids so the dashboard cache in temp/ is protected."""
     try:
-        db = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          'data', 'duas.json')
+        db = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "duas.json")
         if not os.path.exists(db):
             return set()
-        with open(db, encoding='utf-8-sig', errors='replace') as f:
+        with open(db, encoding="utf-8-sig", errors="replace") as f:
             raw = json.load(f)
-        arr = raw if isinstance(raw, list) else raw.get('duas', [])
-        return {str(d.get('id') or '') for d in arr if d.get('id')}
+        arr = raw if isinstance(raw, list) else raw.get("duas", [])
+        return {str(d.get("id") or "") for d in arr if d.get("id")}
     except Exception:
         return set()
 
@@ -67,7 +66,7 @@ def _cleanup_temp():
     Only removes leftover clutter that matches no known dua id.
     """
     try:
-        temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
+        temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp")
         if not os.path.exists(temp_dir):
             return
         now = time.time()
@@ -77,7 +76,7 @@ def _cleanup_temp():
             fp = os.path.join(temp_dir, f)
             if not os.path.isfile(fp):
                 continue
-            base = f.rsplit('_', 1)[0]
+            base = f.rsplit("_", 1)[0]
             if base in known:
                 # belongs to a produced dua -> dashboard cache, DO NOT touch
                 continue
@@ -95,15 +94,18 @@ def _cleanup_temp():
     except (OSError, ValueError):
         pass
 
+
 atexit.register(_cleanup_temp)
+
 
 def _signal_cleanup(signum, frame):
     logger.warning(f"Received signal {signum}, cleaning up...")
     _cleanup_temp()
     sys.exit(128 + signum)
 
+
 signal.signal(signal.SIGINT, _signal_cleanup)
-if hasattr(signal, 'SIGTERM'):
+if hasattr(signal, "SIGTERM"):
     signal.signal(signal.SIGTERM, _signal_cleanup)
 
 
@@ -113,9 +115,9 @@ def dua_video_filename(dua) -> str:
     Keeps the file name readable on PC (title based) and strips
     characters that are invalid in Windows file names.
     """
-    title = str(dua.get('title') or 'Dua').strip() or 'Dua'
-    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', '', title).strip() or 'Dua'
-    safe = re.sub(r'\.mp4$', '', safe, flags=re.IGNORECASE).rstrip('. ')
+    title = str(dua.get("title") or "Dua").strip() or "Dua"
+    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "", title).strip() or "Dua"
+    safe = re.sub(r"\.mp4$", "", safe, flags=re.IGNORECASE).rstrip(". ")
     return f"{safe}.mp4"
 
 
@@ -128,9 +130,7 @@ class DuaVideoPipeline:
         """Initialize pipeline components."""
         self.tts = TTSEngine()
         self.effect_engine = EffectEngine()
-        self.director = EffectDirector(fps=PROJECT.FPS,
-                                       canvas=(PROJECT.VIDEO_WIDTH,
-                                               PROJECT.VIDEO_HEIGHT))
+        self.director = EffectDirector(fps=PROJECT.FPS, canvas=(PROJECT.VIDEO_WIDTH, PROJECT.VIDEO_HEIGHT))
         self.video_builder = VideoBuilder()
         self.revamp_engine = RevampEngine()
         self.quality_checker = QualityChecker()
@@ -142,10 +142,9 @@ class DuaVideoPipeline:
         self._cancel_requested = False
         os.makedirs(self.temp_dir, exist_ok=True)
         os.makedirs(self.output_dir, exist_ok=True)
-        
+
         # PERFORMANCE FIX: Thread pool for parallel audio processing
-        self._executor = ThreadPoolExecutor(max_workers=4, 
-                                           thread_name_prefix="dua_audio")
+        self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="dua_audio")
         self._scene_renderer = SceneRenderer(fps=PROJECT.FPS)
 
         # BATCH QUEUE: queue-based batch processing system
@@ -159,15 +158,15 @@ class DuaVideoPipeline:
         self._batch_lock = Lock()
 
         # Verify temp directory is writable
-        _test_file = os.path.join(self.temp_dir, '.write_test')
+        _test_file = os.path.join(self.temp_dir, ".write_test")
         try:
-            with open(_test_file, 'w') as f:
-                f.write('ok')
+            with open(_test_file, "w") as f:
+                f.write("ok")
             os.remove(_test_file)
         except OSError as e:
             logger.error(f"Temp directory not writable: {self.temp_dir} - {e}")
             raise
-    
+
     # ── Memory Monitoring & Progress Reporting ──────────────────────
 
     _MEMORY_WARN_MB = 1024  # warn when RSS exceeds 1 GB
@@ -179,30 +178,27 @@ class DuaVideoPipeline:
         except Exception:
             return
         if mem_mb >= self._MEMORY_WARN_MB:
-            logger.warning("[MEM] %s — %.0f MB (threshold %d MB)",
-                           step_name, mem_mb, self._MEMORY_WARN_MB)
+            logger.warning("[MEM] %s — %.0f MB (threshold %d MB)", step_name, mem_mb, self._MEMORY_WARN_MB)
         else:
             logger.info("[MEM] %s — %.0f MB", step_name, mem_mb)
 
-    def _report_progress(self, step: int, total: int, label: str,
-                         dua_id: str = "", elapsed: float = 0.0):
+    def _report_progress(self, step: int, total: int, label: str, dua_id: str = "", elapsed: float = 0.0):
         """Emit a one-line progress snapshot."""
         pct = int(step / total * 100) if total else 0
         ts = f" ({elapsed:.0f}s elapsed)" if elapsed else ""
         dua_tag = f" [{dua_id}]" if dua_id else ""
-        logger.info(">>> [%d/%d %2d%%] %s%s%s", step, total, pct,
-                     label, dua_tag, ts)
+        logger.info(">>> [%d/%d %2d%%] %s%s%s", step, total, pct, label, dua_tag, ts)
 
     def __del__(self):
         """Cleanup thread pool on object destruction."""
         self.shutdown()
-    
+
     def shutdown(self):
         """Shutdown thread pool executor, batch worker, and clear caches."""
         self.cancel_batch()
-        if hasattr(self, '_executor') and self._executor:
+        if hasattr(self, "_executor") and self._executor:
             self._executor.shutdown(wait=False)
-        if hasattr(self, '_scene_renderer') and self._scene_renderer:
+        if hasattr(self, "_scene_renderer") and self._scene_renderer:
             self._scene_renderer.clear_cache()
         logger.debug("DuaVideoPipeline resources cleaned up")
 
@@ -222,8 +218,7 @@ class DuaVideoPipeline:
                 ok = self.generate_video(dua_id, **kwargs)
                 with self._batch_lock:
                     self._batch_done += 1
-                    self._batch_results.append(
-                        {"dua_id": dua_id, "ok": ok})
+                    self._batch_results.append({"dua_id": dua_id, "ok": ok})
                     if not ok:
                         self._batch_failed += 1
             except Exception:
@@ -231,13 +226,11 @@ class DuaVideoPipeline:
                 with self._batch_lock:
                     self._batch_done += 1
                     self._batch_failed += 1
-                    self._batch_results.append(
-                        {"dua_id": dua_id, "ok": False})
+                    self._batch_results.append({"dua_id": dua_id, "ok": False})
             finally:
                 self._batch_queue.task_done()
 
-    def add_to_batch(self, dua_id: str, *, theme: str = "dark",
-                     effect: str = "auto", dry_run: bool = False):
+    def add_to_batch(self, dua_id: str, *, theme: str = "dark", effect: str = "auto", dry_run: bool = False):
         """
         Enqueue a single dua for background batch processing.
 
@@ -254,14 +247,12 @@ class DuaVideoPipeline:
             RuntimeError: If the batch worker is not running.
         """
         if self._batch_worker is None or not self._batch_worker.is_alive():
-            raise RuntimeError(
-                "Batch worker not running. Call start_batch() first.")
-        self._batch_queue.put(
-            (dua_id, {"theme": theme, "effect": effect, "dry_run": dry_run}))
+            raise RuntimeError("Batch worker not running. Call start_batch() first.")
+        self._batch_queue.put((dua_id, {"theme": theme, "effect": effect, "dry_run": dry_run}))
 
-    def start_batch(self, dua_ids: list[str] | None = None, *,
-                    theme: str = "dark", effect: str = "auto",
-                    dry_run: bool = False):
+    def start_batch(
+        self, dua_ids: list[str] | None = None, *, theme: str = "dark", effect: str = "auto", dry_run: bool = False
+    ):
         """
         Start (or enqueue into an existing) batch run.
 
@@ -285,21 +276,18 @@ class DuaVideoPipeline:
                 self._batch_done = 0
                 self._batch_failed = 0
                 self._batch_results = []
-            self._batch_worker = Thread(
-                target=self._batch_worker_loop, daemon=True,
-                name="batch_worker")
+            self._batch_worker = Thread(target=self._batch_worker_loop, daemon=True, name="batch_worker")
             self._batch_worker.start()
 
         if dua_ids is None:
             duas = DB.get_all_duas()
-            dua_ids = [d.get('id') for d in duas if d.get('id')]
+            dua_ids = [d.get("id") for d in duas if d.get("id")]
 
         with self._batch_lock:
             self._batch_total += len(dua_ids)
 
         for did in dua_ids:
-            self._batch_queue.put(
-                (did, {"theme": theme, "effect": effect, "dry_run": dry_run}))
+            self._batch_queue.put((did, {"theme": theme, "effect": effect, "dry_run": dry_run}))
 
         logger.info("Batch started: %d dua(s) queued.", len(dua_ids))
 
@@ -315,9 +303,7 @@ class DuaVideoPipeline:
             done = self._batch_done
             failed = self._batch_failed
             results = list(self._batch_results)
-        running = (
-            self._batch_worker is not None and self._batch_worker.is_alive()
-        )
+        running = self._batch_worker is not None and self._batch_worker.is_alive()
         return {
             "total": total,
             "done": done,
@@ -346,8 +332,7 @@ class DuaVideoPipeline:
             self._batch_worker.join(timeout=5)
         self._batch_worker = None
 
-    def _prepare_audio_track(self, ar_audio: str, ur_audio: str,
-                             merged_audio: str, gap_seconds: float = 0.3):
+    def _prepare_audio_track(self, ar_audio: str, ur_audio: str, merged_audio: str, gap_seconds: float = 0.3):
         """
         Merge spoken audio, apply the VIDEO-002 duration policy (15-25s), and
         pad the audio track with trailing silence to match the final video
@@ -364,8 +349,7 @@ class DuaVideoPipeline:
             dict {"final_duration", "visual_hold", "reason"} on success, or
             None on hard failure (speech exceeding the maximum duration).
         """
-        if not AudioMixer.merge_audio_sequential(
-                [ar_audio, ur_audio], merged_audio, gap_seconds=gap_seconds):
+        if not AudioMixer.merge_audio_sequential([ar_audio, ur_audio], merged_audio, gap_seconds=gap_seconds):
             logger.error("Failed to merge audio.")
             return None
 
@@ -377,7 +361,7 @@ class DuaVideoPipeline:
 
         timeline = AudioMixer.compute_video_timeline(speech_duration)
         if not timeline["valid"]:
-            logger.error("%s", timeline['reason'])
+            logger.error("%s", timeline["reason"])
             return None
 
         final_duration = timeline["final_duration"]
@@ -390,14 +374,11 @@ class DuaVideoPipeline:
             src = [normalized_audio]
             gap = 0.0
         else:
-            logger.warning("[AUDIO-001] Loudness normalization unavailable; "
-                  "proceeding with unnormalized audio.")
+            logger.warning("[AUDIO-001] Loudness normalization unavailable; proceeding with unnormalized audio.")
             src = [ar_audio, ur_audio]
             gap = gap_seconds
 
-        if not AudioMixer.merge_audio_sequential(
-                src, merged_audio, gap_seconds=gap,
-                pad_to_duration=final_duration):
+        if not AudioMixer.merge_audio_sequential(src, merged_audio, gap_seconds=gap, pad_to_duration=final_duration):
             logger.error("Failed to pad audio track with visual hold.")
             return None
 
@@ -409,72 +390,67 @@ class DuaVideoPipeline:
 
         logger.info(f"[2/5] Audio ready. {timeline['reason']}")
         return timeline
-    
-    def _prepare_audio_track_parallel(self, ar_audio: str, ur_audio: str,
-                                      merged_audio: str, gap_seconds: float = 0.3):
+
+    def _prepare_audio_track_parallel(self, ar_audio: str, ur_audio: str, merged_audio: str, gap_seconds: float = 0.3):
         """
         PERFORMANCE FIX: Parallel audio processing using ThreadPoolExecutor.
         Merges and normalizes audio in parallel threads.
         """
+
         def _merge_task():
-            return AudioMixer.merge_audio_sequential(
-                [ar_audio, ur_audio], merged_audio, gap_seconds=gap_seconds)
-        
+            return AudioMixer.merge_audio_sequential([ar_audio, ur_audio], merged_audio, gap_seconds=gap_seconds)
+
         def _normalize_task(input_path, output_path):
             return AudioMixer.normalize_loudness(input_path, output_path)
-        
+
         # Execute merge in thread pool
         merge_future = self._executor.submit(_merge_task)
         if not merge_future.result():
             logger.error("Failed to merge audio.")
             return None
-        
+
         # Get speech duration
         speech_clip = AudioFileClip(merged_audio)
         try:
             speech_duration = speech_clip.duration
         finally:
             speech_clip.close()
-        
+
         timeline = AudioMixer.compute_video_timeline(speech_duration)
         if not timeline["valid"]:
-            logger.error("%s", timeline['reason'])
+            logger.error("%s", timeline["reason"])
             return None
-        
+
         final_duration = timeline["final_duration"]
-        
+
         # Normalize in parallel with duration calculation
         base, ext = os.path.splitext(merged_audio)
         normalized_audio = f"{base}.normalized{ext}"
-        
+
         # Execute normalization in thread pool
-        normalize_future = self._executor.submit(
-            _normalize_task, merged_audio, normalized_audio)
-        
+        normalize_future = self._executor.submit(_normalize_task, merged_audio, normalized_audio)
+
         # Wait for normalization to complete
         ok = normalize_future.result()
         if ok:
             src = [normalized_audio]
             gap = 0.0
         else:
-            logger.warning("[AUDIO-001] Loudness normalization unavailable; "
-                  "proceeding with unnormalized audio.")
+            logger.warning("[AUDIO-001] Loudness normalization unavailable; proceeding with unnormalized audio.")
             src = [ar_audio, ur_audio]
             gap = gap_seconds
-        
+
         # Pad audio track
-        if not AudioMixer.merge_audio_sequential(
-                src, merged_audio, gap_seconds=gap,
-                pad_to_duration=final_duration):
+        if not AudioMixer.merge_audio_sequential(src, merged_audio, gap_seconds=gap, pad_to_duration=final_duration):
             logger.error("Failed to pad audio track with visual hold.")
             return None
-        
+
         if os.path.exists(normalized_audio):
             try:
                 os.remove(normalized_audio)
             except OSError:
                 pass
-        
+
         logger.info(f"[2/5] Audio ready (parallel). {timeline['reason']}")
         return timeline
 
@@ -498,16 +474,15 @@ class DuaVideoPipeline:
         fps = info.get("fps", 0)
 
         if not self.quality_checker.validate_resolution(width, height):
-            logger.error("Video resolution is not exactly 1080x1920. "
-                  "Generation FAILED.")
+            logger.error("Video resolution is not exactly 1080x1920. Generation FAILED.")
             return False
         if not self.quality_checker.validate_duration(duration):
-            logger.error(f"Video duration {duration:.1f}s is outside the required "
-                  f"15-50 second window. Generation FAILED.")
+            logger.error(
+                f"Video duration {duration:.1f}s is outside the required 15-50 second window. Generation FAILED."
+            )
             return False
         if not self.quality_checker.validate_fps(fps):
-            logger.error(f"Video FPS {fps:.1f} is not exactly 30. "
-                  "Generation FAILED.")
+            logger.error(f"Video FPS {fps:.1f} is not exactly 30. Generation FAILED.")
             return False
         return True
 
@@ -516,10 +491,9 @@ class DuaVideoPipeline:
         try:
             usage = shutil.disk_usage(self.temp_dir)
             free_mb = usage.free / (1024 * 1024)
-            min_disk = getattr(__import__('config'), 'DISK_SPACE_MIN_MB', 500)
+            min_disk = getattr(__import__("config"), "DISK_SPACE_MIN_MB", 500)
             if free_mb < min_disk:
-                logger.error(f"Low disk space: {free_mb:.0f}MB free. "
-                             f"Need at least {min_disk}MB. Aborting.")
+                logger.error(f"Low disk space: {free_mb:.0f}MB free. Need at least {min_disk}MB. Aborting.")
                 return False
         except Exception:
             logger.warning("Could not check disk space", exc_info=True)
@@ -543,11 +517,10 @@ class DuaVideoPipeline:
             except OSError:
                 pass
 
-    def generate_video(self, dua_id: str, theme: str = "dark",
-                       effect: str = "auto", dry_run: bool = False) -> bool:
+    def generate_video(self, dua_id: str, theme: str = "dark", effect: str = "auto", dry_run: bool = False) -> bool:
         """
         Main entry point: Takes a Dua ID and generates the final MP4.
-        
+
         Args:
             dua_id: Dua identifier
             theme: Video theme
@@ -569,16 +542,16 @@ class DuaVideoPipeline:
             return False
 
         if dry_run:
-            category = dua_data.get('category', 'general')
-            arabic_text = dua_data.get('arabic', '')
-            urdu_text = dua_data.get('urdu', '')
-            title = dua_data.get('title', 'Dua')
-            effect = effect or 'auto'
+            category = dua_data.get("category", "general")
+            arabic_text = dua_data.get("arabic", "")
+            urdu_text = dua_data.get("urdu", "")
+            title = dua_data.get("title", "Dua")
+            effect = effect or "auto"
             # Build timeline to estimate duration
-            ar_voice = dua_data.get('voice_arabic') or self.tts.pick_voice(dua_id, 'ar')
-            ur_voice = dua_data.get('voice_urdu') or self.tts.pick_voice(dua_id, 'ur')
-            prosody_ar = TTSEngine.PROSODY.get('ar', {})
-            prosody_ur = TTSEngine.PROSODY.get('ur', {})
+            ar_voice = dua_data.get("voice_arabic") or self.tts.pick_voice(dua_id, "ar")
+            ur_voice = dua_data.get("voice_urdu") or self.tts.pick_voice(dua_id, "ur")
+            prosody_ar = TTSEngine.PROSODY.get("ar", {})
+            prosody_ur = TTSEngine.PROSODY.get("ur", {})
             # Estimate duration from text length (~150ms/word Arabic, ~200ms/word Urdu)
             ar_words = len(arabic_text.split())
             ur_words = len(urdu_text.split())
@@ -599,8 +572,12 @@ class DuaVideoPipeline:
             logger.info(f"  Category      : {category}")
             logger.info(f"  Arabic voice  : {ar_voice}")
             logger.info(f"  Urdu voice    : {ur_voice}")
-            logger.info(f"  Prosody AR    : rate={prosody_ar.get('rate', 'default')}, pitch={prosody_ar.get('pitch', 'default')}")
-            logger.info(f"  Prosody UR    : rate={prosody_ur.get('rate', 'default')}, pitch={prosody_ur.get('pitch', 'default')}")
+            logger.info(
+                f"  Prosody AR    : rate={prosody_ar.get('rate', 'default')}, pitch={prosody_ar.get('pitch', 'default')}"
+            )
+            logger.info(
+                f"  Prosody UR    : rate={prosody_ur.get('rate', 'default')}, pitch={prosody_ur.get('pitch', 'default')}"
+            )
             logger.info(f"  Est. duration : ~{est_total:.1f}s (ar={est_ar:.1f}s, ur={est_ur:.1f}s)")
             logger.info(f"  Effect        : {effect}")
             logger.info(f"  Output path   : {output_path}")
@@ -614,10 +591,10 @@ class DuaVideoPipeline:
         if not self._check_disk_space():
             return False
 
-        category = dua_data.get('category', 'general')
-        arabic_text = dua_data.get('arabic', '')
-        urdu_text = dua_data.get('urdu', '')
-        title = dua_data.get('title', 'Dua')
+        category = dua_data.get("category", "general")
+        arabic_text = dua_data.get("arabic", "")
+        urdu_text = dua_data.get("urdu", "")
+        title = dua_data.get("title", "Dua")
 
         logger.info(f"Category    : {category}")
         logger.info(f"Title       : {title}")
@@ -631,29 +608,36 @@ class DuaVideoPipeline:
         ar_audio, ur_audio, ar_timing, ur_timing, temp_files = self._make_temp_paths(dua_id)
 
         try:
-            return self._run_pipeline(dua_data, ar_audio, ur_audio, ar_timing,
-                                      ur_timing, temp_files, start_time,
-                                      dua_id, theme, effect)
+            return self._run_pipeline(
+                dua_data, ar_audio, ur_audio, ar_timing, ur_timing, temp_files, start_time, dua_id, theme, effect
+            )
         finally:
             self._cleanup_temp(temp_files)
 
-    def _run_pipeline(self, dua_data, ar_audio, ur_audio, ar_timing, ur_timing,
-                      temp_files, start_time, dua_id, theme, effect) -> bool:
-        category = dua_data.get('category', 'general')
-        arabic_text = dua_data.get('arabic', '')
-        urdu_text = dua_data.get('urdu', '')
-        title = dua_data.get('title', 'Dua')
+    def _run_pipeline(
+        self, dua_data, ar_audio, ur_audio, ar_timing, ur_timing, temp_files, start_time, dua_id, theme, effect
+    ) -> bool:
+        category = dua_data.get("category", "general")
+        arabic_text = dua_data.get("arabic", "")
+        urdu_text = dua_data.get("urdu", "")
+        title = dua_data.get("title", "Dua")
 
         # STYLE-ROTATION: explicit per-dua override wins, else pool rotation
-        ar_voice = dua_data.get('voice_arabic') or self.tts.pick_voice(dua_id, 'ar')
-        ur_voice = dua_data.get('voice_urdu') or self.tts.pick_voice(dua_id, 'ur')
+        ar_voice = dua_data.get("voice_arabic") or self.tts.pick_voice(dua_id, "ar")
+        ur_voice = dua_data.get("voice_urdu") or self.tts.pick_voice(dua_id, "ur")
         logger.info(f"Arabic voice : {ar_voice}")
         logger.info(f"Urdu voice   : {ur_voice}")
 
         ar_ok, ur_ok = self.tts.generate_both(
-            arabic_text, urdu_text, ar_audio, ur_audio,
-            ar_timing=ar_timing, ur_timing=ur_timing,
-            ar_voice=ar_voice, ur_voice=ur_voice)
+            arabic_text,
+            urdu_text,
+            ar_audio,
+            ur_audio,
+            ar_timing=ar_timing,
+            ur_timing=ur_timing,
+            ar_voice=ar_voice,
+            ur_voice=ur_voice,
+        )
         if not ar_ok:
             logger.error("Failed to generate Arabic TTS.")
             return False
@@ -669,14 +653,12 @@ class DuaVideoPipeline:
         # 3. Merge Audio + apply VIDEO-002 duration policy (15-25s, padded hold)
         logger.info("[2/5] Merging Audio (parallel)...")
         merged_audio = os.path.join(self.temp_dir, f"{dua_id}_merged.wav")
-        timeline = self._prepare_audio_track_parallel(ar_audio, ur_audio, merged_audio,
-                                             gap_seconds=0.3)
+        timeline = self._prepare_audio_track_parallel(ar_audio, ur_audio, merged_audio, gap_seconds=0.3)
         if timeline is None:
             return False
         duration_seconds = timeline["final_duration"]
         self._check_memory("Audio Merge")
-        self._report_progress(2, 5, f"Audio merged ({duration_seconds:.1f}s)",
-                              dua_id, time.time() - start_time)
+        self._report_progress(2, 5, f"Audio merged ({duration_seconds:.1f}s)", dua_id, time.time() - start_time)
         if self._cancel_requested:
             logger.info("Generation cancelled by user.")
             return False
@@ -714,39 +696,33 @@ class DuaVideoPipeline:
         has_effect = effect and effect != "none"
         if has_effect:
             frames = SceneRenderer(fps=PROJECT.FPS).render(
-                plan["timeline"], seed=dua_id, dua_id=dua_id,
-                category=dua_data.get('category'))
+                plan["timeline"], seed=dua_id, dua_id=dua_id, category=dua_data.get("category")
+            )
             self._check_memory("Scene Render")
-            self._report_progress(3, 5, f"Frames rendered ({len(frames)} frames)",
-                                  dua_id, time.time() - start_time)
+            self._report_progress(3, 5, f"Frames rendered ({len(frames)} frames)", dua_id, time.time() - start_time)
         else:
             frames = SceneRenderer(fps=PROJECT.FPS).render_stream(
-                plan["timeline"], seed=dua_id, dua_id=dua_id,
-                category=dua_data.get('category'))
+                plan["timeline"], seed=dua_id, dua_id=dua_id, category=dua_data.get("category")
+            )
             self._check_memory("Scene Render (stream)")
-            self._report_progress(3, 5, "Frames rendered (stream)",
-                                  dua_id, time.time() - start_time)
+            self._report_progress(3, 5, "Frames rendered (stream)", dua_id, time.time() - start_time)
 
         # Optional visual effect post-processing (frame-level).
         # "auto" + the new AI effects use the EffectDirector brain; legacy
         # effect names keep the original frame-level path for compatibility.
         if has_effect:
-            if effect in ("auto", "bloom_glow", "gold_shimmer", "breathing",
-                          "rtl_reveal", "glitch_v2", "word_pulse"):
+            if effect in ("auto", "bloom_glow", "gold_shimmer", "breathing", "rtl_reveal", "glitch_v2", "word_pulse"):
                 fxplan = self.director.plan(
-                    dua_data, plan,
-                    {"arabic": ar_words, "urdu": ur_words},
-                    effect_request=effect, dua_id=dua_id)
+                    dua_data, plan, {"arabic": ar_words, "urdu": ur_words}, effect_request=effect, dua_id=dua_id
+                )
                 frames = self.effect_engine.apply_plan(frames, fxplan["frame_plan"])
                 self._check_memory(f"Effects ({effect})")
-                self._report_progress(4, 5, f"Effect: {effect}",
-                                      dua_id, time.time() - start_time)
-                logger.info("      %s", fxplan['summary'])
+                self._report_progress(4, 5, f"Effect: {effect}", dua_id, time.time() - start_time)
+                logger.info("      %s", fxplan["summary"])
             else:
                 frames = self.effect_engine.apply_to_frames(frames, effect)
                 self._check_memory(f"Effects ({effect})")
-                self._report_progress(4, 5, f"Effect: {effect}",
-                                      dua_id, time.time() - start_time)
+                self._report_progress(4, 5, f"Effect: {effect}", dua_id, time.time() - start_time)
             if self._cancel_requested:
                 logger.info("Generation cancelled by user.")
                 return False
@@ -757,11 +733,7 @@ class DuaVideoPipeline:
         os.makedirs(output_category_dir, exist_ok=True)
         output_path = os.path.join(output_category_dir, dua_video_filename(dua_data))
 
-        success = self.video_builder.build_video(
-            frames=frames,
-            output_path=output_path,
-            audio_path=merged_audio
-        )
+        success = self.video_builder.build_video(frames=frames, output_path=output_path, audio_path=merged_audio)
 
         if not success:
             logger.error("Failed to build video.")
@@ -795,17 +767,18 @@ class DuaVideoPipeline:
         logger.info("=" * 50)
         return True
 
-    def generate_custom_video(self, arabic_text: str, urdu_text: str,
-                              title: str = "", effect: str = "neon_glow") -> bool:
+    def generate_custom_video(
+        self, arabic_text: str, urdu_text: str, title: str = "", effect: str = "neon_glow"
+    ) -> bool:
         """
         Generate video from custom dua input.
-        
+
         Args:
             arabic_text: Arabic dua text
             urdu_text: Urdu translation
             title: Optional title
             effect: Effect to use
-            
+
         Returns:
             True if successful
         """
@@ -827,18 +800,17 @@ class DuaVideoPipeline:
 
         try:
             return self._run_custom_pipeline(
-                arabic_text, urdu_text, title, effect, category,
-                ar_audio, ur_audio, ar_timing, ur_timing, start_time)
+                arabic_text, urdu_text, title, effect, category, ar_audio, ur_audio, ar_timing, ur_timing, start_time
+            )
         finally:
             self._cleanup_temp(temp_files)
 
-    def _run_custom_pipeline(self, arabic_text, urdu_text, title, effect,
-                             category, ar_audio, ur_audio, ar_timing, ur_timing,
-                             start_time) -> bool:
-
+    def _run_custom_pipeline(
+        self, arabic_text, urdu_text, title, effect, category, ar_audio, ur_audio, ar_timing, ur_timing, start_time
+    ) -> bool:
         ar_ok, ur_ok = self.tts.generate_both(
-            arabic_text, urdu_text, ar_audio, ur_audio,
-            ar_timing=ar_timing, ur_timing=ur_timing)
+            arabic_text, urdu_text, ar_audio, ur_audio, ar_timing=ar_timing, ur_timing=ur_timing
+        )
         if not ar_ok:
             logger.error("Failed to generate Arabic TTS.")
             return False
@@ -846,20 +818,17 @@ class DuaVideoPipeline:
             logger.error("Failed to generate Urdu TTS.")
             return False
         self._check_memory("TTS")
-        self._report_progress(1, 5, "TTS Generated", "custom",
-                              time.time() - start_time)
+        self._report_progress(1, 5, "TTS Generated", "custom", time.time() - start_time)
 
         # Merge Audio + apply VIDEO-002 duration policy (15-25s, padded hold)
         logger.info("[2/5] Merging Audio (parallel)...")
         merged_audio = os.path.join(self.temp_dir, "custom_merged.wav")
-        timeline = self._prepare_audio_track_parallel(ar_audio, ur_audio, merged_audio,
-                                             gap_seconds=0.3)
+        timeline = self._prepare_audio_track_parallel(ar_audio, ur_audio, merged_audio, gap_seconds=0.3)
         if timeline is None:
             return False
         duration_seconds = timeline["final_duration"]
         self._check_memory("Audio Merge")
-        self._report_progress(2, 5, f"Audio merged ({duration_seconds:.1f}s)",
-                              "custom", time.time() - start_time)
+        self._report_progress(2, 5, f"Audio merged ({duration_seconds:.1f}s)", "custom", time.time() - start_time)
 
         # Generate Frames (TimelineBuilder + SceneEngine, VISUAL Phase 3)
         #    Audio is immutable; the visual timeline adapts to measured TTS
@@ -894,40 +863,38 @@ class DuaVideoPipeline:
         has_effect = effect and effect != "none"
         if has_effect:
             frames = SceneRenderer(fps=PROJECT.FPS).render(
-                plan["timeline"], seed="custom", dua_id="custom",
-                category=category)
+                plan["timeline"], seed="custom", dua_id="custom", category=category
+            )
             self._check_memory("Scene Render")
-            self._report_progress(3, 5, f"Frames rendered ({len(frames)} frames)",
-                                  "custom", time.time() - start_time)
+            self._report_progress(3, 5, f"Frames rendered ({len(frames)} frames)", "custom", time.time() - start_time)
         else:
             frames = SceneRenderer(fps=PROJECT.FPS).render_stream(
-                plan["timeline"], seed="custom", dua_id="custom",
-                category=category)
+                plan["timeline"], seed="custom", dua_id="custom", category=category
+            )
             self._check_memory("Scene Render (stream)")
-            self._report_progress(3, 5, "Frames rendered (stream)",
-                                  "custom", time.time() - start_time)
+            self._report_progress(3, 5, "Frames rendered (stream)", "custom", time.time() - start_time)
 
         # Optional visual effect post-processing (frame-level).
         if has_effect:
-            dua_data = {"id": "custom", "category": category,
-                        "arabic": arabic_text, "urdu": urdu_text,
-                        "title": title or "Custom Dua"}
-            if effect in ("auto", "bloom_glow", "gold_shimmer", "breathing",
-                          "rtl_reveal", "glitch_v2", "word_pulse"):
+            dua_data = {
+                "id": "custom",
+                "category": category,
+                "arabic": arabic_text,
+                "urdu": urdu_text,
+                "title": title or "Custom Dua",
+            }
+            if effect in ("auto", "bloom_glow", "gold_shimmer", "breathing", "rtl_reveal", "glitch_v2", "word_pulse"):
                 fxplan = self.director.plan(
-                    dua_data, plan,
-                    {"arabic": ar_words, "urdu": ur_words},
-                    effect_request=effect, dua_id="custom")
+                    dua_data, plan, {"arabic": ar_words, "urdu": ur_words}, effect_request=effect, dua_id="custom"
+                )
                 frames = self.effect_engine.apply_plan(frames, fxplan["frame_plan"])
                 self._check_memory(f"Effects ({effect})")
-                self._report_progress(4, 5, f"Effect: {effect}",
-                                      "custom", time.time() - start_time)
-                logger.info("      %s", fxplan['summary'])
+                self._report_progress(4, 5, f"Effect: {effect}", "custom", time.time() - start_time)
+                logger.info("      %s", fxplan["summary"])
             else:
                 frames = self.effect_engine.apply_to_frames(frames, effect)
                 self._check_memory(f"Effects ({effect})")
-                self._report_progress(4, 5, f"Effect: {effect}",
-                                      "custom", time.time() - start_time)
+                self._report_progress(4, 5, f"Effect: {effect}", "custom", time.time() - start_time)
 
         # Build Video
         logger.info("[4/5] Assembling video...")
@@ -935,21 +902,16 @@ class DuaVideoPipeline:
         os.makedirs(custom_dir, exist_ok=True)
 
         import datetime
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = os.path.join(custom_dir, f"custom_{timestamp}.mp4")
-        success = self.video_builder.build_video(
-            frames=frames,
-            output_path=output_path,
-            audio_path=merged_audio
-
-        )
+        success = self.video_builder.build_video(frames=frames, output_path=output_path, audio_path=merged_audio)
 
         if not success:
             logger.error("Failed to build video.")
             return False
         self._check_memory("Video Encoding")
-        self._report_progress(5, 5, "Video assembled", "custom",
-                              time.time() - start_time)
+        self._report_progress(5, 5, "Video assembled", "custom", time.time() - start_time)
 
         # Quality Check (VIDEO-002 hard gate: resolution + duration + FPS)
         logger.info("[5/5] Quality check...")
@@ -1009,14 +971,14 @@ class DuaVideoPipeline:
         logger.info(f"Best Effect: {stats['best_effect']}")
         logger.info(f"Best Color: {stats['best_color']}")
 
-        if stats['effect_averages']:
+        if stats["effect_averages"]:
             logger.info("Effect Ratings:")
-            for effect, rating in stats['effect_averages'].items():
+            for effect, rating in stats["effect_averages"].items():
                 logger.info(f"  {effect}: {rating:.1f}/5")
 
-        if stats['color_averages']:
+        if stats["color_averages"]:
             logger.info("Color Ratings:")
-            for color, rating in stats['color_averages'].items():
+            for color, rating in stats["color_averages"].items():
                 logger.info(f"  {color}: {rating:.1f}/5")
 
         logger.info("=" * 50)
@@ -1084,8 +1046,8 @@ class DuaVideoPipeline:
         logger.info("Available Duas:")
         logger.info("-" * 40)
         for idx, dua in enumerate(duas, 1):
-            title = dua.get('title', 'Unknown')
-            category = dua.get('category', 'general')
+            title = dua.get("title", "Unknown")
+            category = dua.get("category", "general")
             logger.info(f"{idx:3}. {title}  [{category}]")
 
         logger.info("-" * 40)
@@ -1099,8 +1061,8 @@ class DuaVideoPipeline:
 
                 idx = int(choice)
                 if 1 <= idx <= len(duas):
-                    selected = duas[idx-1]
-                    dua_id = selected.get('id')
+                    selected = duas[idx - 1]
+                    dua_id = selected.get("id")
                     if dua_id:
                         self.generate_video(dua_id)
                     else:
@@ -1145,8 +1107,8 @@ class DuaVideoPipeline:
         success_count = 0
 
         for idx, dua in enumerate(duas, 1):
-            dua_id = dua.get('id')
-            title = dua.get('title', 'Unknown')
+            dua_id = dua.get("id")
+            title = dua.get("title", "Unknown")
             logger.info("[%d/%d] Processing: %s (%s)", idx, total, title, dua_id)
             logger.info("-" * 30)
 
@@ -1222,7 +1184,7 @@ class DuaVideoPipeline:
                     "id": f"custom_{int(time.time())}",
                     "effect": effect,
                     "color": color,
-                    "duration": 0  # Will be updated
+                    "duration": 0,  # Will be updated
                 }
                 self.self_trainer.save_feedback(video_data, rating)
                 logger.info("Thank you for your feedback!")
@@ -1255,6 +1217,7 @@ class DuaVideoPipeline:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Dua Video Generator")
     parser.add_argument("--dua", type=str, help="Generate video for specific dua ID")
     parser.add_argument("--theme", type=str, default="dark", help="Video theme (default: dark)")
@@ -1273,7 +1236,7 @@ if __name__ == "__main__":
             pipeline._batch_mode()
         elif args.list:
             for dua in DB.get_all_duas():
-                print(dua.get('id', ''))
+                print(dua.get("id", ""))
         else:
             pipeline.interactive_menu()
     except KeyboardInterrupt:

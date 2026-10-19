@@ -32,9 +32,15 @@ from typing import cast
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["normalize_events", "resolve_active_word", "build_word_geometry",
-           "highlight_targets", "make_word_overlay",
-           "HIGHLIGHT_BOX_STYLES", "make_word_highlight_box"]
+__all__ = [
+    "normalize_events",
+    "resolve_active_word",
+    "build_word_geometry",
+    "highlight_targets",
+    "make_word_overlay",
+    "HIGHLIGHT_BOX_STYLES",
+    "make_word_highlight_box",
+]
 
 
 Rect = tuple[int, int, int, int]
@@ -64,16 +70,13 @@ def normalize_events(events: list[dict] | None) -> list[dict]:
             start = float(raw_start)
         except (TypeError, ValueError):
             continue
-        if start != start:        # NaN
+        if start != start:  # NaN
             continue
-        if start < 0.0:           # negative is never a valid scene-relative time
+        if start < 0.0:  # negative is never a valid scene-relative time
             continue
         cleaned.append((start, i, dict(ev)))
     cleaned.sort(key=lambda t: (t[0], t[1]))
-    return [
-        {"start": start, "orig": orig, **rest}
-        for (start, orig, rest) in cleaned
-    ]
+    return [{"start": start, "orig": orig, **rest} for (start, orig, rest) in cleaned]
 
 
 def resolve_active_word(events: list[dict], t: float) -> int | None:
@@ -134,9 +137,7 @@ def build_word_geometry(
           line_boxes [rect, ...]  per display line, in order
     """
     line_boxes: list[Rect] = [
-        (int(ln["bbox"][0]), int(ln["bbox"][1]),
-         int(ln["bbox"][2]), int(ln["bbox"][3]))
-        for ln in display_lines
+        (int(ln["bbox"][0]), int(ln["bbox"][1]), int(ln["bbox"][2]), int(ln["bbox"][3])) for ln in display_lines
     ]
 
     def line_fallback() -> dict:
@@ -171,7 +172,7 @@ def build_word_geometry(
         b = line_boxes[li]
         if not toks or len(spans) != len(toks):
             return line_fallback()
-        if ltoks[ti:ti + len(toks)] != toks:
+        if ltoks[ti : ti + len(toks)] != toks:
             return line_fallback()
         for j, span in enumerate(spans):
             _idx, x0, x1 = span
@@ -184,8 +185,7 @@ def build_word_geometry(
     return {"mode": "word", "targets": targets, "line_boxes": line_boxes}
 
 
-def highlight_targets(events: list[dict], geometry: dict,
-                      t: float) -> Rect | None:
+def highlight_targets(events: list[dict], geometry: dict, t: float) -> Rect | None:
     """Rect (or None) for the active event at scene time ``t`` seconds."""
     active = resolve_active_word(events, t)
     if active is None:
@@ -196,9 +196,7 @@ def highlight_targets(events: list[dict], geometry: dict,
 # ----------------------------------------------------------------------
 # Overlay generation
 # ----------------------------------------------------------------------
-def make_word_overlay(rect: Rect, accent_rgb: tuple[int, int, int],
-                      fill_alpha: int = 46,
-                      outline_alpha: int = 165):
+def make_word_overlay(rect: Rect, accent_rgb: tuple[int, int, int], fill_alpha: int = 46, outline_alpha: int = 165):
     """
     Build a deterministic RGBA overlay sized to ``rect``: a subtle rounded
     translucent accent fill with a thin accent outline. The overlay is drawn
@@ -213,9 +211,9 @@ def make_word_overlay(rect: Rect, accent_rgb: tuple[int, int, int],
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     radius = min(8, h // 2)
-    d.rounded_rectangle([0, 0, w - 1, h - 1], radius=radius,
-                        fill=(r, g, b, fill_alpha),
-                        outline=(r, g, b, outline_alpha), width=2)
+    d.rounded_rectangle(
+        [0, 0, w - 1, h - 1], radius=radius, fill=(r, g, b, fill_alpha), outline=(r, g, b, outline_alpha), width=2
+    )
     return img
 
 

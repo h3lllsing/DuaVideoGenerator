@@ -77,6 +77,7 @@ def premium_palette(dua_id: str) -> dict:
     across the dark family. Pass the result as TimelineBuilder.build(palette=).
     """
     from core.master_config import MASTER_PALETTES
+
     dark = [dict(MASTER_PALETTES[name]) for name in DARK_PALETTES]
     return dark[_seed_int(dua_id) % len(dark)]
 
@@ -86,14 +87,14 @@ def premium_palette(dua_id: str) -> dict:
 # ----------------------------------------------------------------------
 
 MOODS = {
-    "prayer":   {"tint": (212, 175, 55), "bold": 0.55, "sweep": True},
-    "morning":  {"tint": (255, 210, 90), "bold": 0.50, "sweep": True},
-    "evening":  {"tint": (150, 170, 255), "bold": 0.45, "sweep": False},
-    "general":  {"tint": (212, 175, 55), "bold": 0.70, "sweep": True},
-    "sleep":    {"tint": (140, 165, 255), "bold": 0.35, "sweep": False},
+    "prayer": {"tint": (212, 175, 55), "bold": 0.55, "sweep": True},
+    "morning": {"tint": (255, 210, 90), "bold": 0.50, "sweep": True},
+    "evening": {"tint": (150, 170, 255), "bold": 0.45, "sweep": False},
+    "general": {"tint": (212, 175, 55), "bold": 0.70, "sweep": True},
+    "sleep": {"tint": (140, 165, 255), "bold": 0.35, "sweep": False},
     "bathroom": {"tint": (150, 200, 230), "bold": 0.35, "sweep": False},
-    "food":     {"tint": (235, 190, 120), "bold": 0.40, "sweep": True},
-    "travel":   {"tint": (120, 200, 170), "bold": 0.45, "sweep": True},
+    "food": {"tint": (235, 190, 120), "bold": 0.40, "sweep": True},
+    "travel": {"tint": (120, 200, 170), "bold": 0.45, "sweep": True},
 }
 
 DEFAULT_MOOD = MOODS["general"]
@@ -118,8 +119,8 @@ def _score_effects(metrics: dict, mood: dict, rng) -> list:
     n_words = metrics["arabic_word_count"]
     scores = []
 
-    shimmer = (0.50 + 0.45 * bold + (0.15 if mood["sweep"] else 0.0))
-    shimmer *= (1.25 - density * 0.35)
+    shimmer = 0.50 + 0.45 * bold + (0.15 if mood["sweep"] else 0.0)
+    shimmer *= 1.25 - density * 0.35
     scores.append(("gold_shimmer", round(shimmer, 3)))
 
     bloom = 0.85
@@ -154,19 +155,20 @@ def scene_frame_ranges(scene_metadata, fps: int, total_frames: int = 0):
         if total_frames > 0:
             start_f = min(start_f, total_frames - 1)
             end_f = min(end_f, total_frames)
-        ranges.append({
-            "index": i,
-            "role": sc.get("role", "hold"),
-            "start": max(0, start_f),
-            "end": max(1, end_f),
-            "start_sec": float(sc.get("start", 0.0)),
-            "duration": float(sc.get("duration", 0.0)),
-        })
+        ranges.append(
+            {
+                "index": i,
+                "role": sc.get("role", "hold"),
+                "start": max(0, start_f),
+                "end": max(1, end_f),
+                "start_sec": float(sc.get("start", 0.0)),
+                "duration": float(sc.get("duration", 0.0)),
+            }
+        )
     return ranges
 
 
-def word_pulse_events(word_events, offsets, fps: int,
-                      language: str = "arabic", max_words: int = 20):
+def word_pulse_events(word_events, offsets, fps: int, language: str = "arabic", max_words: int = 20):
     """
     Convert WordBoundary sidecars into pulse events at absolute frame
     indices (karaoke rhythm). Limited anchors so the video stays calm.
@@ -187,8 +189,7 @@ def word_pulse_events(word_events, offsets, fps: int,
             continue
         frame = int(round((base + off) * fps))
         frames_dur = max(4, int(round(dur * fps)))
-        events.append({"frame": frame, "decay": max(6, frames_dur),
-                       "word": w.get("word", "")})
+        events.append({"frame": frame, "decay": max(6, frames_dur), "word": w.get("word", "")})
     return events
 
 
@@ -203,14 +204,15 @@ class EffectDirector:
     def __init__(self, fps: int | None = None, canvas=(1080, 1920)):
         if fps is None:
             from core.project_info import PROJECT
+
             fps = PROJECT.FPS
         self.fps = int(fps)
         self.width, self.height = canvas
 
     # ------------------------------------------------------------------
-    def plan(self, dua_data, timeline_plan, word_events,
-             effect_request: str = "auto",
-             dua_id: str | None = None) -> dict:
+    def plan(
+        self, dua_data, timeline_plan, word_events, effect_request: str = "auto", dua_id: str | None = None
+    ) -> dict:
         """
         Build the per-frame effect stack.
 
@@ -225,8 +227,7 @@ class EffectDirector:
         metrics = analyze_dua(dua_data)
         mood = _mood(metrics["category"])
         total = int(timeline_plan.get("final_frames", 0))
-        scenes = scene_frame_ranges(
-            timeline_plan.get("scene_metadata", []), fps, total_frames=total)
+        scenes = scene_frame_ranges(timeline_plan.get("scene_metadata", []), fps, total_frames=total)
         offsets = timeline_plan.get("offsets", {}) or {}
 
         role_by_frame = {}
@@ -261,50 +262,53 @@ class EffectDirector:
         plan: list[list[dict]] = [[] for _ in range(total)]
 
         for f in range(total):
-            plan[f].append({"effect": "vignette", "params": {"strength": 0.35},
-                            "seed": seed})
-            plan[f].append({"effect": "grain", "params": {"strength": 0.06},
-                            "seed": seed + f})
+            plan[f].append({"effect": "vignette", "params": {"strength": 0.35}, "seed": seed})
+            plan[f].append({"effect": "grain", "params": {"strength": 0.06}, "seed": seed + f})
 
         if hero is not None:
             # word-sync karaoke pulses (arabic scene only)
             for p in pulses:
                 frame = p["frame"]
                 if 0 <= frame < total and role_of(frame) in ("arabic", "urdu"):
-                    plan[frame].append({
-                        "effect": "word_pulse",
-                        "params": {
-                            "strength": 0.16,
-                            "tint": mood["tint"],
-                            "decay": p["decay"],
-                        },
-                        "seed": seed + frame,
-                    })
+                    plan[frame].append(
+                        {
+                            "effect": "word_pulse",
+                            "params": {
+                                "strength": 0.16,
+                                "tint": mood["tint"],
+                                "decay": p["decay"],
+                            },
+                            "seed": seed + frame,
+                        }
+                    )
 
             # Phase C premium layers (auto mode only):
             #  - aurora light-leaks across the whole video (subtle, background)
             #  - title hook (zoom + gold flash) on the opening of arabic scene
             if effect_request == "auto":
                 for f in range(total):
-                    plan[f].append({
-                        "effect": "aurora",
-                        "params": {
-                            "phase": f / max(1, total - 1),
-                            "tint": mood["tint"],
-                            "intensity": 0.08,
-                        },
-                        "seed": seed + f,
-                    })
+                    plan[f].append(
+                        {
+                            "effect": "aurora",
+                            "params": {
+                                "phase": f / max(1, total - 1),
+                                "tint": mood["tint"],
+                                "intensity": 0.08,
+                            },
+                            "seed": seed + f,
+                        }
+                    )
                 if ar_scene:
-                    hook_end = ar_scene["start"] + int(
-                        (ar_scene["end"] - ar_scene["start"]) * 0.25)
+                    hook_end = ar_scene["start"] + int((ar_scene["end"] - ar_scene["start"]) * 0.25)
                     for f in range(ar_scene["start"], min(hook_end, total)):
                         lp = (f - ar_scene["start"]) / max(1, hook_end - ar_scene["start"])
-                        plan[f].append({
-                            "effect": "title_hook",
-                            "params": {"phase": lp, "tint": mood["tint"]},
-                            "seed": seed + f,
-                        })
+                        plan[f].append(
+                            {
+                                "effect": "title_hook",
+                                "params": {"phase": lp, "tint": mood["tint"]},
+                                "seed": seed + f,
+                            }
+                        )
 
             # hero effect on arabic + urdu scenes
             for sc in (ar_scene, ur_scene):
@@ -314,67 +318,78 @@ class EffectDirector:
                     lp = local_progress(sc, f)
                     if hero == "rtl_reveal":
                         if lp < 0.4:
-                            plan[f].append({
-                                "effect": "rtl_reveal",
+                            plan[f].append(
+                                {
+                                    "effect": "rtl_reveal",
+                                    "params": {
+                                        "fraction": easing.apply("ease_out", lp / 0.4),
+                                    },
+                                    "seed": seed,
+                                }
+                            )
+                    elif hero == "gold_shimmer":
+                        plan[f].append(
+                            {
+                                "effect": "gold_shimmer",
                                 "params": {
-                                    "fraction": easing.apply("ease_out", lp / 0.4),
+                                    "phase": (f - sc["start"]) / max(1, sc["end"] - sc["start"]),
+                                    "tint": mood["tint"],
+                                    "intensity": 0.30 + 0.15 * (1 - metrics["text_density"]),
                                 },
                                 "seed": seed,
-                            })
-                    elif hero == "gold_shimmer":
-                        plan[f].append({
-                            "effect": "gold_shimmer",
-                            "params": {
-                                "phase": (f - sc["start"]) / max(1, sc["end"] - sc["start"]),
-                                "tint": mood["tint"],
-                                "intensity": 0.30 + 0.15 * (1 - metrics["text_density"]),
-                            },
-                            "seed": seed,
-                        })
+                            }
+                        )
                     elif hero == "glitch_v2":
                         amp = 0.5 + 0.5 * abs(math.sin(lp * math.pi * 3))
                         if amp > 0.35:
-                            plan[f].append({
-                                "effect": "glitch_v2",
-                                "params": {"strength": amp, "tint": mood["tint"]},
-                                "seed": seed + f,
-                            })
+                            plan[f].append(
+                                {
+                                    "effect": "glitch_v2",
+                                    "params": {"strength": amp, "tint": mood["tint"]},
+                                    "seed": seed + f,
+                                }
+                            )
                     else:
-                        plan[f].append({
-                            "effect": "bloom_glow",
-                            "params": {
-                                "tint": mood["tint"],
-                                "intensity": 0.55 + 0.2 * mood["bold"],
-                                "threshold": 110,
-                            },
-                            "seed": seed,
-                        })
+                        plan[f].append(
+                            {
+                                "effect": "bloom_glow",
+                                "params": {
+                                    "tint": mood["tint"],
+                                    "intensity": 0.55 + 0.2 * mood["bold"],
+                                    "threshold": 110,
+                                },
+                                "seed": seed,
+                            }
+                        )
 
             # calm breathing on the hold scene
             if hold_scene:
                 for f in range(hold_scene["start"], hold_scene["end"]):
                     lp = local_progress(hold_scene, f)
-                    plan[f].append({
-                        "effect": "breathing",
-                        "params": {"phase": lp, "freq": 1.5, "amp": 0.05},
-                        "seed": seed,
-                    })
+                    plan[f].append(
+                        {
+                            "effect": "breathing",
+                            "params": {"phase": lp, "freq": 1.5, "amp": 0.05},
+                            "seed": seed,
+                        }
+                    )
                     # outro summary card: both Arabic + translation + title
                     if hero is not None:
-                        plan[f].append({
-                            "effect": "summary_card",
-                            "params": {
-                                "arabic": str(dua_data.get("arabic", "")),
-                                "urdu": str(dua_data.get("urdu", "")),
-                                "title": str(dua_data.get("title", "")),
-                                "tint": mood["tint"],
-                                "lp": lp,
-                            },
-                            "seed": seed,
-                        })
+                        plan[f].append(
+                            {
+                                "effect": "summary_card",
+                                "params": {
+                                    "arabic": str(dua_data.get("arabic", "")),
+                                    "urdu": str(dua_data.get("urdu", "")),
+                                    "title": str(dua_data.get("title", "")),
+                                    "tint": mood["tint"],
+                                    "lp": lp,
+                                },
+                                "seed": seed,
+                            }
+                        )
 
-            summary = ("AI Director: %s | word-sync %d | %s"
-                       % (hero, len(pulses), self._hardware()))
+            summary = "AI Director: %s | word-sync %d | %s" % (hero, len(pulses), self._hardware())
         else:
             summary = "Effects off (none)"
 
@@ -388,6 +403,7 @@ class EffectDirector:
     def _hardware(self):
         try:
             from core.hardware import profile_summary
+
             return profile_summary()
         except Exception:
             return "cpu"

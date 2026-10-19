@@ -36,13 +36,13 @@ class TestApplyEffect:
 
     def test_known_effect_dispatch(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.apply_effect("neon_glow", img, 0, 10)
         assert result.size == (1080, 1920)
 
     def test_unknown_effect_fallback(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.apply_effect("nonexistent", img, 0, 10)
         assert result.size == (1080, 1920)
 
@@ -52,7 +52,7 @@ class TestNeonGlow:
 
     def test_output_same_size(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.neon_glow(img, 5, 10)
         assert result.size == (1080, 1920)
 
@@ -62,7 +62,7 @@ class TestMetallicGold:
 
     def test_output_same_size(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.metallic_gold(img, 5, 10)
         assert result.size == (1080, 1920)
 
@@ -72,13 +72,13 @@ class TestTypewriter:
 
     def test_frame_zero_empty(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.typewriter(img, 0, 10)
         assert result.size == (1080, 1920)
 
     def test_full_frame_complete(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.typewriter(img, 10, 10)
         assert result.size == (1080, 1920)
 
@@ -88,7 +88,7 @@ class TestWave:
 
     def test_output_same_size(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         result = engine.wave(img, 5, 10)
         assert result.size == (1080, 1920)
 
@@ -98,7 +98,7 @@ class TestGlitch:
 
     def test_deterministic(self):
         engine = EffectsEngine()
-        img = Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))
+        img = Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))
         r1 = engine.glitch(img, 5, 10)
         r2 = engine.glitch(img, 5, 10)
         assert np.array_equal(np.array(r1), np.array(r2))
@@ -114,13 +114,13 @@ class TestApplyToFrames:
 
     def test_none_effect(self):
         engine = EffectsEngine()
-        frames = [Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))]
+        frames = [Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))]
         result = engine.apply_to_frames(frames, None)
         assert len(result) == 1
 
     def test_invalid_effect_returns_original(self):
         engine = EffectsEngine()
-        frames = [Image.new('RGBA', (1080, 1920), (255, 255, 255, 255))]
+        frames = [Image.new("RGBA", (1080, 1920), (255, 255, 255, 255))]
         result = engine.apply_to_frames(frames, "invalid_effect")
         assert len(result) == 1
 
@@ -135,7 +135,7 @@ class TestApplyPlan:
 
     def test_plan_length_mismatch(self):
         engine = EffectsEngine()
-        frames = [Image.new('RGB', (1080, 1920), (255, 255, 255)) for _ in range(5)]
+        frames = [Image.new("RGB", (1080, 1920), (255, 255, 255)) for _ in range(5)]
         plan = [{"specs": []}] * 3  # mismatched length
         result = engine.apply_plan(frames, plan)
         assert len(result) == 5  # returns unchanged

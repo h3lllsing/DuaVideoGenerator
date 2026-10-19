@@ -28,6 +28,7 @@ Usage
     python instagram_upload.py rozi_ki_dua --dry-run
     python instagram_upload.py rozi_ki_dua
 """
+
 from __future__ import annotations
 
 import argparse
@@ -44,16 +45,24 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # `captions` live beside this file. Both roots are needed.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from captions import build_caption                       # noqa: E402
-from common import (CAPTION_LIMITS, UploadError, emit,    # noqa: E402
-                    format_caption, load_tokens, log, probe_duration,
-                    resolve_video, retry_call)
-from social import state as ustate                       # noqa: E402
+from captions import build_caption  # noqa: E402
+from common import (
+    CAPTION_LIMITS,
+    UploadError,
+    emit,  # noqa: E402
+    format_caption,
+    load_tokens,
+    log,
+    probe_duration,
+    resolve_video,
+    retry_call,
+)
+from social import state as ustate  # noqa: E402
 
 PLATFORM = "instagram"
 GRAPH = "https://graph.instagram.com"
 API_VERSION = "v26.0"
-MAX_DURATION = 900        # 15 min, Instagram Reels ceiling
+MAX_DURATION = 900  # 15 min, Instagram Reels ceiling
 POLL_ATTEMPTS = 30
 POLL_DELAY = 20
 
@@ -77,37 +86,38 @@ def _request(url: str, data=None, method="GET", headers=None, timeout=300):
         raise UploadError(f"network failure: {exc.reason}") from exc
 
 
-def create_container(video_path: str, caption: str, ig_user_id: str,
-                     token: str, api_version: str = "") -> str:
+def create_container(video_path: str, caption: str, ig_user_id: str, token: str, api_version: str = "") -> str:
     """Step 1+2: resumable binary upload, returns the container id."""
     size = os.path.getsize(video_path)
     with open(video_path, "rb") as fh:
         payload = fh.read()
-    url = (f"{GRAPH}/{api_version or API_VERSION}/{ig_user_id}/media")
+    url = f"{GRAPH}/{api_version or API_VERSION}/{ig_user_id}/media"
     fields = {
         "media_type": "REELS",
         "transfer_encoding": "resumable",
         "access_token": token,
     }
-    body = "&".join(f"{k}={urllib.request.quote(str(v), safe='')}"
-                    for k, v in fields.items())
+    body = "&".join(f"{k}={urllib.request.quote(str(v), safe='')}" for k, v in fields.items())
     url = f"{url}?{body}"
     status, headers, parsed = _request(
-        url, data=payload, method="POST",
-        headers={"Content-Type": "application/octet-stream",
-                 "Content-Length": str(len(payload)),
-                 "Overshoot-Clone": "1"})
+        url,
+        data=payload,
+        method="POST",
+        headers={
+            "Content-Type": "application/octet-stream",
+            "Content-Length": str(len(payload)),
+            "Overshoot-Clone": "1",
+        },
+    )
     if "error" in parsed:
         raise UploadError(f"container rejected: {json.dumps(parsed)[:400]}")
     container_id = parsed.get("id")
     upload_url = headers.get("Location") or headers.get("location")
-    offset = headers.get("Instagram-Content-Length") or headers.get(
-        "instagram-content-length") or 0
+    offset = headers.get("Instagram-Content-Length") or headers.get("instagram-content-length") or 0
     if not container_id:
         raise UploadError(f"no container id returned: {json.dumps(parsed)[:300]}")
     if not upload_url:
-        log("no upload Location returned; container accepted whole payload",
-            err=True)
+        log("no upload Location returned; container accepted whole payload", err=True)
         return container_id
     offset = int(offset)
     if offset < size:
@@ -115,19 +125,28 @@ def create_container(video_path: str, caption: str, ig_user_id: str,
         with open(video_path, "rb") as fh:
             fh.seek(offset)
             remaining = fh.read()
-        _request(upload_url, data=remaining, method="PUT",
-                 headers={"Content-Type": "application/octet-stream",
-                          "Content-Length": str(len(remaining)),
-                          "offset": str(offset)}, timeout=600)
+        _request(
+            upload_url,
+            data=remaining,
+            method="PUT",
+            headers={
+                "Content-Type": "application/octet-stream",
+                "Content-Length": str(len(remaining)),
+                "offset": str(offset),
+            },
+            timeout=600,
+        )
     return container_id
 
 
-def await_finished(container_id: str, token: str,
-                   attempts=POLL_ATTEMPTS, delay=POLL_DELAY,
-                   api_version: str = "") -> str:
+def await_finished(
+    container_id: str, token: str, attempts=POLL_ATTEMPTS, delay=POLL_DELAY, api_version: str = ""
+) -> str:
     """Step 3: Instagram transcodes asynchronously; poll until FINISHED."""
-    url = (f"{GRAPH}/{api_version or API_VERSION}/{container_id}"
-           f"?fields=status_code,status&access_token={urllib.request.quote(token)}")
+    url = (
+        f"{GRAPH}/{api_version or API_VERSION}/{container_id}"
+        f"?fields=status_code,status&access_token={urllib.request.quote(token)}"
+    )
     for attempt in range(1, attempts + 1):
         _, _, data = _request(url)
         code = data.get("status_code")
@@ -139,19 +158,18 @@ def await_finished(container_id: str, token: str,
             raise UploadError(f"container processing failed: {code} {detail}")
         if attempt < attempts:
             time.sleep(delay)
-    raise UploadError(f"container still {code} after {attempts} checks "
-                      f"({attempts * delay // 60} min) -- re-run with --retry to "
-                      f"resume without re-uploading")
+    raise UploadError(
+        f"container still {code} after {attempts} checks "
+        f"({attempts * delay // 60} min) -- re-run with --retry to "
+        f"resume without re-uploading"
+    )
 
 
-def publish_container(container_id: str, ig_user_id: str, token: str,
-                      api_version: str = "") -> str:
+def publish_container(container_id: str, ig_user_id: str, token: str, api_version: str = "") -> str:
     """Step 4: make the processed container live. Returns the media id."""
-    url = (f"{GRAPH}/{api_version or API_VERSION}/{ig_user_id}/media_publish")
-    body = urllib.parse.urlencode({"creation_id": container_id,
-                                   "access_token": token}).encode()
-    _, _, data = _request(url, data=body, method="POST",
-                          headers={"Content-Type": "application/x-www-form-urlencoded"})
+    url = f"{GRAPH}/{api_version or API_VERSION}/{ig_user_id}/media_publish"
+    body = urllib.parse.urlencode({"creation_id": container_id, "access_token": token}).encode()
+    _, _, data = _request(url, data=body, method="POST", headers={"Content-Type": "application/x-www-form-urlencoded"})
     if "error" in data:
         raise UploadError(f"media_publish rejected: {json.dumps(data)[:400]}")
     media_id = data.get("id")
@@ -161,8 +179,7 @@ def publish_container(container_id: str, ig_user_id: str, token: str,
 
 
 def upload_one(dua_id: str, kind: str, dry_run: bool) -> dict:
-    tokens = load_tokens(PLATFORM, required=("page_access_token", "ig_user_id"),
-                         allow_placeholder=dry_run)
+    tokens = load_tokens(PLATFORM, required=("page_access_token", "ig_user_id"), allow_placeholder=dry_run)
     token, ig_user_id = tokens["page_access_token"], str(tokens["ig_user_id"])
     api_version = str(tokens.get("api_version") or API_VERSION)
     video_path = resolve_video(dua_id, kind)
@@ -172,31 +189,42 @@ def upload_one(dua_id: str, kind: str, dry_run: bool) -> dict:
     if duration and duration > MAX_DURATION:
         raise UploadError(
             f"video is {duration:.0f}s, Instagram Reels caps at {MAX_DURATION}s "
-            f"-- re-render shorter rather than trimming (no silent trim for IG)")
+            f"-- re-render shorter rather than trimming (no silent trim for IG)"
+        )
 
     if dry_run:
-        return {"duaId": dua_id, "status": "dry_run", "file": video_path,
-                "sizeMB": round(os.path.getsize(video_path) / 1048576.0, 2),
-                "duration": duration, "caption_len": len(caption),
-                "caption_limit": CAPTION_LIMITS[PLATFORM],
-                "ig_user_id": ig_user_id,
-                "note": "no network call; credentials not validated"}
+        return {
+            "duaId": dua_id,
+            "status": "dry_run",
+            "file": video_path,
+            "sizeMB": round(os.path.getsize(video_path) / 1048576.0, 2),
+            "duration": duration,
+            "caption_len": len(caption),
+            "caption_limit": CAPTION_LIMITS[PLATFORM],
+            "ig_user_id": ig_user_id,
+            "note": "no network call; credentials not validated",
+        }
 
     ustate.mark_uploading(dua_id, PLATFORM, video_path=video_path)
     try:
-        container_id = retry_call("ig container", create_container, video_path,
-                                  caption, ig_user_id, token, api_version)
+        container_id = retry_call("ig container", create_container, video_path, caption, ig_user_id, token, api_version)
         await_finished(container_id, token, api_version=api_version)
-        media_id = retry_call("ig publish", publish_container, container_id,
-                              ig_user_id, token, api_version)
+        media_id = retry_call("ig publish", publish_container, container_id, ig_user_id, token, api_version)
     except Exception as exc:
         ustate.mark_failed(dua_id, PLATFORM, str(exc), video_path=video_path)
         raise
     url = ustate.platform_url(PLATFORM, media_id)
-    ustate.mark_uploaded(dua_id, PLATFORM, url=url, platform_id=media_id,
-                         video_path=video_path, extra={"container_id": container_id})
-    return {"duaId": dua_id, "status": "uploaded", "platform_id": media_id,
-            "url": url, "container_id": container_id, "duration": duration}
+    ustate.mark_uploaded(
+        dua_id, PLATFORM, url=url, platform_id=media_id, video_path=video_path, extra={"container_id": container_id}
+    )
+    return {
+        "duaId": dua_id,
+        "status": "uploaded",
+        "platform_id": media_id,
+        "url": url,
+        "container_id": container_id,
+        "duration": duration,
+    }
 
 
 def main() -> int:
@@ -207,8 +235,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    ids = [x.strip() for x in (args.batch or args.dua_id or "").split(",")
-           if x.strip()]
+    ids = [x.strip() for x in (args.batch or args.dua_id or "").split(",") if x.strip()]
     if not ids:
         return emit({"ok": False, "error": "no dua_id given"}, 1)
 
@@ -217,13 +244,18 @@ def main() -> int:
         try:
             results.append(upload_one(dua_id, args.kind, args.dry_run))
         except Exception as exc:
-            results.append({"duaId": dua_id, "status": "error",
-                            "error": str(exc)[:400]})
+            results.append({"duaId": dua_id, "status": "error", "error": str(exc)[:400]})
     ok = [r for r in results if r["status"] in ("uploaded", "dry_run")]
-    return emit({"ok": len(ok) == len(results), "platform": PLATFORM,
-                 "uploaded": len([r for r in results if r["status"] == "uploaded"]),
-                 "total": len(results), "items": results},
-                0 if len(ok) == len(results) else 2)
+    return emit(
+        {
+            "ok": len(ok) == len(results),
+            "platform": PLATFORM,
+            "uploaded": len([r for r in results if r["status"] == "uploaded"]),
+            "total": len(results),
+            "items": results,
+        },
+        0 if len(ok) == len(results) else 2,
+    )
 
 
 if __name__ == "__main__":

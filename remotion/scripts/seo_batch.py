@@ -10,6 +10,7 @@ Usage:
 
 Write op: videos().update(part=snippet) = 50 quota units each.
 """
+
 import argparse
 import io
 import json
@@ -43,16 +44,19 @@ def load_json(path):
 
 def get_service():
     import youtube_auth
+
     youtube_auth.set_token_path(os.path.abspath(TOKEN_PATH))
     cred = youtube_auth.get_credentials()
     if not cred:
         return None
     from googleapiclient.discovery import build
+
     return build("youtube", "v3", credentials=cred)
 
 
 def build_meta(dua, rot, is_short):
     from metadata import Rot, build_tags, build_description
+
     title = dua.get("title") or "Dua"
     ref = (dua.get("reference") or "").strip()
     full_title = f"{title} | {ref}" if ref else title
@@ -80,8 +84,7 @@ def main():
 
     targets = {}
     for dua_id, rec in ut.items():
-        if rec and rec.get("status") == "uploaded" and rec.get("video_id") \
-                and dua_id and rec.get("via") != "short":
+        if rec and rec.get("status") == "uploaded" and rec.get("video_id") and dua_id and rec.get("via") != "short":
             targets[dua_id] = {"video_id": rec["video_id"], "kind": "long"}
     for dua_id, rec in sh.items():
         if rec and rec.get("video_id") and dua_id:
@@ -98,14 +101,17 @@ def main():
         if not dua:
             dua = {"title": dua_id.replace("_", " ").title()}
         from metadata import Rot
+
         meta = build_meta(dua, Rot(dua_id), t["kind"] == "short")
-        plan.append({"dua_id": dua_id, "video_id": t["video_id"],
-                     "kind": t["kind"], "meta": meta})
+        plan.append({"dua_id": dua_id, "video_id": t["video_id"], "kind": t["kind"], "meta": meta})
     print("seo targets: %d" % len(plan), flush=True)
     if args.dry_run:
-        print(json.dumps({"ok": True, "dryRun": True, "pending": len(plan),
-                          "ids": [p["dua_id"] for p in plan]},
-                         ensure_ascii=False))
+        print(
+            json.dumps(
+                {"ok": True, "dryRun": True, "pending": len(plan), "ids": [p["dua_id"] for p in plan]},
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     yt = get_service()
@@ -129,11 +135,9 @@ def main():
             yt.videos().update(part="snippet", body=body).execute()
             done.append(p["dua_id"])
         except Exception as e:
-            failed.append({"dua_id": p["dua_id"], "video_id": p["video_id"],
-                           "error": str(e)[-160:]})
+            failed.append({"dua_id": p["dua_id"], "video_id": p["video_id"], "error": str(e)[-160:]})
         time.sleep(0.4)
-    print(json.dumps({"ok": True, "updated": len(done), "failed": len(failed),
-                      "errors": failed}, ensure_ascii=False))
+    print(json.dumps({"ok": True, "updated": len(done), "failed": len(failed), "errors": failed}, ensure_ascii=False))
     return 0
 
 

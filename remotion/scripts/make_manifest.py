@@ -1,4 +1,5 @@
 """Generate Remotion manifest JSON from dua data + TTS timing sidecars."""
+
 import json
 import os
 import shutil
@@ -14,32 +15,40 @@ TEMP = os.path.join(PROJECT, "temp")
 TICKS = 10_000_000
 GAP_SECONDS = 0.30
 
+
 # ffmpeg/ffprobe binaries (imageio_ffmpeg bundling — ffprobe sits beside exe).
 def _media_bins():
     import imageio_ffmpeg
+
     exe = imageio_ffmpeg.get_ffmpeg_exe()
     return exe, os.path.join(os.path.dirname(exe), "ffprobe.exe")
 
+
 FFMPEG, FFPROBE = None, None
+
+
 def _init_bins():
     global FFMPEG, FFPROBE
     if FFMPEG is None:
         FFMPEG, FFPROBE = _media_bins()
 
+
 def _ffprobe():
     _init_bins()
     return FFPROBE if os.path.isfile(FFPROBE) else "ffprobe"
+
 
 def _ffmpeg():
     _init_bins()
     return FFMPEG if os.path.isfile(FFMPEG) else "ffmpeg"
 
+
 # PILLAR 2 · broadcast loudness targets (mirrors core/audio_mixer.py).
 # Master chain is now: tonal/dynamics filters -> TWO-PASS LINEAR loudnorm
 # (via AudioMixer) -> mp3 encode. Dynamic single-pass loudnorm is gone,
 # so compressor makeup gain is transparent and no gain-pumping occurs.
-LOUDNESS_TARGET = -14.0   # LUFS integrated
-TRUE_PEAK_TARGET = -1.0   # dBTP ceiling
+LOUDNESS_TARGET = -14.0  # LUFS integrated
+TRUE_PEAK_TARGET = -1.0  # dBTP ceiling
 LRA_TARGET = 11.0
 
 # PILLAR 2 · codec priming compensation. MP3/AAC encoders prepend a
@@ -80,6 +89,7 @@ CATEGORY_THEME = {
     "occasions": "ramadan",
 }
 
+
 def master_audio(wav_src, audio_dst):
     """merged.wav -> mastered mp3 (PILLAR 2 three-stage master).
 
@@ -91,6 +101,7 @@ def master_audio(wav_src, audio_dst):
     import subprocess
 
     import imageio_ffmpeg
+
     sys.path.append(PROJECT)
     from core.audio_mixer import AudioMixer
 
@@ -100,17 +111,35 @@ def master_audio(wav_src, audio_dst):
     normalized = f"{base}.norm.wav"
     try:
         subprocess.run(
-            [exe, "-y", "-hide_banner", "-loglevel", "error",
-             "-i", wav_src, "-af", MASTER_FILTER,
-             "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", chained],
-            capture_output=True, check=True)
+            [
+                exe,
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                wav_src,
+                "-af",
+                MASTER_FILTER,
+                "-ar",
+                "48000",
+                "-ac",
+                "2",
+                "-c:a",
+                "pcm_s16le",
+                chained,
+            ],
+            capture_output=True,
+            check=True,
+        )
         ok, _measured = AudioMixer.normalize_loudness(chained, normalized)
         if not ok:
             raise RuntimeError("two-pass linear loudnorm failed")
         subprocess.run(
-            [exe, "-y", "-hide_banner", "-loglevel", "error",
-             "-i", normalized, "-b:a", "192k", audio_dst],
-            capture_output=True, check=True)
+            [exe, "-y", "-hide_banner", "-loglevel", "error", "-i", normalized, "-b:a", "192k", audio_dst],
+            capture_output=True,
+            check=True,
+        )
     finally:
         for tmp in (chained, normalized):
             if os.path.exists(tmp):
@@ -132,8 +161,19 @@ CATEGORY_ROTATIONS = {
 }
 GENERAL_ROTATION = ("manuscript", "dark", "royal", "emerald")
 
-VALID_THEMES = ("dark", "mosque", "sunset", "manuscript", "emerald",
-                "ocean", "desert", "royal", "ramadan", "eid", "qadr")
+VALID_THEMES = (
+    "dark",
+    "mosque",
+    "sunset",
+    "manuscript",
+    "emerald",
+    "ocean",
+    "desert",
+    "royal",
+    "ramadan",
+    "eid",
+    "qadr",
+)
 
 
 def _seed_pick(seq, seed):
@@ -161,11 +201,20 @@ def _probe_stream(path):
     Returns (0, 0) on any failure."""
     try:
         import subprocess
-        cmd = [_ffprobe(), "-v", "error", "-select_streams", "v:0",
-               "-show_entries", "stream=width,height",
-               "-of", "default=noprint_wrappers=1:nokey=1", path]
-        out = subprocess.run(cmd, capture_output=True, text=True,
-                             timeout=20).stdout.split()
+
+        cmd = [
+            _ffprobe(),
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            path,
+        ]
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=20).stdout.split()
         if len(out) >= 2:
             return int(out[0]), int(out[1])
     except Exception:
@@ -179,12 +228,28 @@ def _washed_out_score(path):
     Returns None on failure so caller can fall back to resolution-only."""
     try:
         import subprocess
+
         tmp = os.path.join(TEMP, "bg_gate_frame.png")
         os.makedirs(TEMP, exist_ok=True)
         r = subprocess.run(
-            [_ffmpeg(), "-v", "error", "-ss", "3", "-i", path, "-frames:v", "1",
-             "-vf", "signalstats,metadata=print:file=-", tmp],
-            capture_output=True, text=True, timeout=25)
+            [
+                _ffmpeg(),
+                "-v",
+                "error",
+                "-ss",
+                "3",
+                "-i",
+                path,
+                "-frames:v",
+                "1",
+                "-vf",
+                "signalstats,metadata=print:file=-",
+                tmp,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=25,
+        )
         for line in (r.stderr or "").splitlines():
             if "SATAVG=" in line:
                 return float(line.split("=")[-1].strip())
@@ -235,6 +300,7 @@ def resolve_bg(dua):
     dua_id = dua.get("id", "")
     try:
         from core.asset_registry import AssetRegistry
+
         reg = AssetRegistry()
     except Exception as e:
         print(f"[bg] asset registry unavailable: {e}")
@@ -242,9 +308,7 @@ def resolve_bg(dua):
 
     excluded = set()
     prefer_video = bool(getattr(project_config, "BACKGROUND_PREFER_VIDEO", True))
-    sel = reg.select_background(
-        dua_id, category, exclude_ids=tuple(excluded),
-        prefer_video=prefer_video)
+    sel = reg.select_background(dua_id, category, exclude_ids=tuple(excluded), prefer_video=prefer_video)
     src_path = ""
     while sel.get("kind") == "asset":
         p = sel.get("path", "")
@@ -285,6 +349,7 @@ def media_duration(path):
     import subprocess
 
     import imageio_ffmpeg
+
     exe = imageio_ffmpeg.get_ffmpeg_exe()
     proc = subprocess.run([exe, "-i", path], capture_output=True, text=True)
     m = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", proc.stderr)
@@ -307,16 +372,13 @@ def read_words(path):
             offset = ev.get("offset")
             duration = ev.get("duration")
             if offset is None or duration is None:
-                print("WARN: WordBoundary missing offset/duration - skipped",
-                      file=sys.stderr)
+                print("WARN: WordBoundary missing offset/duration - skipped", file=sys.stderr)
                 continue
             # PILLAR 2: shift earlier by the encoder priming window so
             # highlights land frame-accurate during AAC playback.
             start = max(0.0, offset / TICKS - PRIMING_COMPENSATION_S)
-            end = max(start, (offset + duration) / TICKS
-                      - PRIMING_COMPENSATION_S)
-            words.append({"t": ev.get("text", ""),
-                          "start": round(start, 3), "end": round(end, 3)})
+            end = max(start, (offset + duration) / TICKS - PRIMING_COMPENSATION_S)
+            words.append({"t": ev.get("text", ""), "start": round(start, 3), "end": round(end, 3)})
     return words
 
 
@@ -342,12 +404,12 @@ def main(dua_id="rabbana_hasanah"):
         w["end"] = round(w["end"] + urdu_base, 3)
 
     import wave
+
     with wave.open(os.path.join(TEMP, f"{dua_id}_merged.wav")) as w:
         total = w.getnframes() / w.getframerate()
 
     if total < 1.0:
-        raise RuntimeError(
-            f"merged audio too short ({total:.3f}s < 1.0s) - reject manifest")
+        raise RuntimeError(f"merged audio too short ({total:.3f}s < 1.0s) - reject manifest")
 
     wav_path = os.path.join(TEMP, f"{dua_id}_merged.wav")
     if not os.path.exists(wav_path) or os.path.getsize(wav_path) <= 0:
@@ -393,15 +455,13 @@ def main(dua_id="rabbana_hasanah"):
     if dua.get("masterpiece"):
         manifest["masterpiece"] = True
 
-    cfg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "..", "dashboard", "config.json")
+    cfg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dashboard", "config.json")
     if os.path.exists(cfg_path):
         try:
             with open(cfg_path, encoding="utf-8") as cf:
                 cfg = json.load(cf)
             if cfg.get("channelName") or cfg.get("handle"):
-                manifest["channel"] = {"name": cfg.get("channelName", ""),
-                                       "handle": cfg.get("handle", "")}
+                manifest["channel"] = {"name": cfg.get("channelName", ""), "handle": cfg.get("handle", "")}
         except Exception:
             pass
 

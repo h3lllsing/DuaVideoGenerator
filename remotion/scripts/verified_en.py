@@ -31,6 +31,7 @@ Cache shapes:
 Off the render critical path you can pre-build in the background:
     python scripts/verified_en.py --build-all
 """
+
 import json
 import os
 import re
@@ -43,8 +44,7 @@ try:
 except (AttributeError, ValueError):
     pass
 
-PROJECT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT, "data")
 DUAS_PATH = os.path.join(DATA_DIR, "duas.json")
 VERIFIED_PATH = os.path.join(DATA_DIR, "verified_en.json")
@@ -63,16 +63,48 @@ HADITH_AI_COOLDOWN_HOURS = 6
 # Surah names as they appear in duas.json reference field -> surah number.
 # (alquran.cloud name lookup is unreliable for these transliterations.)
 SURAH_NUM = {
-    "al-a'raf": 7, "al-araf": 7, "al-anbiya": 21, "al-baqarah": 2,
-    "al-fatihah": 1, "al-furqan": 25, "al-kahf": 18, "al-ma'idah": 5,
-    "al-maidah": 5, "al-mu'minun": 23, "al-qamar": 54, "al-qasas": 28,
-    "al-ali-imran": 3, "ali-imran": 3, "ali 'imran": 3, "al-imran": 3,
-    "an-naml": 27, "ash-shu'ara": 26, "ash-shuara": 26, "ash-shuara": 26,
-    "az-zukhruf": 43, "az-zukhruf": 43, "bani israel": 17, "bani-israel": 17,
-    "hud": 11, "ibrahim": 14, "taha": 20, "ta-ha": 20, "yusuf": 12,
-    "al-asr": 103, "asr": 103, "ya-sin": 36, "yaseen": 36, "sad": 38,
-    "al-bayyina": 98, "al-falaq": 113, "an-nas": 114, "al-ikhlas": 112,
-    "al-ankabut": 29, "al-muzzammil": 73, "ad-duha": 93, "ad-duhha": 93,
+    "al-a'raf": 7,
+    "al-araf": 7,
+    "al-anbiya": 21,
+    "al-baqarah": 2,
+    "al-fatihah": 1,
+    "al-furqan": 25,
+    "al-kahf": 18,
+    "al-ma'idah": 5,
+    "al-maidah": 5,
+    "al-mu'minun": 23,
+    "al-qamar": 54,
+    "al-qasas": 28,
+    "al-ali-imran": 3,
+    "ali-imran": 3,
+    "ali 'imran": 3,
+    "al-imran": 3,
+    "an-naml": 27,
+    "ash-shu'ara": 26,
+    "ash-shuara": 26,
+    "ash-shuara": 26,
+    "az-zukhruf": 43,
+    "az-zukhruf": 43,
+    "bani israel": 17,
+    "bani-israel": 17,
+    "hud": 11,
+    "ibrahim": 14,
+    "taha": 20,
+    "ta-ha": 20,
+    "yusuf": 12,
+    "al-asr": 103,
+    "asr": 103,
+    "ya-sin": 36,
+    "yaseen": 36,
+    "sad": 38,
+    "al-bayyina": 98,
+    "al-falaq": 113,
+    "an-nas": 114,
+    "al-ikhlas": 112,
+    "al-ankabut": 29,
+    "al-muzzammil": 73,
+    "ad-duha": 93,
+    "ad-duhha": 93,
 }
 
 
@@ -130,9 +162,7 @@ def ai_cooldown_active(ref, hours=None):
     rec = _read_json(COOLDOWN_PATH, {}).get(key)
     if not rec:
         return False
-    window = int((hours if hours is not None
-                  else int(rec.get("window_hours") or HADITH_AI_COOLDOWN_HOURS))
-                 * 3600)
+    window = int((hours if hours is not None else int(rec.get("window_hours") or HADITH_AI_COOLDOWN_HOURS)) * 3600)
     return (time.time() - int(rec.get("ts", 0))) < window
 
 
@@ -147,8 +177,7 @@ def _record_ai_failure(ref, hours=None):
     rec = store.get(key) or {"fails": 0}
     rec["fails"] = int(rec.get("fails", 0)) + 1
     rec["ts"] = int(time.time())
-    rec["window_hours"] = (hours if hours is not None
-                           else HADITH_AI_COOLDOWN_HOURS)
+    rec["window_hours"] = hours if hours is not None else HADITH_AI_COOLDOWN_HOURS
     store[key] = rec
     _write_json(COOLDOWN_PATH, store)
 
@@ -177,11 +206,11 @@ def norm_ref(r):
     return re.sub(r"[^a-z0-9 ]+", " ", (r or "").lower()).strip()
 
 
-_QURAN_RE = re.compile(
-    r"(?P<surah>\d{1,3})\s*[:]\s*(?P<a1>\d{1,3})\s*(?:-\s*(?P<a2>\d{1,3}))?")
+_QURAN_RE = re.compile(r"(?P<surah>\d{1,3})\s*[:]\s*(?P<a1>\d{1,3})\s*(?:-\s*(?P<a2>\d{1,3}))?")
 _SURAH_NAME_RE = re.compile(
     r"(?P<kind>surah|quran surah)\s+(?P<name>[a-z'\u2019-][a-z'\u2019 -]*?)\s*"
-    r"(?P<a1>\d{1,3})\s*(?:[:]\s*(?P<a2>\d{1,3})\s*(?:-\s*(?P<a3>\d{1,3}))?)?")
+    r"(?P<a1>\d{1,3})\s*(?:[:]\s*(?P<a2>\d{1,3})\s*(?:-\s*(?P<a3>\d{1,3}))?)?"
+)
 _HADITH_RE = re.compile(
     r"(sahih\s+muslim|sahih\s+bukhari|sunan\s+(?:abi|abu)\s+(?:dawud|dawood|dawd)|"
     r"abu\s+(?:dawud|dawood|dawd)|"
@@ -189,7 +218,8 @@ _HADITH_RE = re.compile(
     r"sunan\s+(?:al[- ])?tirmidhi|jami(?:'|`)?[\s-]+(?:at[\s-]+)?tirmidhi|"
     r"jami\s+tirmidhi|tirmizi|musnad\s+ahmad|muwatta\s+malik|"
     r"al-mu'jam\s+al-kabir(?:\s+tabarani)?|sharh\s+as-sunnah(?:\s+baghawi)?|"
-    r"riyad\s+al-salihin|al-adab\s+al-mufrad)\s*[:#.-]?\s*(\d+)")
+    r"riyad\s+al-salihin|al-adab\s+al-mufrad)\s*[:#.-]?\s*(\d+)"
+)
 
 
 def parse_reference(ref):
@@ -210,8 +240,11 @@ def parse_reference(ref):
     # Prefer an explicit numeric quran form.
     m = _QURAN_RE.search(low)
     if m:
-        out["quran"] = [int(m.group("surah")), int(m.group("a1")),
-                        int(m.group("a2")) if m.group("a2") else int(m.group("a1"))]
+        out["quran"] = [
+            int(m.group("surah")),
+            int(m.group("a1")),
+            int(m.group("a2")) if m.group("a2") else int(m.group("a1")),
+        ]
 
     # Named-surah form covers the remaining refs.
     m2 = _SURAH_NAME_RE.search(low)
@@ -221,8 +254,7 @@ def parse_reference(ref):
         if num:
             if m2.group("a2"):
                 a3 = int(m2.group("a3")) if m2.group("a3") else None
-                out["quran"] = [num, int(m2.group("a2")),
-                                a3 if a3 else int(m2.group("a2"))]
+                out["quran"] = [num, int(m2.group("a2")), a3 if a3 else int(m2.group("a2"))]
             elif not (m and m.group("surah")) and m2.group("a1"):
                 only = int(m2.group("a1"))
                 # "Surah Ibrahim 40" -> ayah 40 of surah 14 (only != num).
@@ -244,8 +276,7 @@ def verse_count(surah):
     if surah in verse_count._cache:
         return verse_count._cache[surah]
     try:
-        req = urllib.request.Request(API_BASE + "/v1/surah/%d" % surah,
-                                     headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(API_BASE + "/v1/surah/%d" % surah, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=20) as r:
             data = json.loads(r.read().decode("utf-8", "replace"))
         n = len(data["data"]["ayahs"])
@@ -270,8 +301,7 @@ def fetch_en_ayahs(surah, a1, a2=None):
     for a in range(a1, a2 + 1):
         url = "%s/v1/ayah/%d:%d/en.sahih" % (API_BASE, surah, a)
         try:
-            req = urllib.request.Request(url,
-                                         headers={"User-Agent": "Mozilla/5.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=20) as r:
                 data = json.loads(r.read().decode("utf-8", "replace"))
             out.append(data["data"]["text"].strip())
@@ -302,8 +332,7 @@ def ai_hadith_translation(reference, arabic, title):
         "Do NOT paraphrase or invent. Return ONLY the English translation "
         "text, no commentary, no citation, no markdown."
     )
-    prompt = ("REFERENCE: %s\nTITLE: %s\nARABIC: %s"
-              % (reference, title, arabic))
+    prompt = "REFERENCE: %s\nTITLE: %s\nARABIC: %s" % (reference, title, arabic)
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": prompt},
@@ -376,15 +405,17 @@ def queue_for_review(dua_id, ref, ar, en, source, status="pending"):
     changed = en is not None and en != prev_en
     if prev_status in ("approved", "rejected") and not changed:
         status = prev_status
-    entry.update({
-        "status": status,
-        "ref": ref or entry.get("ref"),
-        "ar": ar,
-        "en": en,
-        "source": source,
-        "queue_ts": entry.get("queue_ts") or int(time.time()),
-        "reviewed_ts": entry.get("reviewed_ts"),
-    })
+    entry.update(
+        {
+            "status": status,
+            "ref": ref or entry.get("ref"),
+            "ar": ar,
+            "en": en,
+            "source": source,
+            "queue_ts": entry.get("queue_ts") or int(time.time()),
+            "reviewed_ts": entry.get("reviewed_ts"),
+        }
+    )
     store[dua_id] = entry
     save_review(store)
     return entry
@@ -455,8 +486,7 @@ def get_or_build_verified(dua, ar_lines=None):
     dua_id = dua.get("id")
     cached = get_verified(dua_id)
     if cached:
-        queue_for_review(dua_id, dua.get("reference"), cached.get("ar"),
-                         cached["en"], cached["source"])
+        queue_for_review(dua_id, dua.get("reference"), cached.get("ar"), cached["en"], cached["source"])
         return cached["en"], cached["source"], None
 
     ref = dua.get("reference") or ""
@@ -472,8 +502,7 @@ def get_or_build_verified(dua, ar_lines=None):
     hadith = parse_reference(ref)["hadith"]
     if hadith:
         if ai_cooldown_active(ref):
-            return None, None, ("hadith AI cooldown active (skip attempt; "
-                                "retry after %dh)" % HADITH_AI_COOLDOWN_HOURS)
+            return None, None, ("hadith AI cooldown active (skip attempt; retry after %dh)" % HADITH_AI_COOLDOWN_HOURS)
         en, warn = ai_hadith_translation(ref, ar, title)
         if en:
             _clear_ai_failure(ref)
@@ -488,19 +517,23 @@ def get_or_build_verified(dua, ar_lines=None):
 
 if __name__ == "__main__":
     import argparse
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--dua-id")
-    ap.add_argument("--build-all", action="store_true",
-                    help="Pre-build verified EN for every dua in the "
-                         "background (Quran via Sahih Int, hadith via AI)")
-    ap.add_argument("--force", action="store_true",
-                    help="With --build-all: ignore AI cooldown and retry now")
-    ap.add_argument("--limit", type=int, default=0,
-                    help="With --build-all: stop after N duas (0 = all)")
-    ap.add_argument("--cooldown-hours", type=float, default=0,
-                    help="Override the hadith-AI cooldown window in hours "
-                         "(default module HADITH_AI_COOLDOWN_HOURS = %g)"
-                         % HADITH_AI_COOLDOWN_HOURS)
+    ap.add_argument(
+        "--build-all",
+        action="store_true",
+        help="Pre-build verified EN for every dua in the background (Quran via Sahih Int, hadith via AI)",
+    )
+    ap.add_argument("--force", action="store_true", help="With --build-all: ignore AI cooldown and retry now")
+    ap.add_argument("--limit", type=int, default=0, help="With --build-all: stop after N duas (0 = all)")
+    ap.add_argument(
+        "--cooldown-hours",
+        type=float,
+        default=0,
+        help="Override the hadith-AI cooldown window in hours "
+        "(default module HADITH_AI_COOLDOWN_HOURS = %g)" % HADITH_AI_COOLDOWN_HOURS,
+    )
     args = ap.parse_args()
 
     if args.cooldown_hours > 0:
@@ -525,17 +558,16 @@ if __name__ == "__main__":
             seen += 1
             if args.limit and seen >= args.limit:
                 break
-        print(json.dumps({"ok": True, "built": built, "failed": failed,
-                          "no_reference": other}, ensure_ascii=False))
+        print(json.dumps({"ok": True, "built": built, "failed": failed, "no_reference": other}, ensure_ascii=False))
         raise SystemExit(0)
 
     if not args.dua_id:
         ap.error("--dua-id required (or use --build-all)")
     dua = get_dua(args.dua_id)
     if not dua:
-        print(json.dumps({"ok": False, "error": "dua not found in duas.json"},
-                         ensure_ascii=False))
+        print(json.dumps({"ok": False, "error": "dua not found in duas.json"}, ensure_ascii=False))
         raise SystemExit(1)
     en, source, warn = get_or_build_verified(dua)
-    print(json.dumps({"ok": bool(en), "duaId": args.dua_id, "source": source,
-                      "warn": warn, "en": en}, ensure_ascii=False))
+    print(
+        json.dumps({"ok": bool(en), "duaId": args.dua_id, "source": source, "warn": warn, "en": en}, ensure_ascii=False)
+    )

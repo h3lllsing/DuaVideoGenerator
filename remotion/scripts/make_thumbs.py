@@ -9,6 +9,7 @@ Usage:
 
 Output: JSON on the LAST stdout line.
 """
+
 import argparse
 import io
 import json
@@ -16,8 +17,7 @@ import os
 import subprocess
 import sys
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8",
-                              errors="replace")
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(os.path.dirname(SCRIPTS))
@@ -63,7 +63,7 @@ def props_path_for(dua_id, dmap):
             m = json.load(f)
     else:
         info = dmap["duas"].get(dua_id) or {}
-        title = (info.get("title") or dua_id.replace("_", " ").title())
+        title = info.get("title") or dua_id.replace("_", " ").title()
         ref = (info.get("reference") or "").strip()
         arabic = (info.get("arabic") or "").strip()
         m = {
@@ -82,13 +82,14 @@ def props_path_for(dua_id, dmap):
 def render_one(dua_id, dmap):
     props = props_path_for(dua_id, dmap)
     target = os.path.join(THUMB_DIR, dua_id + ".png")
-    r = subprocess.run([REMOTION_BIN, "still", "thumbnail-card", target,
-                        "--props=" + props],
-                       capture_output=True, text=True,
-                       cwd=REMOTION)
+    r = subprocess.run(
+        [REMOTION_BIN, "still", "thumbnail-card", target, "--props=" + props],
+        capture_output=True,
+        text=True,
+        cwd=REMOTION,
+    )
     if r.returncode != 0 or not os.path.exists(target):
-        return {"duaId": dua_id, "status": "error",
-                "note": (r.stderr or r.stdout)[-200:]}
+        return {"duaId": dua_id, "status": "error", "note": (r.stderr or r.stdout)[-200:]}
     size = os.path.getsize(target)
     return {"duaId": dua_id, "status": "ok", "sizeKB": size // 1024}
 
@@ -127,9 +128,12 @@ def main():
         pending.append(dua_id)
 
     if args.dry_run:
-        print(json.dumps({"ok": True, "dryRun": True,
-                          "total": len(order), "missing": len(pending),
-                          "ids": pending}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"ok": True, "dryRun": True, "total": len(order), "missing": len(pending), "ids": pending},
+                ensure_ascii=False,
+            )
+        )
         return 0
 
     prev = _read_json(THUMBS_STATE, {})
@@ -138,10 +142,11 @@ def main():
     for dua_id in pending:
         r = render_one(dua_id, dmap)
         if r["status"] == "ok":
-            prev[dua_id] = {"video_id": wanted[dua_id].get("video_id"),
-                            "thumb": os.path.join(THUMB_DIR,
-                                                  dua_id + ".png"),
-                            "sizeKB": r["sizeKB"]}
+            prev[dua_id] = {
+                "video_id": wanted[dua_id].get("video_id"),
+                "thumb": os.path.join(THUMB_DIR, dua_id + ".png"),
+                "sizeKB": r["sizeKB"],
+            }
         results.append(r)
         tmp = THUMBS_STATE + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
@@ -149,8 +154,7 @@ def main():
         os.replace(tmp, THUMBS_STATE)
 
     ok = [r for r in results if r["status"] == "ok"]
-    print(json.dumps({"ok": True, "rendered": len(ok), "total": len(results),
-                      "items": results}, ensure_ascii=False))
+    print(json.dumps({"ok": True, "rendered": len(ok), "total": len(results), "items": results}, ensure_ascii=False))
     return 0
 
 

@@ -25,7 +25,7 @@ class TestVideoResolution:
             shutil.rmtree(self.tmp_dir)
         os.makedirs(self.tmp_dir)
         self.builder = VideoBuilder(fps=120, resolution=(1080, 1920))
-        self.frame = Image.new('RGB', (1080, 1920), (20, 25, 35))
+        self.frame = Image.new("RGB", (1080, 1920), (20, 25, 35))
 
     def teardown_method(self):
         if os.path.exists(self.tmp_dir):

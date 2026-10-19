@@ -12,10 +12,22 @@ __all__ = ["RevampEngine"]
 # Available effect names (synced with effects_engine.py)
 AVAILABLE_EFFECTS = [
     # Legacy effects
-    "neon_glow", "metallic_gold", "typewriter", "bounce", "wave", "glitch",
+    "neon_glow",
+    "metallic_gold",
+    "typewriter",
+    "bounce",
+    "wave",
+    "glitch",
     # AI effects (via effect_director)
-    "bloom_glow", "gold_shimmer", "breathing", "rtl_reveal", "glitch_v2",
-    "word_pulse", "aurora", "title_hook", "summary_card",
+    "bloom_glow",
+    "gold_shimmer",
+    "breathing",
+    "rtl_reveal",
+    "glitch_v2",
+    "word_pulse",
+    "aurora",
+    "title_hook",
+    "summary_card",
 ]
 
 # Color scheme presets

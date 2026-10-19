@@ -48,22 +48,22 @@ VIDEO_CODEC = "libx264"
 VIDEO_QUALITY = 9  # imageio quality (1-10) — max quality
 
 # FFmpeg encoding presets (Phase 2: Video Quality)
-FFMPEG_CRF = 15          # Near-lossless (0=lossless, 15=visually transparent)
-FFMPEG_PRESET = "slow"   # Better compression at same quality (5% smaller files)
+FFMPEG_CRF = 15  # Near-lossless (0=lossless, 15=visually transparent)
+FFMPEG_PRESET = "slow"  # Better compression at same quality (5% smaller files)
 FFMPEG_PROFILE = "high"  # Best compression efficiency (YouTube recommended)
-FFMPEG_LEVEL = "4.1"     # Max for 1080p@60fps
-FFMPEG_GOP = 60          # 2 seconds at 30fps — standard keyframe interval
+FFMPEG_LEVEL = "4.1"  # Max for 1080p@60fps
+FFMPEG_GOP = 60  # 2 seconds at 30fps — standard keyframe interval
 FFMPEG_MOVFLAGS = "+faststart"  # moov atom at front for web streaming
-FFMPEG_PIX_FMT = "yuv420p"     # Maximum compatibility
+FFMPEG_PIX_FMT = "yuv420p"  # Maximum compatibility
 
 # Post-processing filters
-FFMPEG_SHARPEN = True         # Unsharp mask for crisp text
-FFMPEG_COLOR_GRADE = True     # Slight saturation boost
-FFMPEG_LOUDNESS = True        # -14 LUFS (YouTube standard)
+FFMPEG_SHARPEN = True  # Unsharp mask for crisp text
+FFMPEG_COLOR_GRADE = True  # Slight saturation boost
+FFMPEG_LOUDNESS = True  # -14 LUFS (YouTube standard)
 
 # Disk and file size limits
-DISK_SPACE_MIN_MB = 500       # Minimum free disk space in MB
-MAX_FILE_SIZE_MB = 100        # Maximum output file size in MB
+DISK_SPACE_MIN_MB = 500  # Minimum free disk space in MB
+MAX_FILE_SIZE_MB = 100  # Maximum output file size in MB
 
 # ============================================================
 # AUDIO SETTINGS (edge-tts)
@@ -126,7 +126,7 @@ THEMES = {
         "bg_color_bottom": (55, 27, 75),
         "accent_color": (180, 140, 80),
         "text_color": (255, 255, 255),
-        "label_color": (180, 140, 80)
+        "label_color": (180, 140, 80),
     },
     "light": {
         "name": "Light Theme",
@@ -134,7 +134,7 @@ THEMES = {
         "bg_color_bottom": (230, 230, 240),
         "accent_color": (45, 90, 160),
         "text_color": (30, 30, 30),
-        "label_color": (45, 90, 160)
+        "label_color": (45, 90, 160),
     },
     "islamic": {
         "name": "Islamic Theme",
@@ -142,7 +142,7 @@ THEMES = {
         "bg_color_bottom": (20, 100, 80),
         "accent_color": (212, 175, 55),
         "text_color": (255, 255, 255),
-        "label_color": (212, 175, 55)
+        "label_color": (212, 175, 55),
     },
     "minimal": {
         "name": "Minimal Theme",
@@ -150,8 +150,8 @@ THEMES = {
         "bg_color_bottom": (30, 30, 30),
         "accent_color": (255, 255, 255),
         "text_color": (255, 255, 255),
-        "label_color": (200, 200, 200)
-    }
+        "label_color": (200, 200, 200),
+    },
 }
 
 DEFAULT_THEME = "dark"
@@ -163,16 +163,7 @@ DUA_DATABASE = os.path.join(DATA_DIR, "duas.json")
 CATEGORIES_DATABASE = os.path.join(DATA_DIR, "categories.json")
 
 # Dua Categories
-CATEGORIES = [
-    "bathroom",
-    "prayer",
-    "sleep",
-    "food",
-    "travel",
-    "morning",
-    "evening",
-    "general"
-]
+CATEGORIES = ["bathroom", "prayer", "sleep", "food", "travel", "morning", "evening", "general"]
 
 # ============================================================
 # WATERMARK SETTINGS
@@ -182,7 +173,7 @@ WATERMARK = {
     "text": "@bushranasir1075",
     "position": "bottom_left",
     "color": (100, 100, 100),
-    "size": 20
+    "size": 20,
 }
 
 # ============================================================
@@ -221,7 +212,7 @@ FEATURES = {
     "thumbnail_generation": True,
     "batch_processing": True,
     "custom_templates": True,
-    "multiple_voices": True
+    "multiple_voices": True,
 }
 
 # ============================================================

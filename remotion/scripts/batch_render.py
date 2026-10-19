@@ -10,6 +10,7 @@ Commands (JSON on stdin):
 
 Outputs JSON on stdout.
 """
+
 import json
 import logging
 import os
@@ -22,16 +23,16 @@ from queue import Queue
 logging.disable(logging.CRITICAL)
 
 # Ensure project root is on sys.path so we can import main
-_PROJECT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+_PROJECT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if _PROJECT not in sys.path:
     sys.path.insert(0, _PROJECT)
 
-STATE_PATH = os.path.join(_PROJECT, 'data', 'batch_state.json')
+STATE_PATH = os.path.join(_PROJECT, "data", "batch_state.json")
 
 
 def _load_state():
     try:
-        with open(STATE_PATH, 'r', encoding='utf-8') as f:
+        with open(STATE_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return None
@@ -39,8 +40,8 @@ def _load_state():
 
 def _save_state(state):
     os.makedirs(os.path.dirname(STATE_PATH), exist_ok=True)
-    tmp = STATE_PATH + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as f:
+    tmp = STATE_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
     os.replace(tmp, STATE_PATH)
 
@@ -64,8 +65,7 @@ def _start_worker(state):
             dry_run = item.get("dry_run", False)
 
             try:
-                ok = pipeline.generate_video(dua_id, theme=theme,
-                                             effect=effect, dry_run=dry_run)
+                ok = pipeline.generate_video(dua_id, theme=theme, effect=effect, dry_run=dry_run)
             except Exception:
                 ok = False
 
@@ -104,6 +104,7 @@ def main():
 
             if dua_ids is None:
                 from core.dua_database import DB
+
                 duas = DB.get_all_duas()
                 dua_ids = [d.get("id") for d in duas if d.get("id")]
 
@@ -113,11 +114,7 @@ def main():
                 "failed": 0,
                 "running": True,
                 "results": [],
-                "queue": [
-                    {"dua_id": did, "theme": theme, "effect": effect,
-                     "dry_run": dry_run}
-                    for did in dua_ids
-                ],
+                "queue": [{"dua_id": did, "theme": theme, "effect": effect, "dry_run": dry_run} for did in dua_ids],
                 "started_at": time.time(),
             }
             _save_state(state)
@@ -127,17 +124,26 @@ def main():
         elif cmd == "status":
             state = _load_state()
             if not state:
-                print(json.dumps({"ok": True, "total": 0, "done": 0,
-                                  "failed": 0, "pending": 0, "running": False,
-                                  "results": []}))
+                print(
+                    json.dumps(
+                        {"ok": True, "total": 0, "done": 0, "failed": 0, "pending": 0, "running": False, "results": []}
+                    )
+                )
             else:
                 pending = state["total"] - state["done"]
-                print(json.dumps({"ok": True, "total": state["total"],
-                                  "done": state["done"],
-                                  "failed": state["failed"],
-                                  "pending": pending,
-                                  "running": state["running"],
-                                  "results": state["results"]}))
+                print(
+                    json.dumps(
+                        {
+                            "ok": True,
+                            "total": state["total"],
+                            "done": state["done"],
+                            "failed": state["failed"],
+                            "pending": pending,
+                            "running": state["running"],
+                            "results": state["results"],
+                        }
+                    )
+                )
 
         elif cmd == "cancel":
             state = _load_state()

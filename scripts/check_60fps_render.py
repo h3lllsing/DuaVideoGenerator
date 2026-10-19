@@ -1,4 +1,5 @@
 """Quick 60fps E2E render test — bathroom_exit dua."""
+
 import os
 import re
 import sys
@@ -19,7 +20,7 @@ elapsed = time.time() - t0
 if ok:
     dua = DB.get_dua_by_id("bathroom_exit")
     title = dua.get("title", "Dua")
-    safe = re.sub(r'[<>:/\\|?*\x00-\x1f]+', "", title).strip()
+    safe = re.sub(r"[<>:/\\|?*\x00-\x1f]+", "", title).strip()
     out = os.path.join("output", dua.get("category", "general"), f"{safe}.mp4")
     if os.path.exists(out):
         qc = QualityChecker()

@@ -104,7 +104,7 @@ class TestQualityCheckerVideo002:
         os.makedirs(tmp_dir)
         try:
             builder = VideoBuilder(fps=80, resolution=(1080, 1920))
-            frame = Image.new('RGB', (1080, 1920), (20, 25, 35))
+            frame = Image.new("RGB", (1080, 1920), (20, 25, 35))
             output_path = os.path.join(tmp_dir, "short.mp4")
             assert builder.build_video([frame] * 80, output_path) is True
 
@@ -126,7 +126,7 @@ class TestWordBoundaryParser:
             '{"type": "WordBoundary", "offset": 0, "duration": 50000000, "text": "\\u0627\\u0644\\u0644\\u0647\\u0645"}',
             '{"type": "WordBoundary", "offset": 50000000, "duration": 40000000, "text": "\\u0627\\u0646\\u064a"}',
             '{"type": "SentenceBoundary", "offset": 0, "duration": 100, "text": "x"}',
-            'not-valid-json',
+            "not-valid-json",
             '{"type": "WordBoundary", "offset": 90000000, "duration": 30000000, "text": "\\u0627\\u0633\\u0627\\u0644\\u0643"}',
         ]
         with open(path, "w", encoding="utf-8") as f:
@@ -153,8 +153,7 @@ class TestWordBoundaryParser:
                 os.remove(tmp)
 
     def test_missing_file_returns_empty(self):
-        assert TTSEngine.parse_word_boundaries(
-            os.path.join(os.path.dirname(__file__), "_nope.jsonl")) == []
+        assert TTSEngine.parse_word_boundaries(os.path.join(os.path.dirname(__file__), "_nope.jsonl")) == []
 
 
 class TestAudioMixerPadding:
@@ -182,15 +181,13 @@ class TestAudioMixerPadding:
             bytes2 = open(wav2, "rb").read()
 
             unpadded = os.path.join(tmp_dir, "unpadded.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [wav1, wav2], unpadded, gap_seconds=0.0) is True
+            assert AudioMixer.merge_audio_sequential([wav1, wav2], unpadded, gap_seconds=0.0) is True
             from moviepy import AudioFileClip
+
             speech_dur = AudioFileClip(unpadded).duration
 
             padded = os.path.join(tmp_dir, "padded.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [wav1, wav2], padded, gap_seconds=0.0,
-                pad_to_duration=3.0) is True
+            assert AudioMixer.merge_audio_sequential([wav1, wav2], padded, gap_seconds=0.0, pad_to_duration=3.0) is True
             padded_dur = AudioFileClip(padded).duration
 
             # Speech sources unchanged (not stretched, not duplicated)

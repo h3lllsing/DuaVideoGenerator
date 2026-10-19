@@ -6,6 +6,7 @@ Usage:
 Reads API config from data/ai_api_config.json (same as ai_import.py).
 Returns JSON: {"ok":true,"arabic":"...","urdu":"...","explanation":"..."}
 """
+
 import argparse
 import json
 import os
@@ -14,8 +15,7 @@ import time
 import urllib.error
 import urllib.request
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "..", "remotion", "scripts"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "remotion", "scripts"))
 from ai_import import API_KEYS, FREE_MODELS, _is_empty_block, api_base_url
 
 SYSTEM_PROMPT = """You are an expert Islamic Sunni scholar. The user will give you a dua title, reference, and category.
@@ -56,19 +56,25 @@ def fill_metadata(title, reference="", category="general"):
     models_to_try = FREE_MODELS
 
     for m in models_to_try:
-        payload = json.dumps({
-            "model": m,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 2000,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "model": m,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 2000,
+            }
+        ).encode("utf-8")
 
         for api_key in API_KEYS:
-            req = urllib.request.Request(api_url, data=payload, headers={
-                "Authorization": "Bearer " + api_key,
-                "Content-Type": "application/json",
-                "User-Agent": "DuaStudio/0.11",
-            })
+            req = urllib.request.Request(
+                api_url,
+                data=payload,
+                headers={
+                    "Authorization": "Bearer " + api_key,
+                    "Content-Type": "application/json",
+                    "User-Agent": "DuaStudio/0.11",
+                },
+            )
             try:
                 resp = urllib.request.urlopen(req, timeout=60)
                 body = resp.read().decode("utf-8", errors="replace")
@@ -82,9 +88,12 @@ def fill_metadata(title, reference="", category="general"):
                     text = text.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
                 data = json.loads(text)
                 if isinstance(data, dict) and ("arabic" in data or "urdu" in data):
-                    return {"ok": True, "arabic": data.get("arabic", ""),
-                            "urdu": data.get("urdu", ""),
-                            "explanation": data.get("explanation", "")}
+                    return {
+                        "ok": True,
+                        "arabic": data.get("arabic", ""),
+                        "urdu": data.get("urdu", ""),
+                        "explanation": data.get("explanation", ""),
+                    }
             except Exception:
                 continue
         time.sleep(0.5)

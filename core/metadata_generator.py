@@ -30,7 +30,7 @@ class MetadataGenerator:
             "morning": "Morning Dua | Daily Prayer",
             "evening": "Evening Dua | Daily Prayer",
             "prayer": "Prayer Dua | Salah Prayer",
-            "general": "Islamic Dua | Daily Prayer"
+            "general": "Islamic Dua | Daily Prayer",
         }
 
         # Category-specific tags
@@ -42,30 +42,21 @@ class MetadataGenerator:
             "morning": ["Morning Dua", "Daily Dua", "Morning Prayer"],
             "evening": ["Evening Dua", "Daily Dua", "Evening Prayer"],
             "prayer": ["Prayer Dua", "Salah Dua", "Islamic Prayer"],
-            "general": ["General Dua", "Daily Dua", "Islamic Prayer"]
+            "general": ["General Dua", "Daily Dua", "Islamic Prayer"],
         }
 
         # Base tags
-        self.base_tags = [
-            "Islamic Dua",
-            "Urdu Dua",
-            "Arabic Dua",
-            "Prayer",
-            "Muslim",
-            "Islam",
-            "Dua",
-            "Duain"
-        ]
+        self.base_tags = ["Islamic Dua", "Urdu Dua", "Arabic Dua", "Prayer", "Muslim", "Islam", "Dua", "Duain"]
 
     def generate(self, arabic_text: str, urdu_text: str, category: str) -> dict:
         """
         Generate YouTube metadata.
-        
+
         Args:
             arabic_text: Arabic dua text
             urdu_text: Urdu translation
             category: Dua category
-            
+
         Returns:
             YouTube metadata dictionary
         """
@@ -74,35 +65,29 @@ class MetadataGenerator:
         tags = self.generate_tags(category)
         hashtags = self.generate_hashtags(category)
 
-        return {
-            "title": title,
-            "description": description,
-            "tags": tags,
-            "hashtags": hashtags
-        }
+        return {"title": title, "description": description, "tags": tags, "hashtags": hashtags}
 
     def generate_title(self, category: str) -> str:
         """
         Generate YouTube title.
-        
+
         Args:
             category: Dua category
-            
+
         Returns:
             YouTube title
         """
         return self.titles.get(category, "Islamic Dua | Prayer")
 
-    def generate_description(self, arabic_text: str, urdu_text: str,
-                             category: str) -> str:
+    def generate_description(self, arabic_text: str, urdu_text: str, category: str) -> str:
         """
         Generate YouTube description.
-        
+
         Args:
             arabic_text: Arabic dua text
             urdu_text: Urdu translation
             category: Dua category
-            
+
         Returns:
             YouTube description
         """
@@ -129,10 +114,10 @@ Like & Share if you benefited from this dua.
     def generate_tags(self, category: str) -> list[str]:
         """
         Generate YouTube tags.
-        
+
         Args:
             category: Dua category
-            
+
         Returns:
             List of tags
         """
@@ -142,10 +127,10 @@ Like & Share if you benefited from this dua.
     def generate_hashtags(self, category: str) -> str:
         """
         Generate YouTube hashtags.
-        
+
         Args:
             category: Dua category
-            
+
         Returns:
             Hashtags string
         """
@@ -159,7 +144,7 @@ Like & Share if you benefited from this dua.
             "morning": "#MorningDua #DailyPrayer",
             "evening": "#EveningDua #DailyPrayer",
             "prayer": "#PrayerDua #Salah",
-            "general": "#DailyDua #IslamicPrayer"
+            "general": "#DailyDua #IslamicPrayer",
         }
 
         specific = category_hashtags.get(category, "")
@@ -172,28 +157,28 @@ Like & Share if you benefited from this dua.
     def save_metadata(self, metadata: dict, output_path: str):
         """
         Save metadata to JSON file.
-        
+
         Args:
             metadata: Metadata dictionary
             output_path: Path to save file
         """
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(metadata, f, indent=2, ensure_ascii=False)
 
     def load_metadata(self, metadata_path: str) -> dict[str, Any] | None:
         """
         Load metadata from JSON file.
-        
+
         Args:
             metadata_path: Path to metadata file
-            
+
         Returns:
             Metadata dictionary
         """
         if not os.path.exists(metadata_path):
             return None
 
-        with open(metadata_path, encoding='utf-8') as f:
+        with open(metadata_path, encoding="utf-8") as f:
             return cast(dict[str, Any], json.load(f))
 
 

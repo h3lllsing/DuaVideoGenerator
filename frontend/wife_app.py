@@ -33,14 +33,16 @@ from frontend.effect_preview import (
 from main import DuaVideoPipeline, dua_video_filename
 
 # Generate EFFECT_OPTIONS dynamically from master config
-EFFECT_OPTIONS = [
-    ("Auto (AI)", "auto"),
-    ("Simple", "none"),
-] + [
-    (info["name"], key) for key, info in MASTER_EFFECTS.items()
-] + [
-    ("Islamic Ultra Pack", "ultra_pack"),
-]
+EFFECT_OPTIONS = (
+    [
+        ("Auto (AI)", "auto"),
+        ("Simple", "none"),
+    ]
+    + [(info["name"], key) for key, info in MASTER_EFFECTS.items()]
+    + [
+        ("Islamic Ultra Pack", "ultra_pack"),
+    ]
+)
 
 FONT_SUB = ("Segoe UI", 12)
 FONT_ARABIC = ("Traditional Arabic", 26, "bold")
@@ -113,7 +115,8 @@ class DuaApp(ctk.CTk):
 
     def _on_close(self):
         if self.running and not messagebox.askyesno(
-                "Band Karein?", "Video abhi ban rahi hai.\nPhir bhi app band karein?"):
+            "Band Karein?", "Video abhi ban rahi hai.\nPhir bhi app band karein?"
+        ):
             return
         self.destroy()
 
@@ -133,10 +136,8 @@ class DuaApp(ctk.CTk):
         self._header.pack(fill="x", padx=10, pady=(10, 5))
         self._header.pack_propagate(False)
 
-        ctk.CTkLabel(self._header, text="Dua Video Generator",
-                     font=("Segoe UI", 22, "bold")).pack(side="left", padx=18)
-        ctk.CTkLabel(self._header, text="MASOOD NASIR | @bushranasir1075",
-                     font=FONT_SUB).pack(side="right", padx=18)
+        ctk.CTkLabel(self._header, text="Dua Video Generator", font=("Segoe UI", 22, "bold")).pack(side="left", padx=18)
+        ctk.CTkLabel(self._header, text="MASOOD NASIR | @bushranasir1075", font=FONT_SUB).pack(side="right", padx=18)
 
         self._body = ctk.CTkFrame(self)
         self._body.pack(fill="both", expand=True, padx=10, pady=5)
@@ -144,8 +145,7 @@ class DuaApp(ctk.CTk):
         self._sidebar = ctk.CTkFrame(self._body, width=250, corner_radius=12)
         self._sidebar.pack(side="left", fill="y", padx=(5, 3), pady=5)
         self._sidebar.pack_propagate(False)
-        ctk.CTkLabel(self._sidebar, text="Dua Categories",
-                     font=("Segoe UI", 15, "bold")).pack(pady=(14, 8))
+        ctk.CTkLabel(self._sidebar, text="Dua Categories", font=("Segoe UI", 15, "bold")).pack(pady=(14, 8))
 
         self._list_frame = ctk.CTkFrame(self._body, width=340, corner_radius=12)
         self._list_frame.pack(side="left", fill="y", padx=3, pady=5)
@@ -155,9 +155,13 @@ class DuaApp(ctk.CTk):
         self._top_row.pack(fill="x", padx=10, pady=(12, 4))
         ctk.CTkLabel(self._top_row, text="Duas", font=("Segoe UI", 15, "bold")).pack(side="left")
         self._only_new_var = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(self._top_row, text="Sirf nayi",
-                        font=("Segoe UI", 12), variable=self._only_new_var,
-                        command=self._refresh_list).pack(side="right")
+        ctk.CTkCheckBox(
+            self._top_row,
+            text="Sirf nayi",
+            font=("Segoe UI", 12),
+            variable=self._only_new_var,
+            command=self._refresh_list,
+        ).pack(side="right")
 
         self._scroll = ctk.CTkScrollableFrame(self._list_frame, corner_radius=0)
         self._scroll.pack(fill="both", expand=True, padx=6, pady=(4, 8))
@@ -169,19 +173,31 @@ class DuaApp(ctk.CTk):
         self._build_categories()
 
     def _build_categories(self):
-        all_btn = ctk.CTkButton(self._sidebar, text="  All Duas  ", font=FONT_SUB,
-                                anchor="w", height=40, corner_radius=10,
-                                command=lambda: self._select_category(None))
+        all_btn = ctk.CTkButton(
+            self._sidebar,
+            text="  All Duas  ",
+            font=FONT_SUB,
+            anchor="w",
+            height=40,
+            corner_radius=10,
+            command=lambda: self._select_category(None),
+        )
         all_btn.pack(fill="x", padx=10, pady=3)
         self._cat_buttons[None] = all_btn
         for cat in self.db.get_categories():
             label = f"{cat.get('icon', '')}  {cat.get('name_urdu', cat.get('name', ''))}"
-            btn = ctk.CTkButton(self._sidebar, text=label, font=FONT_SUB,
-                                anchor="w", height=40, corner_radius=10,
-                                command=lambda c=cat.get('id'): self._select_category(c))
+            btn = ctk.CTkButton(
+                self._sidebar,
+                text=label,
+                font=FONT_SUB,
+                anchor="w",
+                height=40,
+                corner_radius=10,
+                command=lambda c=cat.get("id"): self._select_category(c),
+            )
             btn.pack(fill="x", padx=10, pady=3)
-            btn.bind("<Button-3>", lambda e, c=cat.get('id'): self._show_category_menu(e, c))
-            self._cat_buttons[cat.get('id')] = btn
+            btn.bind("<Button-3>", lambda e, c=cat.get("id"): self._show_category_menu(e, c))
+            self._cat_buttons[cat.get("id")] = btn
         self._refresh_category_counts()
 
     def _build_preview(self):
@@ -192,12 +208,12 @@ class DuaApp(ctk.CTk):
         self._pv_title = ctk.CTkLabel(self._pv_scroll, text="", font=("Segoe UI", 18, "bold"))
         self._pv_title.pack(pady=(18, 10))
 
-        self._pv_arabic = ctk.CTkLabel(self._pv_scroll, text="", font=FONT_ARABIC,
-                                       text_color="#E8D48B", wraplength=600)
+        self._pv_arabic = ctk.CTkLabel(self._pv_scroll, text="", font=FONT_ARABIC, text_color="#E8D48B", wraplength=600)
         self._pv_arabic.pack(padx=20, pady=8)
 
-        self._pv_urdu = ctk.CTkLabel(self._pv_scroll, text="", font=FONT_URDU, text_color="#D7D7D7",
-                                     wraplength=600, justify="right")
+        self._pv_urdu = ctk.CTkLabel(
+            self._pv_scroll, text="", font=FONT_URDU, text_color="#D7D7D7", wraplength=600, justify="right"
+        )
         self._pv_urdu.pack(padx=20, pady=10)
 
         self._pv_ref = ctk.CTkLabel(self._pv_scroll, text="", font=("Segoe UI", 13), text_color="#8FA3C0")
@@ -217,32 +233,55 @@ class DuaApp(ctk.CTk):
         ctk.CTkLabel(eff_row, text="Effect:", font=("Segoe UI", 14, "bold")).pack(side="left")
         self._effect_var = ctk.StringVar(value="Auto (AI)")
         self._effect_menu = ctk.CTkOptionMenu(
-            eff_row, variable=self._effect_var, height=32, width=260,
+            eff_row,
+            variable=self._effect_var,
+            height=32,
+            width=260,
             values=[label for label, _ in EFFECT_OPTIONS],
-            font=("Segoe UI", 13), command=self._on_effect_change)
+            font=("Segoe UI", 13),
+            command=self._on_effect_change,
+        )
         self._effect_menu.pack(side="left", padx=(12, 0))
-        self._preview_btn = ctk.CTkButton(eff_row, text="\u25B6 Preview",
-                                          font=("Segoe UI", 13, "bold"), height=32,
-                                          fg_color="#6A4B9C", hover_color="#57407E",
-                                          command=self._play_effect_preview)
+        self._preview_btn = ctk.CTkButton(
+            eff_row,
+            text="\u25b6 Preview",
+            font=("Segoe UI", 13, "bold"),
+            height=32,
+            fg_color="#6A4B9C",
+            hover_color="#57407E",
+            command=self._play_effect_preview,
+        )
         self._preview_btn.pack(side="left", padx=(10, 0))
 
-        self._eff_desc = ctk.CTkLabel(ctrl, text="", font=("Segoe UI", 12),
-                                      text_color="#9B9B9B", anchor="w")
+        self._eff_desc = ctk.CTkLabel(ctrl, text="", font=("Segoe UI", 12), text_color="#9B9B9B", anchor="w")
         self._eff_desc.pack(fill="x", padx=40, pady=(0, 2))
         self._on_effect_change("Auto (AI)")
 
         gen_row = ctk.CTkFrame(ctrl, fg_color="transparent")
         gen_row.pack(fill="x", padx=40, pady=(12, 6))
-        self._gen_btn = ctk.CTkButton(gen_row, text="Video Banao", font=("Segoe UI", 20, "bold"),
-                                      height=56, corner_radius=14,
-                                      fg_color="#1F9E5A", hover_color="#17874C",
-                                      command=self._start_generation)
+        self._gen_btn = ctk.CTkButton(
+            gen_row,
+            text="Video Banao",
+            font=("Segoe UI", 20, "bold"),
+            height=56,
+            corner_radius=14,
+            fg_color="#1F9E5A",
+            hover_color="#17874C",
+            command=self._start_generation,
+        )
         self._gen_btn.pack(side="left", expand=True, fill="x")
-        self._cancel_btn = ctk.CTkButton(gen_row, text="Cancel", font=("Segoe UI", 14, "bold"),
-                                         height=56, width=120, corner_radius=14,
-                                         fg_color="#B13E3E", hover_color="#8F3131",
-                                         command=self._cancel_generation, state="disabled")
+        self._cancel_btn = ctk.CTkButton(
+            gen_row,
+            text="Cancel",
+            font=("Segoe UI", 14, "bold"),
+            height=56,
+            width=120,
+            corner_radius=14,
+            fg_color="#B13E3E",
+            hover_color="#8F3131",
+            command=self._cancel_generation,
+            state="disabled",
+        )
         self._cancel_btn.pack(side="left", padx=(8, 0))
 
         self._progress = ctk.CTkProgressBar(ctrl, height=14, corner_radius=7)
@@ -254,28 +293,44 @@ class DuaApp(ctk.CTk):
 
         controls = ctk.CTkFrame(ctrl, fg_color="transparent")
         controls.pack(fill="x", padx=40, pady=(2, 10))
-        self._play_btn = ctk.CTkButton(controls, text="\u25B6 Video Dekho", font=FONT_SUB,
-                                       command=self._play_video, state="disabled")
+        self._play_btn = ctk.CTkButton(
+            controls, text="\u25b6 Video Dekho", font=FONT_SUB, command=self._play_video, state="disabled"
+        )
         self._play_btn.pack(side="left", expand=True, fill="x", padx=3)
-        ctk.CTkButton(controls, text="Output Folder Kholo", font=FONT_SUB,
-                      command=self._open_folder).pack(side="left", expand=True, fill="x", padx=3)
-        ctk.CTkButton(controls, text="Nayi Dua Add Karo", font=FONT_SUB,
-                      command=self._open_add_dialog).pack(side="left", expand=True, fill="x", padx=3)
+        ctk.CTkButton(controls, text="Output Folder Kholo", font=FONT_SUB, command=self._open_folder).pack(
+            side="left", expand=True, fill="x", padx=3
+        )
+        ctk.CTkButton(controls, text="Nayi Dua Add Karo", font=FONT_SUB, command=self._open_add_dialog).pack(
+            side="left", expand=True, fill="x", padx=3
+        )
 
         edit_del = ctk.CTkFrame(ctrl, fg_color="transparent")
         edit_del.pack(fill="x", padx=40, pady=(0, 10))
-        ctk.CTkButton(edit_del, text="\u2B06 Copy Arabic", font=FONT_SUB,
-                      command=lambda: self._copy_text(self.selected_dua.get('arabic', '') if self.selected_dua else '')).pack(side="left", expand=True, fill="x", padx=3)
-        ctk.CTkButton(edit_del, text="\u2B06 Copy Urdu", font=FONT_SUB,
-                      command=lambda: self._copy_text(self.selected_dua.get('urdu', '') if self.selected_dua else '')).pack(side="left", expand=True, fill="x", padx=3)
-        ctk.CTkButton(edit_del, text="\u270F Edit Dua", font=FONT_SUB,
-                      command=self._open_edit_dialog).pack(side="left", expand=True, fill="x", padx=3)
-        ctk.CTkButton(edit_del, text="\u2715 Delete Dua", font=FONT_SUB,
-                      fg_color="#B13E3E", hover_color="#8F3131",
-                      command=self._delete_dua).pack(side="left", expand=True, fill="x", padx=3)
+        ctk.CTkButton(
+            edit_del,
+            text="\u2b06 Copy Arabic",
+            font=FONT_SUB,
+            command=lambda: self._copy_text(self.selected_dua.get("arabic", "") if self.selected_dua else ""),
+        ).pack(side="left", expand=True, fill="x", padx=3)
+        ctk.CTkButton(
+            edit_del,
+            text="\u2b06 Copy Urdu",
+            font=FONT_SUB,
+            command=lambda: self._copy_text(self.selected_dua.get("urdu", "") if self.selected_dua else ""),
+        ).pack(side="left", expand=True, fill="x", padx=3)
+        ctk.CTkButton(edit_del, text="\u270f Edit Dua", font=FONT_SUB, command=self._open_edit_dialog).pack(
+            side="left", expand=True, fill="x", padx=3
+        )
+        ctk.CTkButton(
+            edit_del,
+            text="\u2715 Delete Dua",
+            font=FONT_SUB,
+            fg_color="#B13E3E",
+            hover_color="#8F3131",
+            command=self._delete_dua,
+        ).pack(side="left", expand=True, fill="x", padx=3)
 
-        self._log = ctk.CTkTextbox(self._preview, height=90, corner_radius=10,
-                                   font=("Consolas", 11))
+        self._log = ctk.CTkTextbox(self._preview, height=90, corner_radius=10, font=("Consolas", 11))
         self._log.pack(fill="x", padx=14, pady=(0, 12))
         self._log.configure(state="disabled")
 
@@ -291,7 +346,7 @@ class DuaApp(ctk.CTk):
         self._refresh_list()
 
     def _is_generated(self, dua):
-        cat_dir = os.path.join(self.output_dir, dua.get('category'))
+        cat_dir = os.path.join(self.output_dir, dua.get("category"))
         title_path = os.path.join(cat_dir, dua_video_filename(dua))
         legacy_path = os.path.join(cat_dir, f"{dua.get('id')}.mp4")
         return os.path.exists(title_path) or os.path.exists(legacy_path)
@@ -308,18 +363,29 @@ class DuaApp(ctk.CTk):
         if self._only_new_var.get():
             duas = [d for d in duas if not self._is_generated(d)]
         if not duas:
-            ctk.CTkLabel(self._scroll, text="Koi nayi dua nahi bachi\n(Iss category ki sab videos ban chuki hain)",
-                         font=FONT_SUB, text_color="#9B9B9B").pack(pady=20)
+            ctk.CTkLabel(
+                self._scroll,
+                text="Koi nayi dua nahi bachi\n(Iss category ki sab videos ban chuki hain)",
+                font=FONT_SUB,
+                text_color="#9B9B9B",
+            ).pack(pady=20)
         for dua in duas:
             status = DONE if self._is_generated(dua) else NEW
-            btn = ctk.CTkButton(self._scroll, text=f"{status}  {dua.get('title', '')}",
-                                font=("Segoe UI", 13), anchor="w", height=38, corner_radius=8,
-                                fg_color="#333333", hover_color="#1F6AA5",
-                                command=lambda d=dua: self._select_dua(d))
+            btn = ctk.CTkButton(
+                self._scroll,
+                text=f"{status}  {dua.get('title', '')}",
+                font=("Segoe UI", 13),
+                anchor="w",
+                height=38,
+                corner_radius=8,
+                fg_color="#333333",
+                hover_color="#1F6AA5",
+                command=lambda d=dua: self._select_dua(d),
+            )
             btn.pack(fill="x", padx=4, pady=2)
             btn.bind("<Button-3>", lambda e, d=dua: self._show_dua_menu(e, d))
             self._dua_buttons.append((dua, btn))
-        if not self.selected_dua or self.selected_dua.get('category') != self.selected_category:
+        if not self.selected_dua or self.selected_dua.get("category") != self.selected_category:
             self._select_dua(duas[0] if duas else None)
 
     def _refresh_category_counts(self):
@@ -330,7 +396,7 @@ class DuaApp(ctk.CTk):
         if all_btn:
             all_btn.configure(text=f"  All Duas  ({all_remaining}/{all_total})")
         for cat in self.db.get_categories():
-            cat_id = cat.get('id')
+            cat_id = cat.get("id")
             btn = self._cat_buttons.get(cat_id)
             if btn is None:
                 continue
@@ -349,10 +415,10 @@ class DuaApp(ctk.CTk):
             self._play_btn.configure(state="disabled")
             return
         self.selected_dua = dua
-        self._pv_title.configure(text=dua.get('title', ''))
-        self._pv_arabic.configure(text=dua.get('arabic', ''))
-        self._pv_urdu.configure(text=dua.get('urdu', ''))
-        ref = dua.get('reference', '')
+        self._pv_title.configure(text=dua.get("title", ""))
+        self._pv_arabic.configure(text=dua.get("arabic", ""))
+        self._pv_urdu.configure(text=dua.get("urdu", ""))
+        ref = dua.get("reference", "")
         self._pv_ref.configure(text=f"Reference: {ref}" if ref else "")
         if self._is_generated(dua):
             self._gen_btn.configure(text="Video Banao (phir se)")
@@ -372,11 +438,11 @@ class DuaApp(ctk.CTk):
 
     def _show_dua_menu(self, event, dua):
         m = tk.Menu(self, tearoff=0)
-        m.add_command(label="\u25B6 Video Banao", command=lambda: self._ctx(dua, "gen"))
+        m.add_command(label="\u25b6 Video Banao", command=lambda: self._ctx(dua, "gen"))
         if self._is_generated(dua):
-            m.add_command(label="\u25B6 Video Dekho", command=lambda: self._ctx(dua, "play"))
+            m.add_command(label="\u25b6 Video Dekho", command=lambda: self._ctx(dua, "play"))
         m.add_separator()
-        m.add_command(label="\u270F Edit Dua", command=lambda: self._ctx(dua, "edit"))
+        m.add_command(label="\u270f Edit Dua", command=lambda: self._ctx(dua, "edit"))
         m.add_command(label="\u2715 Delete Dua", command=lambda: self._ctx(dua, "del"))
         m.add_separator()
         m.add_command(label="Copy Arabic", command=lambda: self._ctx(dua, "copy_ar"))
@@ -388,11 +454,11 @@ class DuaApp(ctk.CTk):
         if not dua:
             return
         m = tk.Menu(self, tearoff=0)
-        m.add_command(label="\u25B6 Video Banao", command=lambda: self._ctx(dua, "gen"))
+        m.add_command(label="\u25b6 Video Banao", command=lambda: self._ctx(dua, "gen"))
         if self._is_generated(dua):
-            m.add_command(label="\u25B6 Video Dekho", command=lambda: self._ctx(dua, "play"))
+            m.add_command(label="\u25b6 Video Dekho", command=lambda: self._ctx(dua, "play"))
         m.add_separator()
-        m.add_command(label="\u270F Edit Dua", command=lambda: self._ctx(dua, "edit"))
+        m.add_command(label="\u270f Edit Dua", command=lambda: self._ctx(dua, "edit"))
         m.add_command(label="\u2715 Delete Dua", command=lambda: self._ctx(dua, "del"))
         m.add_separator()
         m.add_command(label="Copy Arabic", command=lambda: self._ctx(dua, "copy_ar"))
@@ -426,9 +492,9 @@ class DuaApp(ctk.CTk):
             self._select_dua(dua)
             self._delete_dua()
         elif action == "copy_ar":
-            self._copy_text(dua.get('arabic', ''))
+            self._copy_text(dua.get("arabic", ""))
         elif action == "copy_ur":
-            self._copy_text(dua.get('urdu', ''))
+            self._copy_text(dua.get("urdu", ""))
 
     # ---------- Actions ----------
 
@@ -436,7 +502,7 @@ class DuaApp(ctk.CTk):
         dua = dua or self.selected_dua
         if not dua:
             return
-        cat_dir = os.path.join(self.output_dir, dua.get('category'))
+        cat_dir = os.path.join(self.output_dir, dua.get("category"))
         for name in (dua_video_filename(dua), f"{dua.get('id')}.mp4"):
             p = os.path.join(cat_dir, name)
             if os.path.exists(p):
@@ -492,7 +558,7 @@ class DuaApp(ctk.CTk):
             self.after(0, lambda e=e: self._finish_preview(None, str(e)))
 
     def _finish_preview(self, path, error):
-        self._preview_btn.configure(state="normal", text="\u25B6 Preview")
+        self._preview_btn.configure(state="normal", text="\u25b6 Preview")
         if error:
             self._status.configure(text=f"Preview ban nahi saka: {error}")
         else:
@@ -530,17 +596,18 @@ class DuaApp(ctk.CTk):
             if effect == "ultra_pack":
                 # Islamic Ultra Pack - sab kuch random!
                 from core.mega_pack import MegaPackPipeline
+
                 mega = MegaPackPipeline()
                 result = mega.generate(
-                    arabic=dua.get('arabic', ''),
-                    urdu=dua.get('urdu', ''),
-                    title=dua.get('name', dua.get('title', '')),
+                    arabic=dua.get("arabic", ""),
+                    urdu=dua.get("urdu", ""),
+                    title=dua.get("name", dua.get("title", "")),
                 )
                 ok = result.success
                 if not ok:
                     sink.lines.put(f"[ERROR] {result.error}")
             else:
-                ok = self.pipeline.generate_video(dua.get('id'), effect=effect)
+                ok = self.pipeline.generate_video(dua.get("id"), effect=effect)
         except Exception as e:
             sink.lines.put(f"[ERROR] {e}")
         finally:
@@ -603,8 +670,9 @@ class DuaApp(ctk.CTk):
             self._gen_btn.configure(text="Video Banao (phir try karein)")
         self._refresh_list()
         if self.selected_dua:
-            self._gen_btn.configure(text="Video Banao (phir se)"
-                                   if self._is_generated(self.selected_dua) else "Video Banao")
+            self._gen_btn.configure(
+                text="Video Banao (phir se)" if self._is_generated(self.selected_dua) else "Video Banao"
+            )
 
     # ---------- Add / Edit / Delete Dua ----------
 
@@ -622,8 +690,8 @@ class DuaApp(ctk.CTk):
         if not dua:
             self._status.configure(text="Pehle ek dua chunein")
             return
-        title = dua.get('title', '')
-        cat_dir = os.path.join(self.output_dir, dua.get('category'))
+        title = dua.get("title", "")
+        cat_dir = os.path.join(self.output_dir, dua.get("category"))
         video_paths = [
             os.path.join(cat_dir, dua_video_filename(dua)),
             os.path.join(cat_dir, f"{dua.get('id')}.mp4"),
@@ -641,13 +709,13 @@ class DuaApp(ctk.CTk):
             except OSError:
                 pass
         self.selected_dua = None
-        self._select_category(dua.get('category'))
+        self._select_category(dua.get("category"))
 
     def _cat_label_map(self):
         mapping = {}
         for c in self.db.get_categories():
             label = f"{c.get('icon', '')}  {c.get('name_urdu', c.get('name', ''))}"
-            mapping[label] = c.get('id')
+            mapping[label] = c.get("id")
         return mapping
 
     def _dua_form(self, dua):
@@ -665,10 +733,12 @@ class DuaApp(ctk.CTk):
         y = max(0, self.winfo_rooty() + (self.winfo_height() - 700) // 2)
         win.geometry(f"640x700+{x}+{y}")
 
-        ctk.CTkLabel(win, text="Dua Edit Karo" if editing else "Nayi Dua Add Karo",
-                     font=("Segoe UI", 18, "bold")).pack(pady=(12, 2))
-        ctk.CTkLabel(win, text="Arabic aur Urdu text zaroori hai. Baqi optional hai.",
-                     font=FONT_SUB, text_color="#9B9B9B").pack(pady=(0, 4))
+        ctk.CTkLabel(win, text="Dua Edit Karo" if editing else "Nayi Dua Add Karo", font=("Segoe UI", 18, "bold")).pack(
+            pady=(12, 2)
+        )
+        ctk.CTkLabel(
+            win, text="Arabic aur Urdu text zaroori hai. Baqi optional hai.", font=FONT_SUB, text_color="#9B9B9B"
+        ).pack(pady=(0, 4))
 
         fields = ctk.CTkScrollableFrame(win, corner_radius=10)
         fields.pack(fill="both", expand=True, padx=20, pady=(6, 4))
@@ -677,33 +747,32 @@ class DuaApp(ctk.CTk):
         title_e = ctk.CTkEntry(fields, height=34)
         title_e.pack(fill="x", padx=4)
         if editing:
-            title_e.insert(0, dua.get('title', ''))
+            title_e.insert(0, dua.get("title", ""))
 
-        current_cat_id = (dua.get('category') if editing else self.selected_category) or ""
+        current_cat_id = (dua.get("category") if editing else self.selected_category) or ""
         current_label = next((l for l, cid in cat_map.items() if cid == current_cat_id), labels[0] if labels else "")
         ctk.CTkLabel(fields, text="Category:", font=("Segoe UI", 13)).pack(anchor="w", pady=(10, 2))
         cat_var = ctk.StringVar(value=current_label)
-        cat_menu = ctk.CTkOptionMenu(fields, variable=cat_var, height=34,
-                                     values=labels, font=("Segoe UI", 13))
+        cat_menu = ctk.CTkOptionMenu(fields, variable=cat_var, height=34, values=labels, font=("Segoe UI", 13))
         cat_menu.pack(fill="x", padx=4)
 
         ctk.CTkLabel(fields, text="Arabic Dua:", font=("Segoe UI", 13)).pack(anchor="w", pady=(10, 2))
         arabic_t = ctk.CTkTextbox(fields, height=90, font=("Traditional Arabic", 20))
         arabic_t.pack(fill="x", padx=4)
         if editing:
-            arabic_t.insert("1.0", dua.get('arabic', ''))
+            arabic_t.insert("1.0", dua.get("arabic", ""))
 
         ctk.CTkLabel(fields, text="Urdu Translation:", font=("Segoe UI", 13)).pack(anchor="w", pady=(10, 2))
         urdu_t = ctk.CTkTextbox(fields, height=90, font=("Segoe UI", 15))
         urdu_t.pack(fill="x", padx=4)
         if editing:
-            urdu_t.insert("1.0", dua.get('urdu', ''))
+            urdu_t.insert("1.0", dua.get("urdu", ""))
 
         ctk.CTkLabel(fields, text="Reference (optional):", font=("Segoe UI", 13)).pack(anchor="w", pady=(10, 2))
         ref_e = ctk.CTkEntry(fields, height=34)
         ref_e.pack(fill="x", padx=4, pady=(0, 12))
         if editing:
-            ref_e.insert(0, dua.get('reference', ''))
+            ref_e.insert(0, dua.get("reference", ""))
 
         def save():
             title = title_e.get().strip()
@@ -715,26 +784,31 @@ class DuaApp(ctk.CTk):
                 messagebox.showerror("Error", "Title, Arabic aur Urdu bharna zaroori hai.")
                 return
             if editing:
-                old_cat = dua.get('category')
-                dua['title'] = title
-                dua['title_en'] = title
-                dua['arabic'] = arabic
-                dua['urdu'] = urdu
-                dua['reference'] = ref or ""
-                dua['category'] = cat
+                old_cat = dua.get("category")
+                dua["title"] = title
+                dua["title_en"] = title
+                dua["arabic"] = arabic
+                dua["urdu"] = urdu
+                dua["reference"] = ref or ""
+                dua["category"] = cat
                 self._update_dua_file(dua, old_cat)
                 win.destroy()
                 self._select_category(cat)
             else:
-                dua_id = re.sub(r'[^a-z0-9]+', '_', title.lower().strip()).strip('_') or "dua"
+                dua_id = re.sub(r"[^a-z0-9]+", "_", title.lower().strip()).strip("_") or "dua"
                 if dua_id[0].isdigit():
                     dua_id = "d_" + dua_id
-                existing = [d.get('id') for d in self.db.get_all_duas()]
+                existing = [d.get("id") for d in self.db.get_all_duas()]
                 if dua_id in existing:
                     dua_id = f"{dua_id}_{int(time.time())}"
                 new_dua = {
-                    "id": dua_id, "category": cat, "title": title, "title_en": title,
-                    "arabic": arabic, "urdu": urdu, "reference": ref or "",
+                    "id": dua_id,
+                    "category": cat,
+                    "title": title,
+                    "title_en": title,
+                    "arabic": arabic,
+                    "urdu": urdu,
+                    "reference": ref or "",
                 }
                 self._save_dua(new_dua)
                 win.destroy()
@@ -742,12 +816,24 @@ class DuaApp(ctk.CTk):
 
         bottom = ctk.CTkFrame(win, fg_color="transparent")
         bottom.pack(fill="x", padx=20, pady=(2, 14))
-        ctk.CTkButton(bottom, text="Save", font=("Segoe UI", 15, "bold"), height=44,
-                      fg_color="#1F9E5A", hover_color="#17874C",
-                      command=save).pack(side="left", expand=True, fill="x", padx=(0, 6))
-        ctk.CTkButton(bottom, text="Cancel", font=("Segoe UI", 15, "bold"), height=44,
-                      fg_color="#3A3A3A", hover_color="#555555",
-                      command=win.destroy).pack(side="left", expand=True, fill="x", padx=(6, 0))
+        ctk.CTkButton(
+            bottom,
+            text="Save",
+            font=("Segoe UI", 15, "bold"),
+            height=44,
+            fg_color="#1F9E5A",
+            hover_color="#17874C",
+            command=save,
+        ).pack(side="left", expand=True, fill="x", padx=(0, 6))
+        ctk.CTkButton(
+            bottom,
+            text="Cancel",
+            font=("Segoe UI", 15, "bold"),
+            height=44,
+            fg_color="#3A3A3A",
+            hover_color="#555555",
+            command=win.destroy,
+        ).pack(side="left", expand=True, fill="x", padx=(6, 0))
 
     # ---------- File persistence (atomic + backup) ----------
 
@@ -807,7 +893,7 @@ class DuaApp(ctk.CTk):
         data, path = self._read_duas_file()
         self._backup_file(path)
         for i, d in enumerate(data["duas"]):
-            if d.get('id') == dua.get('id'):
+            if d.get("id") == dua.get("id"):
                 data["duas"][i] = dua
                 break
         self._atomic_write(path, data)
@@ -828,7 +914,7 @@ class DuaApp(ctk.CTk):
     def _remove_dua_from_file(self, dua):
         data, path = self._read_duas_file()
         self._backup_file(path)
-        data["duas"] = [d for d in data["duas"] if d.get('id') != dua.get('id')]
+        data["duas"] = [d for d in data["duas"] if d.get("id") != dua.get("id")]
         self._atomic_write(path, data)
 
         cat_path = os.path.join(PROJECT.DATA_DIR, "categories.json")

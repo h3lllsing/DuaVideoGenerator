@@ -84,7 +84,7 @@ class TestCreateMasterPatterns:
             {
                 "colors": {"primary": (255, 0, 0), "secondary": (0, 255, 0), "background": (0, 0, 255)},
                 "effects": ["fade_in", "bounce"],
-                "timing": {"duration": 15.0}
+                "timing": {"duration": 15.0},
             }
         ]
         result = analyzer.create_master_patterns(styles)

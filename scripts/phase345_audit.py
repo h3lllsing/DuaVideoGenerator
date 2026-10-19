@@ -1,10 +1,13 @@
 """MASTER_AUDIT_PLAN — Phase 3-5 detailed audit."""
+
 import sys, re
-sys.stdout.reconfigure(encoding='utf-8')
+
+sys.stdout.reconfigure(encoding="utf-8")
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 results = []
+
 
 def check(item_id, description, passed, details=""):
     status = "PASS" if passed else "FAIL"
@@ -15,13 +18,13 @@ def check(item_id, description, passed, details=""):
         for d in details.split("\n"):
             print(f"      {d}")
 
+
 print("=" * 70)
 print("PHASE 3A: TESTING INFRASTRUCTURE")
 print("=" * 70)
 
 # 3.1 conftest.py
-check("3.1", "Create conftest.py with shared fixtures",
-      (PROJECT / "tests/conftest.py").exists())
+check("3.1", "Create conftest.py with shared fixtures", (PROJECT / "tests/conftest.py").exists())
 
 # 3.2 pyproject.toml
 pt = (PROJECT / "pyproject.toml").read_text(encoding="utf-8") if (PROJECT / "pyproject.toml").exists() else ""
@@ -37,7 +40,11 @@ check("3.3", "Add ruff lint + format check to CI", "ruff check" in ci and "ruff 
 check("3.4", "Add mypy strict mode to CI", "mypy" in ci)
 
 # 3.5 pytest.mark.slow
-e2e = (PROJECT / "tests/test_e2e_render.py").read_text(encoding="utf-8") if (PROJECT / "tests/test_e2e_render.py").exists() else ""
+e2e = (
+    (PROJECT / "tests/test_e2e_render.py").read_text(encoding="utf-8")
+    if (PROJECT / "tests/test_e2e_render.py").exists()
+    else ""
+)
 check("3.5", "Add pytest.mark.slow to E2E tests", "slow" in e2e)
 
 # 3.6-3.12 Tests
@@ -57,8 +64,7 @@ for item_id, (tf, keyword) in test_files.items():
     if exists:
         text = tp.read_text(encoding="utf-8")
         test_count = text.count("def test_")
-    check(item_id, f"Add tests for {keyword}", exists and test_count > 0,
-          f"File exists: {exists}, tests: {test_count}")
+    check(item_id, f"Add tests for {keyword}", exists and test_count > 0, f"File exists: {exists}, tests: {test_count}")
 
 print()
 print("=" * 70)
@@ -77,8 +83,7 @@ check("3.14", "Add CLI argparse for headless runs", has_argparse)
 # 3.15 Streaming frame writer
 vb = (PROJECT / "core/video_builder.py").read_text(encoding="utf-8")
 has_streaming = "generator" in vb.lower() or "streaming" in vb.lower() or "yield" in vb
-check("3.15", "Streaming/chunked frame writer", has_streaming,
-      f"generator/streaming: {has_streaming}")
+check("3.15", "Streaming/chunked frame writer", has_streaming, f"generator/streaming: {has_streaming}")
 
 # 3.16 Vectorize wave effect
 ee = (PROJECT / "core/effects_engine.py").read_text(encoding="utf-8")
@@ -88,8 +93,7 @@ check("3.16", "Vectorize wave effect", has_vector)
 # 3.17 Sync revamp_engine
 re_file = (PROJECT / "core/revamp_engine.py").read_text(encoding="utf-8")
 has_fx = "_FX" in re_file or "neon_glow" in re_file or "metallic_gold" in re_file
-check("3.17", "Sync revamp_engine.py with actual _FX effects", has_fx,
-      f"FX refs: {has_fx}")
+check("3.17", "Sync revamp_engine.py with actual _FX effects", has_fx, f"FX refs: {has_fx}")
 
 # 3.18 asyncio safety
 tts = (PROJECT / "core/tts_engine.py").read_text(encoding="utf-8")
@@ -98,13 +102,18 @@ check("3.18", "Add asyncio event-loop safety in TTS", has_asyncio)
 
 # 3.19 Atomic write for save_key
 sec = (PROJECT / "core/security.py").read_text(encoding="utf-8")
-has_atomic = "atomic" in sec.lower() or "write_atomic" in sec.lower() or "tempfile" in sec.lower() or "replace" in sec.lower()
-check("3.19", "Atomic write for save_key", has_atomic,
-      f"atomic write: {has_atomic}")
+has_atomic = (
+    "atomic" in sec.lower() or "write_atomic" in sec.lower() or "tempfile" in sec.lower() or "replace" in sec.lower()
+)
+check("3.19", "Atomic write for save_key", has_atomic, f"atomic write: {has_atomic}")
 
 # 3.20 Stale comment
-check("3.20", "Update stale 100,000 iterations comment", "100,000" not in main and "100000" not in main,
-      "100000/100,000 in main.py" if ("100000" in main or "100,000" in main) else "No stale comment found")
+check(
+    "3.20",
+    "Update stale 100,000 iterations comment",
+    "100,000" not in main and "100000" not in main,
+    "100000/100,000 in main.py" if ("100000" in main or "100,000" in main) else "No stale comment found",
+)
 
 print()
 print("=" * 70)
@@ -144,8 +153,7 @@ has_weights = "vfx/weights" in vfxf or "vfx_weights" in vfxf
 check("4.7", "Configurable effect weights/scoring", has_weights)
 
 # 4.8 Encrypted API keys
-check("4.8", "Store API keys in encrypted file",
-      (PROJECT / "scripts/api_key_manager.py").exists())
+check("4.8", "Store API keys in encrypted file", (PROJECT / "scripts/api_key_manager.py").exists())
 
 # 4.9 JSON/SARIF audit
 audit = (PROJECT / "scripts/security_audit.py").read_text(encoding="utf-8")
@@ -224,9 +232,10 @@ check("5.9", "Remove dead code (revamp_engine)", True, "revamp_engine IS used in
 
 # 5.10 __all__ exports
 core_files = list((PROJECT / "core").glob("*.py"))
-with_all = sum(1 for f in core_files if f.name != "__init__.py" and "__all__" in f.read_text(encoding="utf-8", errors="ignore"))
-check("5.10", "Add __all__ to Python modules", with_all >= 15,
-      f"{with_all}/{len(core_files)-1} modules have __all__")
+with_all = sum(
+    1 for f in core_files if f.name != "__init__.py" and "__all__" in f.read_text(encoding="utf-8", errors="ignore")
+)
+check("5.10", "Add __all__ to Python modules", with_all >= 15, f"{with_all}/{len(core_files) - 1} modules have __all__")
 
 # 5.11 Config schema versioning
 cfg = (PROJECT / "config.py").read_text(encoding="utf-8")
@@ -239,15 +248,16 @@ has_v11 = "0.11.0" in cl
 check("5.12", "Update CHANGELOG.md", has_v11)
 
 # 5.13 API docs
-check("5.13", "Update API docs", (PROJECT / "docs/API.md").exists() or (PROJECT / "remotion/dashboard/README.md").exists())
+check(
+    "5.13", "Update API docs", (PROJECT / "docs/API.md").exists() or (PROJECT / "remotion/dashboard/README.md").exists()
+)
 
 # 5.14 Dashboard README
 check("5.14", "Add README for dashboard", (PROJECT / "remotion/dashboard/README.md").exists())
 
 # 5.15 JSDoc
 jsdoc_count = app.count("/**")
-check("5.15", "Add JSDoc/docstrings for public APIs", jsdoc_count >= 5,
-      f"JSDoc comments found: {jsdoc_count}")
+check("5.15", "Add JSDoc/docstrings for public APIs", jsdoc_count >= 5, f"JSDoc comments found: {jsdoc_count}")
 
 # SUMMARY
 print()

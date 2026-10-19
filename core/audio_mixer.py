@@ -26,8 +26,8 @@ _AUDIO_THREAD_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="audio
 # AUDIO-001: 48 kHz PCM/WAV downstream intermediate (lossless; single AAC at end)
 # PILLAR 2: broadcast retarget - platform anchor -14 LUFS / -1.0 dBTP
 DEFAULT_SAMPLE_RATE = 48000
-LOUDNESS_TARGET = -14.0   # LUFS integrated (YouTube Shorts / TikTok anchor)
-TRUE_PEAK_TARGET = -1.0   # dBTP ceiling
+LOUDNESS_TARGET = -14.0  # LUFS integrated (YouTube Shorts / TikTok anchor)
+TRUE_PEAK_TARGET = -1.0  # dBTP ceiling
 LRA_TARGET = 11.0
 
 
@@ -75,14 +75,18 @@ class AudioMixer:
 
         if speech_duration < 0:
             return {
-                "valid": False, "final_duration": None, "visual_hold": 0.0,
+                "valid": False,
+                "final_duration": None,
+                "visual_hold": 0.0,
                 "reason": f"Invalid speech duration: {speech_duration}",
             }
 
         # Case C: speech itself exceeds the maximum -> hard failure, never cut speech.
         if speech_duration > max_duration:
             return {
-                "valid": False, "final_duration": None, "visual_hold": 0.0,
+                "valid": False,
+                "final_duration": None,
+                "visual_hold": 0.0,
                 "reason": (
                     f"Speech duration {speech_duration:.2f}s exceeds the maximum "
                     f"{max_duration:.2f}s. Spoken audio cannot be cut. "
@@ -94,25 +98,21 @@ class AudioMixer:
         if speech_duration < min_duration:
             hold = min_duration - speech_duration
             final_duration = min_duration
-            reason = (
-                f"padded: speech {speech_duration:.2f}s + visual hold {hold:.2f}s "
-                f"(final {final_duration:.2f}s)"
-            )
+            reason = f"padded: speech {speech_duration:.2f}s + visual hold {hold:.2f}s (final {final_duration:.2f}s)"
         else:
             # Case B: speech within range -> add default hold, but never exceed max.
             hold = min(default_hold, max_duration - speech_duration)
             hold = max(0.0, hold)
             final_duration = speech_duration + hold
-            reason = (
-                f"speech {speech_duration:.2f}s + visual hold {hold:.2f}s "
-                f"(final {final_duration:.2f}s)"
-            )
+            reason = f"speech {speech_duration:.2f}s + visual hold {hold:.2f}s (final {final_duration:.2f}s)"
 
         # Case D: safety net for any float edge cases.
         eps = 1e-6
         if not (min_duration - eps <= final_duration <= max_duration + eps):
             return {
-                "valid": False, "final_duration": None, "visual_hold": 0.0,
+                "valid": False,
+                "final_duration": None,
+                "visual_hold": 0.0,
                 "reason": (
                     f"Final duration {final_duration:.2f}s is outside the required "
                     f"{min_duration:.2f}-{max_duration:.2f}s window."
@@ -188,15 +188,19 @@ class AudioMixer:
                 speech_duration = sum(c.duration for c in clips)
                 if pad_to_duration > speech_duration + 1e-6:
                     hold = pad_to_duration - speech_duration
-                    logger.info("Padding track with %.2fs trailing "
-                                "silence (speech %.2fs -> %.2fs)",
-                                hold, speech_duration, pad_to_duration)
+                    logger.info(
+                        "Padding track with %.2fs trailing silence (speech %.2fs -> %.2fs)",
+                        hold,
+                        speech_duration,
+                        pad_to_duration,
+                    )
                     clips.append(AudioMixer._make_silence(hold, sample_rate))
                 elif pad_to_duration < speech_duration - 1e-6:
-                    logger.warning("pad_to_duration %.2fs "
-                                   "is shorter than speech %.2fs; "
-                                   "speech will NOT be trimmed.",
-                                   pad_to_duration, speech_duration)
+                    logger.warning(
+                        "pad_to_duration %.2fs is shorter than speech %.2fs; speech will NOT be trimmed.",
+                        pad_to_duration,
+                        speech_duration,
+                    )
 
             # Concatenate all clips
             final_clip = concatenate_audioclips(clips)
@@ -206,7 +210,7 @@ class AudioMixer:
             future = _AUDIO_THREAD_POOL.submit(
                 final_clip.write_audiofile,
                 output_path,
-                codec='pcm_s16le',
+                codec="pcm_s16le",
                 fps=sample_rate,
                 logger=None,
             )
@@ -218,6 +222,7 @@ class AudioMixer:
         except Exception as e:
             logger.error("Error merging audio: %s", e)
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -302,7 +307,7 @@ class AudioMixer:
             future = _AUDIO_THREAD_POOL.submit(
                 final.write_audiofile,
                 output_path,
-                codec='pcm_s16le',
+                codec="pcm_s16le",
                 fps=sample_rate,
                 nbytes=2,
                 logger=None,
@@ -315,6 +320,7 @@ class AudioMixer:
         except Exception as e:
             logger.error("Error crossfade merging: %s", e)
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -339,10 +345,15 @@ class AudioMixer:
         try:
             ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
             cmd = [
-                ffmpeg, "-hide_banner", "-i", input_path,
-                "-af", "loudnorm=I=%s:TP=%s:LRA=%s:print_format=json"
-                       % (LOUDNESS_TARGET, TRUE_PEAK_TARGET, LRA_TARGET),
-                "-f", "null", "-",
+                ffmpeg,
+                "-hide_banner",
+                "-i",
+                input_path,
+                "-af",
+                "loudnorm=I=%s:TP=%s:LRA=%s:print_format=json" % (LOUDNESS_TARGET, TRUE_PEAK_TARGET, LRA_TARGET),
+                "-f",
+                "null",
+                "-",
             ]
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -350,12 +361,12 @@ class AudioMixer:
                 stderr=asyncio.subprocess.PIPE,
             )
             _stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=120,
+                process.communicate(),
+                timeout=120,
             )
             stderr_text = stderr.decode("utf-8", errors="replace")
             out = {}
-            for key in ("input_i", "input_tp", "input_lra", "input_thresh",
-                        "target_offset"):
+            for key in ("input_i", "input_tp", "input_lra", "input_thresh", "target_offset"):
                 m = re.search(r'"%s"\s*:\s*"(-?[\d.]+)"' % key, stderr_text)
                 if m:
                     out[key] = float(m.group(1))
@@ -374,12 +385,10 @@ class AudioMixer:
             dict with input_i (LUFS), input_tp (dBTP), input_lra, input_thresh,
             target_offset, or an empty dict on failure.
         """
-        return asyncio.run(
-            AudioMixer._measure_loudness_async(input_path))
+        return asyncio.run(AudioMixer._measure_loudness_async(input_path))
 
     @staticmethod
-    async def _normalize_loudness_async(input_path: str, output_path: str,
-                                        sample_rate: int | None = None) -> tuple:
+    async def _normalize_loudness_async(input_path: str, output_path: str, sample_rate: int | None = None) -> tuple:
         """
         Async: AUDIO-001 two-pass LINEAR ffmpeg loudnorm.
         Non-blocking subprocess calls.
@@ -396,16 +405,34 @@ class AudioMixer:
             af = (
                 "loudnorm=I=%s:TP=%s:LRA=%s:measured_I=%s:measured_TP=%s:"
                 "measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true"
-                % (LOUDNESS_TARGET, TRUE_PEAK_TARGET, LRA_TARGET,
-                   measured["input_i"], measured["input_tp"],
-                   measured["input_lra"], measured["input_thresh"],
-                   measured.get("target_offset", 0))
+                % (
+                    LOUDNESS_TARGET,
+                    TRUE_PEAK_TARGET,
+                    LRA_TARGET,
+                    measured["input_i"],
+                    measured["input_tp"],
+                    measured["input_lra"],
+                    measured["input_thresh"],
+                    measured.get("target_offset", 0),
+                )
             )
             cmd = [
-                ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                "-i", input_path, "-af", af,
-                "-ar", str(sample_rate), "-ac", "2",
-                "-c:a", "pcm_s16le", output_path,
+                ffmpeg,
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                input_path,
+                "-af",
+                af,
+                "-ar",
+                str(sample_rate),
+                "-ac",
+                "2",
+                "-c:a",
+                "pcm_s16le",
+                output_path,
             ]
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -413,23 +440,22 @@ class AudioMixer:
                 stderr=asyncio.subprocess.PIPE,
             )
             _stdout, stderr = await asyncio.wait_for(
-                process.communicate(), timeout=300,
+                process.communicate(),
+                timeout=300,
             )
             if process.returncode != 0 or not os.path.exists(output_path):
                 err_text = stderr.decode("utf-8", errors="replace")
                 logger.error("loudnorm apply failed: %s", err_text[-400:])
                 return False, {}
 
-            logger.info("Loudness normalized %.1f LUFS -> %d LUFS",
-                        measured["input_i"], LOUDNESS_TARGET)
+            logger.info("Loudness normalized %.1f LUFS -> %d LUFS", measured["input_i"], LOUDNESS_TARGET)
             return True, await AudioMixer._measure_loudness_async(output_path)
         except Exception as e:
             logger.error("Normalization error: %s", e)
             return False, {}
 
     @staticmethod
-    def normalize_loudness(input_path: str, output_path: str,
-                           sample_rate: int | None = None) -> tuple:
+    def normalize_loudness(input_path: str, output_path: str, sample_rate: int | None = None) -> tuple:
         """
         AUDIO-001: two-pass LINEAR ffmpeg loudnorm.
 
@@ -444,9 +470,7 @@ class AudioMixer:
             (bool ok, dict measured_out). measured_out contains the measured
             loudness of the OUTPUT file (input_i/input_tp of the result).
         """
-        return asyncio.run(
-            AudioMixer._normalize_loudness_async(
-                input_path, output_path, sample_rate))
+        return asyncio.run(AudioMixer._normalize_loudness_async(input_path, output_path, sample_rate))
 
     @staticmethod
     def _make_silence(duration: float, sample_rate: int = DEFAULT_SAMPLE_RATE):
@@ -456,8 +480,4 @@ class AudioMixer:
         def make_silence(t):
             return np.zeros(2)  # Stereo silence
 
-        return AudioClip(
-            make_silence,
-            duration=duration,
-            fps=sample_rate
-        )
+        return AudioClip(make_silence, duration=duration, fps=sample_rate)

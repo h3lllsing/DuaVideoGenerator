@@ -1,10 +1,13 @@
 """MASTER_AUDIT_PLAN — Deep audit with exact line numbers and file evidence."""
+
 import sys, re, os
-sys.stdout.reconfigure(encoding='utf-8')
+
+sys.stdout.reconfigure(encoding="utf-8")
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 results = []
+
 
 def check(item_id, description, passed, evidence=""):
     status = "PASS" if passed else "FAIL"
@@ -15,27 +18,42 @@ def check(item_id, description, passed, evidence=""):
         for line in evidence.split("\n"):
             print(f"     {line}")
 
+
 def read(name):
     return (PROJECT / name).read_text(encoding="utf-8", errors="ignore")
+
 
 def exists(name):
     return (PROJECT / name).exists()
 
+
 def count_in(text, pattern):
     return text.count(pattern)
 
+
 def lines_with(text, pattern):
     """Return line numbers matching pattern."""
-    return [i+1 for i, l in enumerate(text.split("\n")) if pattern in l]
+    return [i + 1 for i, l in enumerate(text.split("\n")) if pattern in l]
+
 
 # ── Load all files ──
 files = {}
 file_list = [
-    "main.py", "config.py", "requirements.txt", "requirements-lock.txt",
-    "pyproject.toml", "CHANGELOG.md", "MASTER_AUDIT_PLAN.md",
-    ".github/workflows/ci.yml", ".github/dependabot.yml",
-    ".pre-commit-config.yaml", ".editorconfig", ".env.example",
-    "CONTRIBUTING.md", "SECURITY.md", "MCP_SETUP.md",
+    "main.py",
+    "config.py",
+    "requirements.txt",
+    "requirements-lock.txt",
+    "pyproject.toml",
+    "CHANGELOG.md",
+    "MASTER_AUDIT_PLAN.md",
+    ".github/workflows/ci.yml",
+    ".github/dependabot.yml",
+    ".pre-commit-config.yaml",
+    ".editorconfig",
+    ".env.example",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "MCP_SETUP.md",
     "remotion/dashboard/public/app.js",
     "remotion/dashboard/public/style.css",
     "remotion/dashboard/public/index.html",
@@ -48,21 +66,37 @@ file_list = [
     "remotion/dashboard/custom-vfx.js",
     "remotion/dashboard/README.md",
     "remotion/dashboard/ecosystem.config.js",
-    "core/audio_mixer.py", "core/effects_engine.py",
-    "core/tts_engine.py", "core/security.py", "core/revamp_engine.py",
-    "core/video_builder.py", "core/word_highlight.py",
-    "core/video_analyzer.py", "core/project_info.py",
-    "core/easing.py", "core/cleanup.py",
-    "scripts/backup.py", "scripts/restore.py",
-    "scripts/security_audit.py", "scripts/api_key_manager.py",
-    "scripts/deploy.sh", "scripts/setup.sh",
+    "core/audio_mixer.py",
+    "core/effects_engine.py",
+    "core/tts_engine.py",
+    "core/security.py",
+    "core/revamp_engine.py",
+    "core/video_builder.py",
+    "core/word_highlight.py",
+    "core/video_analyzer.py",
+    "core/project_info.py",
+    "core/easing.py",
+    "core/cleanup.py",
+    "scripts/backup.py",
+    "scripts/restore.py",
+    "scripts/security_audit.py",
+    "scripts/api_key_manager.py",
+    "scripts/deploy.sh",
+    "scripts/setup.sh",
     "scripts/youtube_upload.py",
-    "tests/conftest.py", "tests/test_effects_engine.py",
-    "tests/test_revamp_engine.py", "tests/test_video_analyzer.py",
-    "tests/test_project_info.py", "tests/test_easing.py",
-    "tests/test_backup.py", "tests/test_restore.py",
-    "tests/test_security.py", "tests/test_e2e_render.py",
-    "tests/test_video_002.py", "tests/test_cli.py", "tests/test_concurrent.py",
+    "tests/conftest.py",
+    "tests/test_effects_engine.py",
+    "tests/test_revamp_engine.py",
+    "tests/test_video_analyzer.py",
+    "tests/test_project_info.py",
+    "tests/test_easing.py",
+    "tests/test_backup.py",
+    "tests/test_restore.py",
+    "tests/test_security.py",
+    "tests/test_e2e_render.py",
+    "tests/test_video_002.py",
+    "tests/test_cli.py",
+    "tests/test_concurrent.py",
 ]
 for f in file_list:
     try:
@@ -77,62 +111,73 @@ print("=" * 70)
 # 1.1 (only .py/.js — skip .md which mention eval in text)
 eval_hits = []
 for name, content in files.items():
-    if not name.endswith(('.py', '.js')):
+    if not name.endswith((".py", ".js")):
         continue
     for i, l in enumerate(content.split("\n"), 1):
         if "eval(" in l and not l.strip().startswith("#"):
             eval_hits.append(f"{name}:L{i}")
-check("1.1", "Replace eval() with json.loads()", len(eval_hits) == 0,
-      f"eval() found at: {eval_hits}" if eval_hits else "No eval() in active code")
+check(
+    "1.1",
+    "Replace eval() with json.loads()",
+    len(eval_hits) == 0,
+    f"eval() found at: {eval_hits}" if eval_hits else "No eval() in active code",
+)
 
 # 1.2
 js = files.get("remotion/dashboard/public/app.js", "")
 vis_lines = lines_with(js, "visibilitychange")
 hid_lines = lines_with(js, "document.hidden")
-check("1.2", "Visibility API — pause polling", "visibilitychange" in js and "document.hidden" in js,
-      f"visibilitychange: L{vis_lines[:2]}, document.hidden: L{hid_lines[:2]}")
+check(
+    "1.2",
+    "Visibility API — pause polling",
+    "visibilitychange" in js and "document.hidden" in js,
+    f"visibilitychange: L{vis_lines[:2]}, document.hidden: L{hid_lines[:2]}",
+)
 
 # 1.3
 revoke = lines_with(js, "revokeObjectURL")
 destroy = lines_with(js, "waveSurfer.destroy()")
-check("1.3", "revokeObjectURL cleanup", "revokeObjectURL" in js,
-      f"revokeObjectURL: L{revoke[:2]}, destroy: L{destroy[:2]}")
+check(
+    "1.3",
+    "revokeObjectURL cleanup",
+    "revokeObjectURL" in js,
+    f"revokeObjectURL: L{revoke[:2]}, destroy: L{destroy[:2]}",
+)
 
 # 1.4
 ci = files.get(".github/workflows/ci.yml", "")
 timeouts = re.findall(r"timeout-minutes:\s*(\d+)", ci)
-check("1.4", "CI timeout-minutes: 25", "25" in timeouts,
-      f"All timeouts: {timeouts}")
+check("1.4", "CI timeout-minutes: 25", "25" in timeouts, f"All timeouts: {timeouts}")
 
 # 1.5
 restore = files.get("scripts/restore.py", "")
 confirm = lines_with(restore, "Are you sure")
 input_check = lines_with(restore, "input(")
-check("1.5", "Confirmation before restore", "Are you sure" in restore,
-      f"L{confirm}, L{input_check}")
+check("1.5", "Confirmation before restore", "Are you sure" in restore, f"L{confirm}, L{input_check}")
 
 # 1.6
 auto_backup = lines_with(restore, "auto_backup")
-check("1.6", "Pre-restore auto-backup", "auto_backup" in restore,
-      f"Lines: {auto_backup[:2]}")
+check("1.6", "Pre-restore auto-backup", "auto_backup" in restore, f"Lines: {auto_backup[:2]}")
 
 # 1.7
 sa = files.get("scripts/security_audit.py", "")
 proj = lines_with(sa, "PROJECT")
 exit_code = lines_with(sa, "sys.exit")
-check("1.7", "security_audit.py paths + exit", len(proj) > 0 and len(exit_code) > 0,
-      f"PROJECT: L{proj[:2]}, sys.exit: L{exit_code[:2]}")
+check(
+    "1.7",
+    "security_audit.py paths + exit",
+    len(proj) > 0 and len(exit_code) > 0,
+    f"PROJECT: L{proj[:2]}, sys.exit: L{exit_code[:2]}",
+)
 
 # 1.8
 traversal = lines_with(sa, "is_relative_to") + lines_with(sa, "resolve()")
-check("1.8", "Path traversal check", len(traversal) > 0,
-      f"Lines: {traversal[:3]}")
+check("1.8", "Path traversal check", len(traversal) > 0, f"Lines: {traversal[:3]}")
 
 # 1.9
 tv2 = files.get("tests/test_video_002.py", "")
 docstrings = count_in(tv2, '"""')
-check("1.9", "test_video_002 docs", docstrings >= 4,
-      f"Docstrings: {docstrings}")
+check("1.9", "test_video_002 docs", docstrings >= 4, f"Docstrings: {docstrings}")
 
 print()
 print("=" * 70)
@@ -142,52 +187,64 @@ print("=" * 70)
 # 2.1
 utils = files.get("remotion/dashboard/routes/utils.js", "")
 exports = re.findall(r"module\.exports\s*=\s*\{([^}]+)\}", utils)
-check("2.1", "Shared utils.js exports", len(exports) > 0,
-      f"Exports: {exports[0].strip()[:60]}" if exports else "No exports found")
+check(
+    "2.1",
+    "Shared utils.js exports",
+    len(exports) > 0,
+    f"Exports: {exports[0].strip()[:60]}" if exports else "No exports found",
+)
 
 # 2.2
 importing_routes = []
-for r in ["render.js","youtube.js","vfx.js","config.js","duas.js"]:
+for r in ["render.js", "youtube.js", "vfx.js", "config.js", "duas.js"]:
     c = files.get(f"remotion/dashboard/routes/{r}", "")
     if "require('./utils')" in c or 'require("./utils")' in c:
         importing_routes.append(r)
-check("2.2", "Routes use shared utils", len(importing_routes) >= 2,
-      f"Import utils: {importing_routes}")
+check("2.2", "Routes use shared utils", len(importing_routes) >= 2, f"Import utils: {importing_routes}")
 
 # 2.3
 rjs = files.get("remotion/dashboard/routes/render.js", "")
 cfg_cache = lines_with(rjs, "readConfigCached")
 cfg_ttl = lines_with(rjs, "CFG_CACHE_TTL")
-check("2.3", "Config cache reads (5s TTL)", "readConfigCached" in rjs,
-      f"readConfigCached: L{cfg_cache[:3]}, TTL: L{cfg_ttl}")
+check(
+    "2.3",
+    "Config cache reads (5s TTL)",
+    "readConfigCached" in rjs,
+    f"readConfigCached: L{cfg_cache[:3]}, TTL: L{cfg_ttl}",
+)
 
 # 2.4
 async_dua = lines_with(rjs, "async function duaStatus") + lines_with(rjs, "async duaStatus")
-check("2.4", "duaStatus async I/O", len(async_dua) > 0 or "async" in rjs,
-      f"async duaStatus: L{async_dua}" if async_dua else "async found in render.js")
+check(
+    "2.4",
+    "duaStatus async I/O",
+    len(async_dua) > 0 or "async" in rjs,
+    f"async duaStatus: L{async_dua}" if async_dua else "async found in render.js",
+)
 
 # 2.5
 yt = files.get("remotion/dashboard/routes/youtube.js", "")
 mask = lines_with(yt, "mask") + lines_with(yt, "sanitiz") + lines_with(yt, "redact")
-check("2.5", "YouTube log sanitize", len(mask) > 0,
-      f"mask/sanitize: L{mask[:3]}")
+check("2.5", "YouTube log sanitize", len(mask) > 0, f"mask/sanitize: L{mask[:3]}")
 
 # 2.6
 auth_cache = lines_with(yt, "getCachedAuthStatus")
 auth_ttl = lines_with(yt, "AUTH_CACHE_TTL")
-check("2.6", "YouTube auth cache (30s TTL)", "getCachedAuthStatus" in yt,
-      f"getCachedAuthStatus: L{auth_cache[:2]}, TTL: L{auth_ttl}")
+check(
+    "2.6",
+    "YouTube auth cache (30s TTL)",
+    "getCachedAuthStatus" in yt,
+    f"getCachedAuthStatus: L{auth_cache[:2]}, TTL: L{auth_ttl}",
+)
 
 # 2.7
 backup = files.get("scripts/backup.py", "")
 sha = lines_with(backup, "sha256") + lines_with(backup, "sha-256") + lines_with(backup, "checksum")
-check("2.7", "Backup checksums (SHA-256)", len(sha) > 0,
-      f"SHA/checksum: L{sha[:3]}")
+check("2.7", "Backup checksums (SHA-256)", len(sha) > 0, f"SHA/checksum: L{sha[:3]}")
 
 # 2.8
 rotate = lines_with(backup, "rotate_backups") + lines_with(backup, "max_backups")
-check("2.8", "Backup rotation", len(rotate) > 0,
-      f"rotate: L{rotate[:3]}")
+check("2.8", "Backup rotation", len(rotate) > 0, f"rotate: L{rotate[:3]}")
 
 print()
 print("=" * 70)
@@ -330,8 +387,7 @@ check("3.19", "Atomic write", len(atomic) > 0, f"Lines: {atomic[:2]}")
 
 # 3.20
 stale = "100,000" in main or "100000" in main
-check("3.20", "Stale comment removed", not stale,
-      "100,000 NOT in main.py" if not stale else "FOUND in main.py!")
+check("3.20", "Stale comment removed", not stale, "100,000 NOT in main.py" if not stale else "FOUND in main.py!")
 
 print()
 print("=" * 70)
@@ -349,8 +405,12 @@ check("4.2", "EventSource frontend", len(es) > 0, f"Lines: {es[:2]}")
 # 4.3
 save_q = lines_with(rjs, "saveQueueState")
 load_q = lines_with(rjs, "loadQueueState")
-check("4.3", "Job persistence", len(save_q) > 0 and len(load_q) > 0,
-      f"saveQueueState: L{save_q[:2]}, loadQueueState: L{load_q[:2]}")
+check(
+    "4.3",
+    "Job persistence",
+    len(save_q) > 0 and len(load_q) > 0,
+    f"saveQueueState: L{save_q[:2]}, loadQueueState: L{load_q[:2]}",
+)
 
 # 4.4
 cvfx = files.get("remotion/dashboard/custom-vfx.js", "")
@@ -361,14 +421,12 @@ check("4.4", "VFX mtime cache", len(mtime) > 0, f"Lines: {mtime[:2]}")
 vfx = files.get("remotion/dashboard/routes/vfx.js", "")
 pf = lines_with(vfx, "previewFingerprint")
 pc = lines_with(vfx, "previewCache")
-check("4.5", "Preview caching", len(pf) > 0 and len(pc) > 0,
-      f"fingerprint: L{pf[:2]}, cache: L{pc[:2]}")
+check("4.5", "Preview caching", len(pf) > 0 and len(pc) > 0, f"fingerprint: L{pf[:2]}, cache: L{pc[:2]}")
 
 # 4.6
 pmc = lines_with(vfx, "PREVIEW_MAX_CONCURRENT")
 pa = lines_with(vfx, "previewAcquire")
-check("4.6", "Concurrency limit", len(pmc) > 0 and len(pa) > 0,
-      f"MAX_CONCURRENT: L{pmc[:2]}, acquire: L{pa[:2]}")
+check("4.6", "Concurrency limit", len(pmc) > 0 and len(pa) > 0, f"MAX_CONCURRENT: L{pmc[:2]}, acquire: L{pa[:2]}")
 
 # 4.7
 weights = lines_with(vfx, "vfx/weights") + lines_with(vfx, "vfx_weights")
@@ -426,8 +484,7 @@ check("5.2", "Pre-commit", exists(".pre-commit-config.yaml"))
 # 5.3
 mac = lines_with(ci, "macos-latest")
 win = lines_with(ci, "windows-latest")
-check("5.3", "Win/Mac CI", len(mac) > 0 and len(win) > 0,
-      f"macos: L{mac[:2]}, windows: L{win[:2]}")
+check("5.3", "Win/Mac CI", len(mac) > 0 and len(win) > 0, f"macos: L{mac[:2]}, windows: L{win[:2]}")
 
 # 5.4
 ct = files.get("tests/conftest.py", "")
@@ -451,8 +508,7 @@ check("5.8", "Consolidate escHtml", len(esc) > 0, f"Lines: {esc[:2]}")
 
 # 5.9
 used = "revamp_engine" in main
-check("5.9", "Dead code (revamp_engine)", used,
-      "revamp_engine IS used in main.py" if used else "NOT USED!")
+check("5.9", "Dead code (revamp_engine)", used, "revamp_engine IS used in main.py" if used else "NOT USED!")
 
 # 5.10
 core_py = list((PROJECT / "core").glob("*.py"))
@@ -484,7 +540,7 @@ passed = sum(1 for _, _, s, _ in results if s == "PASS")
 failed = sum(1 for _, _, s, _ in results if s == "FAIL")
 total = len(results)
 print(f"FINAL SCORE: {passed} PASS / {failed} FAIL / {total} ITEMS")
-print(f"PASS RATE: {passed*100//total}%")
+print(f"PASS RATE: {passed * 100 // total}%")
 if failed:
     print("\nFAILED ITEMS:")
     for item_id, desc, status, ev in results:

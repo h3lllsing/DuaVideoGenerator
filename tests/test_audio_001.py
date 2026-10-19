@@ -60,31 +60,38 @@ def _read_samples(path):
 def _probe(path):
     r = subprocess.run(
         [FFMPEG, "-hide_banner", "-i", path],
-        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     txt = r.stderr
-    audio = re.search(
-        r"Audio:\s*([^,]+),\s*(\d+)\s*Hz,\s*(\w+),\s*\w+,\s*(\d+)\s*kb/s", txt)
+    audio = re.search(r"Audio:\s*([^,]+),\s*(\d+)\s*Hz,\s*(\w+),\s*\w+,\s*(\d+)\s*kb/s", txt)
     video = re.search(r"Video:\s*([^,]+).*?(\d+)x(\d+).*?(\d+(?:\.\d+)?)\s*fps", txt)
     dur = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", txt)
     return {
         "audio": audio.groups() if audio else None,
         "video": video.groups() if video else None,
         "yuv420p": "yuv420p" in txt,
-        "duration": (int(dur.group(1)) * 3600 + int(dur.group(2)) * 60
-                     + float(dur.group(3))) if dur else None,
+        "duration": (int(dur.group(1)) * 3600 + int(dur.group(2)) * 60 + float(dur.group(3))) if dur else None,
     }
 
 
 def _measure_loudness(path):
-    cmd = [FFMPEG, "-hide_banner", "-i", path,
-           "-af", "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json",
-           "-f", "null", "-"]
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace")
+    cmd = [
+        FFMPEG,
+        "-hide_banner",
+        "-i",
+        path,
+        "-af",
+        "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=json",
+        "-f",
+        "null",
+        "-",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     out = {}
-    for key in ("input_i", "input_tp", "input_lra", "input_thresh",
-                "target_offset"):
+    for key in ("input_i", "input_tp", "input_lra", "input_thresh", "target_offset"):
         m = re.search(r'"%s"\s*:\s*"(-?[\d.]+)"' % key, r.stderr)
         if m:
             out[key] = float(m.group(1))
@@ -105,8 +112,7 @@ class TestAudioMixerWav:
             a = _sine_wav(_tmp("a.wav"), 0.5)
             b = _sine_wav(_tmp("b.wav"), 0.4, freq=660)
             out = _tmp("merged.wav")
-            assert AudioMixer.merge_audio_sequential([a, b], out,
-                                                     gap_seconds=0.3) is True
+            assert AudioMixer.merge_audio_sequential([a, b], out, gap_seconds=0.3) is True
             rate, data = _read_samples(out)
             assert rate == SAMPLE_RATE
             assert data.shape[1] == 2
@@ -121,8 +127,7 @@ class TestAudioMixerWav:
             bytes_a = open(a, "rb").read()
             bytes_b = open(b, "rb").read()
             out = _tmp("merged.wav")
-            assert AudioMixer.merge_audio_sequential([a, b], out,
-                                                     gap_seconds=0.3) is True
+            assert AudioMixer.merge_audio_sequential([a, b], out, gap_seconds=0.3) is True
             rate, data = _read_samples(out)
             _, src_a = _read_samples(a)
             _, src_b = _read_samples(b)
@@ -130,8 +135,8 @@ class TestAudioMixerWav:
             n_a, n_gap, n_b = int(0.5 * rate), int(0.3 * rate), int(0.4 * rate)
             assert data.shape[0] >= n_a + n_gap + n_b
             seg_a = data[:n_a]
-            gap = data[n_a:n_a + n_gap]
-            seg_b = data[n_a + n_gap:n_a + n_gap + n_b]
+            gap = data[n_a : n_a + n_gap]
+            seg_b = data[n_a + n_gap : n_a + n_gap + n_b]
             assert np.allclose(seg_a.astype(float), src_a.astype(float), atol=3)
             assert np.allclose(seg_b.astype(float), src_b.astype(float), atol=3)
             assert np.max(np.abs(gap.astype(float))) <= 3
@@ -147,8 +152,7 @@ class TestAudioMixerWav:
             a = _sine_wav(_tmp("a.wav"), 0.5)
             bytes_a = open(a, "rb").read()
             out = _tmp("padded.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [a], out, gap_seconds=0.0, pad_to_duration=2.0) is True
+            assert AudioMixer.merge_audio_sequential([a], out, gap_seconds=0.0, pad_to_duration=2.0) is True
             rate, data = _read_samples(out)
             assert abs(data.shape[0] / rate - 2.0) < 0.02
             n = int(0.5 * rate)
@@ -163,8 +167,7 @@ class TestAudioMixerWav:
         try:
             a = _sine_wav(_tmp("a44.wav"), 0.5, sample_rate=44100)
             out = _tmp("merged.wav")
-            assert AudioMixer.merge_audio_sequential([a], out,
-                                                     gap_seconds=0.0) is True
+            assert AudioMixer.merge_audio_sequential([a], out, gap_seconds=0.0) is True
             rate, data = _read_samples(out)
             assert rate == SAMPLE_RATE
             assert abs(data.shape[0] / rate - 0.5) < 0.03
@@ -221,9 +224,11 @@ class TestLoudnorm:
             n = min(len(in_data), len(out_data))
             # Linear gain: sample values scale by a roughly constant factor.
             with np.errstate(divide="ignore", invalid="ignore"):
-                ratio = np.where(np.abs(in_data[:n]) > 50,
-                                 np.abs(out_data[:n].astype(float))
-                                 / np.abs(in_data[:n].astype(float)), np.nan)
+                ratio = np.where(
+                    np.abs(in_data[:n]) > 50,
+                    np.abs(out_data[:n].astype(float)) / np.abs(in_data[:n].astype(float)),
+                    np.nan,
+                )
             ratios = ratio[~np.isnan(ratio)]
             assert len(ratios) > 100
             assert np.std(ratios) / np.mean(ratios) < 0.05
@@ -235,8 +240,10 @@ class TestLoudnorm:
         try:
             sidecar = _tmp("timing.jsonl")
             with open(sidecar, "w", encoding="utf-8") as f:
-                f.write('{"type": "WordBoundary", "offset": 0, '
-                        '"duration": 50000000, "text": "\\u0627\\u0644\\u0644\\u0647\\u0645"}\n')
+                f.write(
+                    '{"type": "WordBoundary", "offset": 0, '
+                    '"duration": 50000000, "text": "\\u0627\\u0644\\u0644\\u0647\\u0645"}\n'
+                )
             before_bytes = open(sidecar, "rb").read()
             words_before = TTSEngine.parse_word_boundaries(sidecar)
 
@@ -260,8 +267,7 @@ class TestVideoBuilderMux:
             shutil.rmtree(d)
 
     def _build(self, seconds, audio_seconds, out_name="mux.mp4"):
-        frames = [Image.new("RGB", (1080, 1920), (20, 25, 35))
-                  for _ in range(int(seconds * 120))]
+        frames = [Image.new("RGB", (1080, 1920), (20, 25, 35)) for _ in range(int(seconds * 120))]
         audio = _sine_wav(_tmp("audio.wav"), audio_seconds)
         out = _tmp(out_name)
         builder = VideoBuilder(fps=120, resolution=(1080, 1920))
@@ -327,6 +333,7 @@ class TestPublicApi:
         import inspect
 
         import main as m
+
         sig = inspect.signature(m.DuaVideoPipeline.generate_video)
         params = list(sig.parameters)
         assert params[0] == "self"
@@ -337,6 +344,7 @@ class TestPublicApi:
         import inspect
 
         import main as m
+
         sig = inspect.signature(m.DuaVideoPipeline.generate_custom_video)
         params = list(sig.parameters)
         assert params[1] == "arabic_text"
@@ -369,17 +377,14 @@ class TestVideo002RegressionAudio:
             a = _sine_wav(_tmp("ar.wav"), 0.4, freq=440)
             b = _sine_wav(_tmp("ur.wav"), 0.3, freq=660)
             merged = _tmp("merged.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [a, b], merged, gap_seconds=0.3) is True
+            assert AudioMixer.merge_audio_sequential([a, b], merged, gap_seconds=0.3) is True
 
             norm = _tmp("normalized.wav")
             ok, _ = AudioMixer.normalize_loudness(merged, norm)
             assert ok is True
 
             padded = _tmp("padded.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [norm], padded, gap_seconds=0.0,
-                pad_to_duration=15.0) is True
+            assert AudioMixer.merge_audio_sequential([norm], padded, gap_seconds=0.0, pad_to_duration=15.0) is True
 
             rate, data = _read_samples(padded)
             duration = len(data) / rate
@@ -396,15 +401,12 @@ class TestVideo002RegressionAudio:
             a = _sine_wav(_tmp("ar.wav"), 0.4, freq=440)
             b = _sine_wav(_tmp("ur.wav"), 0.3, freq=660)
             merged = _tmp("merged.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [a, b], merged, gap_seconds=0.3) is True
+            assert AudioMixer.merge_audio_sequential([a, b], merged, gap_seconds=0.3) is True
             norm = _tmp("normalized.wav")
             ok, _ = AudioMixer.normalize_loudness(merged, norm)
             assert ok is True
             padded = _tmp("padded.wav")
-            assert AudioMixer.merge_audio_sequential(
-                [norm], padded, gap_seconds=0.0,
-                pad_to_duration=15.0) is True
+            assert AudioMixer.merge_audio_sequential([norm], padded, gap_seconds=0.0, pad_to_duration=15.0) is True
 
             _, data = _read_samples(padded)
             voiced = np.max(np.abs(data.astype(float)), axis=1) > 50

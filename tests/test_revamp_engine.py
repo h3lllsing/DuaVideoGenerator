@@ -35,9 +35,21 @@ class TestGetAvailableEffects:
         engine = RevampEngine()
         effects = engine.get_available_effects()
         expected = [
-            "neon_glow", "metallic_gold", "typewriter", "bounce", "wave", "glitch",
-            "bloom_glow", "gold_shimmer", "breathing", "rtl_reveal", "glitch_v2",
-            "word_pulse", "aurora", "title_hook", "summary_card",
+            "neon_glow",
+            "metallic_gold",
+            "typewriter",
+            "bounce",
+            "wave",
+            "glitch",
+            "bloom_glow",
+            "gold_shimmer",
+            "breathing",
+            "rtl_reveal",
+            "glitch_v2",
+            "word_pulse",
+            "aurora",
+            "title_hook",
+            "summary_card",
         ]
         assert effects == expected
 

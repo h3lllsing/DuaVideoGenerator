@@ -32,14 +32,16 @@ __all__ = ["BackgroundAsset", "AssetRegistry", "is_video_file", "normalize_licen
 
 # Licenses acceptable for monetization-safe use. Assets with any other
 # license (or none) are NEVER loadable regardless of the approved flag.
-ALLOWED_LICENSES = frozenset({
-    "CC0",
-    "CC-BY",
-    "CC-BY-SA",
-    "PUBLIC DOMAIN",
-    "PROJECT-OWNED",
-    "PEXELS LICENSE",
-})
+ALLOWED_LICENSES = frozenset(
+    {
+        "CC0",
+        "CC-BY",
+        "CC-BY-SA",
+        "PUBLIC DOMAIN",
+        "PROJECT-OWNED",
+        "PEXELS LICENSE",
+    }
+)
 
 VIDEO_EXTS = (".mp4", ".webm", ".mov")
 
@@ -100,12 +102,10 @@ class AssetRegistry:
     MANIFEST_NAME = "manifest.json"
     SCHEMA_VERSION = 1
 
-    def __init__(self, manifest_path: str | None = None,
-                 backgrounds_dir: str | None = None):
+    def __init__(self, manifest_path: str | None = None, backgrounds_dir: str | None = None):
         if backgrounds_dir is None:
-            backgrounds_dir = (
-                getattr(config, "BACKGROUNDS_DIR", None)
-                or os.path.join(PROJECT.ASSETS_DIR, "backgrounds")
+            backgrounds_dir = getattr(config, "BACKGROUNDS_DIR", None) or os.path.join(
+                PROJECT.ASSETS_DIR, "backgrounds"
             )
         if manifest_path is None:
             manifest_path = os.path.join(backgrounds_dir, self.MANIFEST_NAME)
@@ -245,10 +245,15 @@ class AssetRegistry:
             score += 1
         return score
 
-    def select_background(self, dua_id: str, category: str | None = None,
-                          exclude_ids=(), preferred_theme: str | None = None,
-                          prefer_video: bool | None = None,
-                          random_mode: bool = True) -> dict:
+    def select_background(
+        self,
+        dua_id: str,
+        category: str | None = None,
+        exclude_ids=(),
+        preferred_theme: str | None = None,
+        prefer_video: bool | None = None,
+        random_mode: bool = True,
+    ) -> dict:
         """
         Choose a background for a dua.
 
@@ -327,8 +332,7 @@ class AssetRegistry:
                 ),
             }
         reason = (
-            f"No approved background matches the dua category "
-            f"'{category or 'general'}'; using procedural fallback."
+            f"No approved background matches the dua category '{category or 'general'}'; using procedural fallback."
         )
         theme = self._pick_theme(dua_id, preferred_theme)
         return {"kind": "procedural", "theme": theme, "reason": reason}

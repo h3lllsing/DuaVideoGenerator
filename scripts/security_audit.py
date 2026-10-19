@@ -2,6 +2,7 @@
 
 Supports text (default), JSON, and SARIF output formats.
 """
+
 import argparse
 import json
 import sys
@@ -52,11 +53,13 @@ def run_audit():
         full = (PROJECT / p).resolve()
         safe = full.is_relative_to(PROJECT)
         if not safe:
-            findings.append(_make_finding(
-                "path-traversal",
-                file=str(full),
-                message=f"Path traversal allowed: {p}",
-            ))
+            findings.append(
+                _make_finding(
+                    "path-traversal",
+                    file=str(full),
+                    message=f"Path traversal allowed: {p}",
+                )
+            )
 
     # Test 2: Auth token
     auth_path = PROJECT / "remotion/dashboard/auth.json"
@@ -65,16 +68,20 @@ def run_audit():
             data = json.load(f)
         token = data.get("token", "")
         if len(token) < 16:
-            findings.append(_make_finding(
-                "auth-token-weak",
-                file=str(auth_path),
-                message=f"Auth token too short: {len(token)} chars",
-            ))
+            findings.append(
+                _make_finding(
+                    "auth-token-weak",
+                    file=str(auth_path),
+                    message=f"Auth token too short: {len(token)} chars",
+                )
+            )
     else:
-        findings.append(_make_finding(
-            "auth-token-missing",
-            file=str(auth_path),
-        ))
+        findings.append(
+            _make_finding(
+                "auth-token-missing",
+                file=str(auth_path),
+            )
+        )
 
     # Test 3: .gitignore
     gitignore_path = PROJECT / ".gitignore"
@@ -83,16 +90,20 @@ def run_audit():
         secrets = ["client_secret.json", "auth.json", "*.pem", "*.key"]
         for s in secrets:
             if s not in gitignore:
-                findings.append(_make_finding(
-                    "gitignore-unprotected",
-                    file=str(gitignore_path),
-                    message=f"Gitignore missing pattern: {s}",
-                ))
+                findings.append(
+                    _make_finding(
+                        "gitignore-unprotected",
+                        file=str(gitignore_path),
+                        message=f"Gitignore missing pattern: {s}",
+                    )
+                )
     else:
-        findings.append(_make_finding(
-            "gitignore-missing",
-            file=str(gitignore_path),
-        ))
+        findings.append(
+            _make_finding(
+                "gitignore-missing",
+                file=str(gitignore_path),
+            )
+        )
 
     # Test 4: Security headers
     server_path = PROJECT / "remotion/dashboard/server.js"
@@ -101,16 +112,20 @@ def run_audit():
         headers = ["X-Content-Type-Options", "X-Frame-Options", "X-XSS-Protection", "Referrer-Policy"]
         for h in headers:
             if h not in server:
-                findings.append(_make_finding(
-                    "header-missing",
-                    file=str(server_path),
-                    message=f"Missing security header: {h}",
-                ))
+                findings.append(
+                    _make_finding(
+                        "header-missing",
+                        file=str(server_path),
+                        message=f"Missing security header: {h}",
+                    )
+                )
     else:
-        findings.append(_make_finding(
-            "server-not-found",
-            file=str(server_path),
-        ))
+        findings.append(
+            _make_finding(
+                "server-not-found",
+                file=str(server_path),
+            )
+        )
 
     # Test 5: Input validation
     render_path = PROJECT / "remotion/dashboard/routes/render.js"
@@ -119,40 +134,50 @@ def run_audit():
         checks = ["path.basename", "startsWith(OUT)", "escapeHtml", "sanitizeTts"]
         for c in checks:
             if c not in render:
-                findings.append(_make_finding(
-                    "validation-missing",
-                    file=str(render_path),
-                    message=f"Missing validation: {c}",
-                ))
+                findings.append(
+                    _make_finding(
+                        "validation-missing",
+                        file=str(render_path),
+                        message=f"Missing validation: {c}",
+                    )
+                )
     else:
-        findings.append(_make_finding(
-            "render-not-found",
-            file=str(render_path),
-        ))
+        findings.append(
+            _make_finding(
+                "render-not-found",
+                file=str(render_path),
+            )
+        )
 
     # Test 6: Rate limiting
     if server_path.exists():
         server = server_path.read_text(encoding="utf-8", errors="replace")
         if "checkRateLimit" not in server:
-            findings.append(_make_finding(
-                "rate-limiter-missing",
-                file=str(server_path),
-            ))
+            findings.append(
+                _make_finding(
+                    "rate-limiter-missing",
+                    file=str(server_path),
+                )
+            )
 
     # Test 7: XSS protection
     app_path = PROJECT / "remotion/dashboard/public/app.js"
     if app_path.exists():
         app = app_path.read_text(encoding="utf-8", errors="replace")
         if "escapeHtml" not in app and "escHtml" not in app:
-            findings.append(_make_finding(
-                "html-escaping-missing",
-                file=str(app_path),
-            ))
+            findings.append(
+                _make_finding(
+                    "html-escaping-missing",
+                    file=str(app_path),
+                )
+            )
     else:
-        findings.append(_make_finding(
-            "app-not-found",
-            file=str(app_path),
-        ))
+        findings.append(
+            _make_finding(
+                "app-not-found",
+                file=str(app_path),
+            )
+        )
 
     return findings
 
@@ -183,8 +208,10 @@ def output_text(findings):
         print("No issues found - all checks passed!")
     print()
     summary = _build_summary(findings)
-    print(f"Summary: {summary['total']} total | {summary['critical']} critical | "
-          f"{summary['high']} high | {summary['medium']} medium | {summary['low']} low")
+    print(
+        f"Summary: {summary['total']} total | {summary['critical']} critical | "
+        f"{summary['high']} high | {summary['medium']} medium | {summary['low']} low"
+    )
 
 
 def output_json(findings):
@@ -200,18 +227,20 @@ def output_sarif(findings):
     """Output findings in SARIF 2.1.0 format."""
     rules = []
     for rule_id, rule_def in RULES.items():
-        rules.append({
-            "id": rule_id,
-            "shortDescription": {"text": rule_def.get("message", rule_id)},
-            "defaultConfiguration": {
-                "level": {
-                    "critical": "error",
-                    "high": "error",
-                    "medium": "warning",
-                    "low": "note",
-                }.get(rule_def.get("severity", "low"), "warning"),
-            },
-        })
+        rules.append(
+            {
+                "id": rule_id,
+                "shortDescription": {"text": rule_def.get("message", rule_id)},
+                "defaultConfiguration": {
+                    "level": {
+                        "critical": "error",
+                        "high": "error",
+                        "medium": "warning",
+                        "low": "note",
+                    }.get(rule_def.get("severity", "low"), "warning"),
+                },
+            }
+        )
 
     results = []
     for f in findings:

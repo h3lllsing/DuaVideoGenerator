@@ -28,8 +28,7 @@ class VideoBuilder:
     Uses imageio for fast frame writing and moviepy for audio mixing.
     """
 
-    def __init__(self, fps: int | None = None,
-                 resolution: tuple = (1080, 1920)):
+    def __init__(self, fps: int | None = None, resolution: tuple = (1080, 1920)):
         """
         Args:
             fps: Frames per second. Defaults to config.VIDEO_FPS (30) so the
@@ -54,11 +53,10 @@ class VideoBuilder:
         self.color_grade = getattr(config, "FFMPEG_COLOR_GRADE", True) if config else True
         self.loudness = getattr(config, "FFMPEG_LOUDNESS", True) if config else True
 
-    def _mux_direct(self, video_path: str, audio_path: str,
-                    output_path: str) -> bool:
+    def _mux_direct(self, video_path: str, audio_path: str, output_path: str) -> bool:
         """
         AUDIO-001 + Phase 2: Mux video + audio with full post-processing.
-        Re-encodes video with YouTube-optimized settings + sharpening + 
+        Re-encodes video with YouTube-optimized settings + sharpening +
         color grading + loudness normalization in a single FFmpeg pass.
         """
         try:
@@ -90,33 +88,63 @@ class VideoBuilder:
             # AUDIO-001), so the mux pass leaves audio untouched.
             af_str = None
 
-            cmd = [
-                ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                "-i", video_path, "-i", audio_path,
-            ] + trim_arg + [
-                "-map", "0:v:0", "-map", "1:a:0",
-            ]
+            cmd = (
+                [
+                    ffmpeg,
+                    "-y",
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    video_path,
+                    "-i",
+                    audio_path,
+                ]
+                + trim_arg
+                + [
+                    "-map",
+                    "0:v:0",
+                    "-map",
+                    "1:a:0",
+                ]
+            )
 
             # Video: re-encode with YouTube-optimized settings
             cmd += [
-                "-c:v", "libx264",
-                "-crf", str(self.crf),
-                "-preset", self.preset,
-                "-profile:v", self.profile,
-                "-level:v", self.level,
-                "-pix_fmt", self.pix_fmt,
-                "-g", str(self.gop),
-                "-movflags", self.movflags,
-                "-bf", "2",
-                "-coder", "1",
+                "-c:v",
+                "libx264",
+                "-crf",
+                str(self.crf),
+                "-preset",
+                self.preset,
+                "-profile:v",
+                self.profile,
+                "-level:v",
+                self.level,
+                "-pix_fmt",
+                self.pix_fmt,
+                "-g",
+                str(self.gop),
+                "-movflags",
+                self.movflags,
+                "-bf",
+                "2",
+                "-coder",
+                "1",
             ]
             if vf_str:
                 cmd += ["-vf", vf_str]
 
             # Audio: AAC with optional loudness normalization
             cmd += [
-                "-c:a", "aac", "-b:a", bitrate,
-                "-ar", str(sample_rate), "-ac", "2",
+                "-c:a",
+                "aac",
+                "-b:a",
+                bitrate,
+                "-ar",
+                str(sample_rate),
+                "-ac",
+                "2",
             ]
             if af_str:
                 cmd += ["-af", af_str]
@@ -124,37 +152,39 @@ class VideoBuilder:
             cmd += [output_path]
 
             result = subprocess.run(
-                cmd, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=600,
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=600,
             )
             if result.returncode != 0 or not os.path.exists(output_path):
                 logger.error(f"ffmpeg mux failed: {result.stderr[-500:]}")
                 return False
             file_size = os.path.getsize(output_path) / (1024 * 1024)
-            logger.info(f"Muxed+enhanced video (CRF {self.crf}, {self.preset}, "
-                        f"{self.profile}, {file_size:.1f}MB): {output_path}")
+            logger.info(
+                f"Muxed+enhanced video (CRF {self.crf}, {self.preset}, "
+                f"{self.profile}, {file_size:.1f}MB): {output_path}"
+            )
             return True
         except Exception as e:
             logger.error(f"Direct mux error: {e}")
             return False
 
     def build_video(
-        self,
-        frames: list,
-        output_path: str,
-        audio_path: str | None = None,
-        temp_video_path: str | None = None
+        self, frames: list, output_path: str, audio_path: str | None = None, temp_video_path: str | None = None
     ) -> bool:
         """
         Converts frames into an MP4 video. Accepts list or generator.
-        
+
         Args:
             frames: List of PIL Image objects, numpy arrays, or a generator/iterable.
             output_path: Full path for the final .mp4 file.
             audio_path: Optional path to .mp3 audio file to add.
-            temp_video_path: Optional path for temp video (without audio). 
+            temp_video_path: Optional path for temp video (without audio).
                              If None, uses output_path with '_temp' suffix.
-        
+
         Returns:
             bool: True if successful, False otherwise.
         """
@@ -171,7 +201,7 @@ class VideoBuilder:
             os.makedirs(tmp_dir, exist_ok=True)
 
             # Convert generator to list if needed for counting
-            if hasattr(frames, '__iter__') and not isinstance(frames, (list, tuple)):
+            if hasattr(frames, "__iter__") and not isinstance(frames, (list, tuple)):
                 frames = list(frames)
 
             if not frames:
@@ -185,15 +215,18 @@ class VideoBuilder:
             with imageio.get_writer(
                 temp_video_path,
                 fps=self.fps,
-                format='FFMPEG',  # type: ignore[arg-type]
-                codec='libx264',
-                pixelformat='yuv420p',
+                format="FFMPEG",  # type: ignore[arg-type]
+                codec="libx264",
+                pixelformat="yuv420p",
                 macro_block_size=2,
                 ffmpeg_params=[
-                    '-crf', '10',        # Near-lossless intermediate (re-encode in mux)
-                    '-preset', 'ultrafast',  # Fast intermediate, quality in mux pass
-                    '-g', '30',          # GOP anchor every 30 frames
-                ]
+                    "-crf",
+                    "10",  # Near-lossless intermediate (re-encode in mux)
+                    "-preset",
+                    "ultrafast",  # Fast intermediate, quality in mux pass
+                    "-g",
+                    "30",  # GOP anchor every 30 frames
+                ],
             ) as writer:
                 for i, frame in enumerate(frames):
                     if isinstance(frame, Image.Image):
@@ -212,10 +245,8 @@ class VideoBuilder:
             # Add audio if provided (AUDIO-001 direct mux, no re-encode)
             if audio_path and os.path.exists(audio_path):
                 logger.info(f"Adding audio: {audio_path}")
-                if not self._mux_direct(temp_video_path, audio_path,
-                                        output_path):
-                    logger.error("Audio mixing failed. "
-                                 "Falling back to video without audio.")
+                if not self._mux_direct(temp_video_path, audio_path, output_path):
+                    logger.error("Audio mixing failed. Falling back to video without audio.")
                     shutil.copy2(temp_video_path, output_path)
 
                 # Delete temp video

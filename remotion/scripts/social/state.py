@@ -44,6 +44,7 @@ Concurrency
 guarantees per-process safety; ordering *between* concurrent OS processes is
 the caller's job (the API layer serialises uploads per dua_id).
 """
+
 from __future__ import annotations
 
 import json
@@ -58,10 +59,10 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPTS_DIR))
 DEFAULT_STATE_PATH = os.path.join(PROJECT_ROOT, "data", "upload_state.json")
 
 # --- status constants ----------------------------------------------------
-PENDING = "\u23f3"      # hourglass
-UPLOADING = "\u23f3"   # hourglass + spinner in UI
-UPLOADED = "\u2705"     # white heavy check mark
-FAILED = "\u274c"       # cross mark
+PENDING = "\u23f3"  # hourglass
+UPLOADING = "\u23f3"  # hourglass + spinner in UI
+UPLOADED = "\u2705"  # white heavy check mark
+FAILED = "\u274c"  # cross mark
 
 PHASE_PENDING = "pending"
 PHASE_UPLOADING = "uploading"
@@ -174,6 +175,7 @@ def load_state(file_path: str = None):
         sys_warn = f"corrupt ledger moved aside: {path} ({exc})"
         try:
             import sys
+
             print(f"[state] WARNING: {sys_warn}", file=sys.stderr, flush=True)
         except Exception:
             pass
@@ -193,9 +195,7 @@ def atomic_write(file_path: str, data) -> str:
         os.makedirs(directory, exist_ok=True)
 
     with _lock_for(path):
-        fd, tmp = tempfile.mkstemp(
-            dir=directory or None, prefix=os.path.basename(path) + ".", suffix=".tmp"
-        )
+        fd, tmp = tempfile.mkstemp(dir=directory or None, prefix=os.path.basename(path) + ".", suffix=".tmp")
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 json.dump(data, fh, ensure_ascii=False, indent=2, sort_keys=False)
@@ -255,9 +255,19 @@ def get_phase(dua_id: str, platform: str, file_path: str = None) -> str:
     return record_phase(get_dua_status(dua_id, platform, file_path))
 
 
-def update_dua_status(dua_id, platform, status=UPLOADED, url=None, error=None,
-                      file_path=None, platform_id=None, video_path=None,
-                      count_retry=False, extra=None, phase=None) -> dict:
+def update_dua_status(
+    dua_id,
+    platform,
+    status=UPLOADED,
+    url=None,
+    error=None,
+    file_path=None,
+    platform_id=None,
+    video_path=None,
+    count_retry=False,
+    extra=None,
+    phase=None,
+) -> dict:
     """Merge an update into the ledger and persist it.
 
     Parameters
@@ -291,22 +301,26 @@ def update_dua_status(dua_id, platform, status=UPLOADED, url=None, error=None,
             state[dua_id] = dua
         record = dua.get(platform)
         if not isinstance(record, dict):
-            record = {"status": PENDING, "phase": PHASE_PENDING,
-                      "url": None, "platform_id": None, "uploaded_at": None,
-                      "error": None, "retry_count": 0}
+            record = {
+                "status": PENDING,
+                "phase": PHASE_PENDING,
+                "url": None,
+                "platform_id": None,
+                "uploaded_at": None,
+                "error": None,
+                "retry_count": 0,
+            }
         previous_phase = record_phase(record)
         previous_retries = record.get("retry_count") or 0
 
         record["status"] = GLYPH_BY_PHASE.get(phase, status or PENDING)
         record["phase"] = phase
-        record["retry_count"] = (
-            previous_retries + 1 if count_retry else 0
-        )
+        record["retry_count"] = previous_retries + 1 if count_retry else 0
         record["updated_at"] = _now()
 
         # A fresh attempt clears the stale failure reason; callers that want
         # the old text preserved after a new failure pass `error` again.
-        record["error"] = (str(error)[:500] if error else None)
+        record["error"] = str(error)[:500] if error else None
 
         if platform_id is not None:
             record["platform_id"] = str(platform_id)
@@ -325,8 +339,7 @@ def update_dua_status(dua_id, platform, status=UPLOADED, url=None, error=None,
                 record[key] = value
 
         # A new attempt after a terminal failure: reset counters cleanly.
-        if phase == PHASE_UPLOADING and previous_phase in (
-                PHASE_COMPLETED, PHASE_FAILED):
+        if phase == PHASE_UPLOADING and previous_phase in (PHASE_COMPLETED, PHASE_FAILED):
             record["retry_count"] = 0
             record["error"] = None
 
@@ -338,14 +351,12 @@ def update_dua_status(dua_id, platform, status=UPLOADED, url=None, error=None,
 
 def mark_queued(dua_id, platform, **kw) -> dict:
     """Slot reserved, waiting to start (renders as the hourglass)."""
-    return update_dua_status(dua_id, platform, PENDING, error=None,
-                             phase=PHASE_PENDING, **kw)
+    return update_dua_status(dua_id, platform, PENDING, error=None, phase=PHASE_PENDING, **kw)
 
 
 def mark_uploading(dua_id, platform, **kw) -> dict:
     """Upload in flight (UI shows a spinner)."""
-    return update_dua_status(dua_id, platform, UPLOADING, error=None,
-                             phase=PHASE_UPLOADING, **kw)
+    return update_dua_status(dua_id, platform, UPLOADING, error=None, phase=PHASE_UPLOADING, **kw)
 
 
 def mark_uploaded(dua_id, platform, url=None, **kw) -> dict:
@@ -355,8 +366,7 @@ def mark_uploaded(dua_id, platform, url=None, **kw) -> dict:
 
 def mark_failed(dua_id, platform, error, **kw) -> dict:
     """Terminal failure; increments ``retry_count``."""
-    return update_dua_status(dua_id, platform, FAILED, error=error,
-                             count_retry=True, **kw)
+    return update_dua_status(dua_id, platform, FAILED, error=error, count_retry=True, **kw)
 
 
 def summary(file_path: str = None) -> dict:
@@ -365,8 +375,7 @@ def summary(file_path: str = None) -> dict:
     {"total": 170, "youtube": {"uploaded": 90, "failed": 5, "pending": 75}, ...}
     """
     state = load_state(file_path)
-    counts = {p: {PHASE_COMPLETED: 0, PHASE_FAILED: 0,
-                  PHASE_UPLOADING: 0, PHASE_PENDING: 0} for p in PLATFORMS}
+    counts = {p: {PHASE_COMPLETED: 0, PHASE_FAILED: 0, PHASE_UPLOADING: 0, PHASE_PENDING: 0} for p in PLATFORMS}
     duas = 0
     for key, value in state.items():
         if key.startswith("_") or not isinstance(value, dict):
@@ -411,8 +420,7 @@ if __name__ == "__main__":  # quick self-test
     assert get_phase("probe", "youtube", probe) == PHASE_UPLOADING
     mark_failed("probe", "youtube", "boom", file_path=probe)
     assert get_dua_status("probe", "youtube", probe)["retry_count"] == 1
-    mark_uploaded("probe", "youtube", url=platform_url("youtube", "abc"),
-                  file_path=probe)
+    mark_uploaded("probe", "youtube", url=platform_url("youtube", "abc"), file_path=probe)
     rec = get_dua_status("probe", "youtube", probe)
     assert rec["phase"] == PHASE_COMPLETED and rec["url"].endswith("/abc")
     assert summary(probe)["platforms"]["youtube"]["completed"] == 1

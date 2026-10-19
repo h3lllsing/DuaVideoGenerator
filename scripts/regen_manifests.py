@@ -1,4 +1,5 @@
 """Regenerate all Remotion manifests with current config FPS."""
+
 import os
 import subprocess
 import sys
@@ -9,6 +10,7 @@ DATA_DIR = os.path.join(PROJECT, "data")
 
 with open(os.path.join(DATA_DIR, "duas.json"), encoding="utf-8") as f:
     import json
+
     raw = json.load(f)
     duas = raw if isinstance(raw, list) else raw.get("duas", [])
 

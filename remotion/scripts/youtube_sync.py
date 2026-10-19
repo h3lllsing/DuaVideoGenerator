@@ -12,6 +12,7 @@ Matching strategy:
   2. Dua ID as substring of video title
   3. Fuzzy title match against dua database
 """
+
 import argparse
 import json
 import os
@@ -23,8 +24,7 @@ try:
 except (AttributeError, ValueError):
     pass
 
-PROJECT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT, "data")
 DEFAULT_TOKENS = {
     "channel1": os.path.join(DATA_DIR, "yt_token_channel1.json"),
@@ -50,7 +50,7 @@ def normalize(s):
 
 def match_dua(video_title, video_desc, dua_db):
     """Match a YouTube video to a dua ID. Returns duaId or None.
-    
+
     Uses high-confidence matching only:
     1. Exact dua_id in video description
     2. Dua ID as substring of normalized title
@@ -72,10 +72,41 @@ def match_dua(video_title, video_desc, dua_db):
 
     # Strategy 3: Key word matching — extract core keywords from dua title,
     # check if they appear in video title. Ignores filler words.
-    stop_words = {"ki", "ka", "ke", "aur", "hai", "mein", "ko", "se", "pe",
-                  "ye", "wo", "jo", "koi", "kya", "kyun", "kab", "yah",
-                  "par", "nikalte", "wqt", "hote", "waqt", "baad", "pehle",
-                  "the", "a", "an", "of", "in", "on", "for", "to", "and"}
+    stop_words = {
+        "ki",
+        "ka",
+        "ke",
+        "aur",
+        "hai",
+        "mein",
+        "ko",
+        "se",
+        "pe",
+        "ye",
+        "wo",
+        "jo",
+        "koi",
+        "kya",
+        "kyun",
+        "kab",
+        "yah",
+        "par",
+        "nikalte",
+        "wqt",
+        "hote",
+        "waqt",
+        "baad",
+        "pehle",
+        "the",
+        "a",
+        "an",
+        "of",
+        "in",
+        "on",
+        "for",
+        "to",
+        "and",
+    }
     best_match = None
     best_score = 0
     for dua_id, d in dua_db.items():
@@ -126,13 +157,15 @@ def list_channel_videos(service):
             for item in resp.get("items", []):
                 snippet = item.get("snippet", {})
                 content = item.get("contentDetails", {})
-                videos.append({
-                    "videoId": content.get("videoId", ""),
-                    "title": snippet.get("title", ""),
-                    "description": snippet.get("description", ""),
-                    "publishedAt": snippet.get("publishedAt", ""),
-                    "channelTitle": snippet.get("channelTitle", ""),
-                })
+                videos.append(
+                    {
+                        "videoId": content.get("videoId", ""),
+                        "title": snippet.get("title", ""),
+                        "description": snippet.get("description", ""),
+                        "publishedAt": snippet.get("publishedAt", ""),
+                        "channelTitle": snippet.get("channelTitle", ""),
+                    }
+                )
             next_page = resp.get("nextPageToken")
             if not next_page:
                 break
@@ -145,10 +178,8 @@ def list_channel_videos(service):
 
 def main():
     ap = argparse.ArgumentParser(description="Sync YouTube channel with dua database")
-    ap.add_argument("--channel", default="channel1",
-                    help="channel1 or channel2")
-    ap.add_argument("--token", default=None,
-                    help="path to token json (overrides --channel)")
+    ap.add_argument("--channel", default="channel1", help="channel1 or channel2")
+    ap.add_argument("--token", default=None, help="path to token json (overrides --channel)")
     args = ap.parse_args()
 
     token_path = args.token or DEFAULT_TOKENS.get(args.channel)
@@ -156,6 +187,7 @@ def main():
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import youtube_auth
+
         if token_path:
             youtube_auth.set_token_path(os.path.abspath(token_path))
         cred = youtube_auth.get_credentials()
@@ -166,6 +198,7 @@ def main():
             return 1
 
         from googleapiclient.discovery import build
+
         service = build("youtube", "v3", credentials=cred)
 
         # List all channel videos
@@ -180,18 +213,22 @@ def main():
         for v in videos:
             dua_id = match_dua(v["title"], v["description"], dua_db)
             if dua_id:
-                matches.append({
-                    "duaId": dua_id,
-                    "videoId": v["videoId"],
-                    "title": v["title"],
-                    "publishedAt": v["publishedAt"],
-                })
+                matches.append(
+                    {
+                        "duaId": dua_id,
+                        "videoId": v["videoId"],
+                        "title": v["title"],
+                        "publishedAt": v["publishedAt"],
+                    }
+                )
             else:
-                unmatched.append({
-                    "videoId": v["videoId"],
-                    "title": v["title"],
-                    "publishedAt": v["publishedAt"],
-                })
+                unmatched.append(
+                    {
+                        "videoId": v["videoId"],
+                        "title": v["title"],
+                        "publishedAt": v["publishedAt"],
+                    }
+                )
 
         result = {
             "ok": True,
@@ -206,8 +243,14 @@ def main():
         return 0
 
     except ImportError:
-        print(json.dumps({"ok": False,
-                          "error": "google libs missing - pip install google-auth-oauthlib google-api-python-client"}))
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "google libs missing - pip install google-auth-oauthlib google-api-python-client",
+                }
+            )
+        )
         return 1
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)[:300]}))

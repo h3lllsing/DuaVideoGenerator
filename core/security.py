@@ -19,7 +19,7 @@ __all__ = ["VaultWriteError", "SecurityManager"]
 
 # Migration-only legacy salt used by vaults created before random-per-installation
 # salts were introduced. Kept permanently so existing legacy vaults stay recoverable.
-LEGACY_SALT = b'dua_video_generator_2026_salt'
+LEGACY_SALT = b"dua_video_generator_2026_salt"
 PBKDF2_ITERATIONS = 600000
 
 
@@ -37,23 +37,18 @@ class SecurityManager:
     def __init__(self, master_password: str):
         """
         Initialize security manager with master password.
-        
+
         Args:
             master_password: User's master password for encryption
         """
         self.master_password = master_password
         self._salt_regenerated = False
         self.vault_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'security', 'vault.enc'
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "security", "vault.enc"
         )
-        self.keys_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'security', 'keys'
-        )
+        self.keys_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "security", "keys")
         self.salt_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'security', 'salt.bin'
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "security", "salt.bin"
         )
         # Create directories if they don't exist
         os.makedirs(os.path.dirname(self.vault_path), exist_ok=True)
@@ -67,17 +62,17 @@ class SecurityManager:
     def _load_or_generate_salt(self) -> bytes:
         """
         Load existing salt or generate a new one.
-        
+
         Returns:
             16-byte salt for PBKDF2
         """
         if os.path.exists(self.salt_path):
-            with open(self.salt_path, 'rb') as f:
+            with open(self.salt_path, "rb") as f:
                 return f.read()
 
         # Generate new random salt
         salt = os.urandom(16)
-        with open(self.salt_path, 'wb') as f:
+        with open(self.salt_path, "wb") as f:
             f.write(salt)
         self._salt_regenerated = True
 
@@ -87,10 +82,10 @@ class SecurityManager:
         """
         Derive key from password using PBKDF2-HMAC-SHA256.
         Fernet uses the first 128 bits (16 bytes) of the derived key for AES-128-CBC.
-        
+
         Args:
             password: Master password
-            
+
         Returns:
             32-byte key for Fernet (uses 128 bits for AES-128-CBC)
         """
@@ -100,11 +95,11 @@ class SecurityManager:
         """
         Derive key from password and an explicit salt using PBKDF2-HMAC-SHA256.
         Used by the current-key path and by legacy-vault migration.
-        
+
         Args:
             password: Master password
             salt: Salt bytes for PBKDF2
-            
+
         Returns:
             32-byte key for Fernet (uses 128 bits for AES-128-CBC)
         """
@@ -125,17 +120,17 @@ class SecurityManager:
         Fernet tokens start with a version byte 0x80; malformed tokens and wrong
         keys both raise InvalidToken on decrypt, so structure must be checked
         manually to distinguish 'corrupt' from 'wrong password'.
-        
+
         Args:
             token: Token string
-            
+
         Returns:
             True if the token has valid Fernet structure
         """
         if not token or not isinstance(token, str):
             return False
         try:
-            raw = base64.urlsafe_b64decode(token + '=' * (-len(token) % 4))
+            raw = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
         except Exception:
             return False
         if len(raw) < 58:  # 1 version + 8 timestamp + 16 IV + 32 HMAC + 1 ciphertext
@@ -147,10 +142,10 @@ class SecurityManager:
     def encrypt(self, data: str) -> str:
         """
         Encrypt string data.
-        
+
         Args:
             data: Plain text string
-            
+
         Returns:
             Encrypted string
         """
@@ -159,10 +154,10 @@ class SecurityManager:
     def decrypt(self, encrypted: str) -> str:
         """
         Decrypt encrypted data.
-        
+
         Args:
             encrypted: Encrypted string
-            
+
         Returns:
             Decrypted plain text
         """
@@ -171,10 +166,10 @@ class SecurityManager:
     def encrypt_dict(self, data: dict) -> str:
         """
         Encrypt dictionary data.
-        
+
         Args:
             data: Dictionary to encrypt
-            
+
         Returns:
             Encrypted JSON string
         """
@@ -184,10 +179,10 @@ class SecurityManager:
     def decrypt_dict(self, encrypted: str) -> dict:
         """
         Decrypt to dictionary.
-        
+
         Args:
             encrypted: Encrypted JSON string
-            
+
         Returns:
             Decrypted dictionary
         """
@@ -200,10 +195,10 @@ class SecurityManager:
         Refuses to overwrite an existing vault that cannot be authenticated
         with the current key, and refuses to re-encrypt an existing vault when
         salt.bin is missing (the vault may be unrecoverable).
-        
+
         Args:
             data: Dictionary to save
-            
+
         Raises:
             VaultWriteError: If the existing vault cannot be safely overwritten
         """
@@ -211,17 +206,15 @@ class SecurityManager:
             # Salt safety: never re-encrypt an existing vault when salt.bin is missing
             if not os.path.exists(self.salt_path):
                 raise VaultWriteError(
-                    "Refusing to overwrite existing vault: salt.bin is missing. "
-                    "The vault may be unrecoverable.")
+                    "Refusing to overwrite existing vault: salt.bin is missing. The vault may be unrecoverable."
+                )
             # Do not overwrite an existing vault we cannot authenticate/decrypt
             try:
                 with open(self.vault_path) as f:
                     existing = f.read()
                 self.cipher.decrypt(existing.encode())
             except Exception:
-                raise VaultWriteError(
-                    "Refusing to overwrite existing vault: could not "
-                    "authenticate/decrypt it.")
+                raise VaultWriteError("Refusing to overwrite existing vault: could not authenticate/decrypt it.")
         encrypted = self.encrypt_dict(data)
         self._atomic_write_text(self.vault_path, encrypted)
 
@@ -230,15 +223,15 @@ class SecurityManager:
         """
         Write text content to a file atomically: write to a sibling temp file,
         flush/fsync, then os.replace() over the destination.
-        
+
         Args:
             path: Destination file path
             content: Text to write
         """
         directory = os.path.dirname(os.path.abspath(path))
         os.makedirs(directory, exist_ok=True)
-        tmp_path = path + '.tmp'
-        with open(tmp_path, 'w', encoding='utf-8') as f:
+        tmp_path = path + ".tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
             f.write(content)
             f.flush()
             os.fsync(f.fileno())
@@ -247,7 +240,7 @@ class SecurityManager:
     def load_vault(self) -> dict:
         """
         Load encrypted vault data.
-        
+
         Returns:
             Decrypted dictionary, empty dict if no vault exists
         """
@@ -264,7 +257,7 @@ class SecurityManager:
     def vault_exists(self) -> bool:
         """
         Check if vault file exists.
-        
+
         Returns:
             True if vault exists
         """
@@ -273,7 +266,7 @@ class SecurityManager:
     def detect_vault_state(self, password: str) -> str:
         """
         Classify the vault's state to drive startup/launcher flow.
-        
+
         Returns:
             'missing'      - no vault file (first run)
             'new'          - vault decrypts with the current salt
@@ -285,18 +278,18 @@ class SecurityManager:
                              is missing or was just regenerated
         """
         if not os.path.exists(self.vault_path):
-            return 'missing'
+            return "missing"
         try:
             with open(self.vault_path) as f:
                 token = f.read()
         except Exception:
-            return 'corrupt'
+            return "corrupt"
         if not self._is_valid_fernet_token(token):
-            return 'corrupt'
+            return "corrupt"
         # Try current salt
         try:
             self.cipher.decrypt(token.encode())
-            return 'new'
+            return "new"
         except Exception:
             logger.debug("Current salt decrypt failed, trying legacy")
             pass
@@ -304,15 +297,15 @@ class SecurityManager:
         try:
             legacy_cipher = Fernet(self._derive_key_with_salt(password, LEGACY_SALT))
             legacy_cipher.decrypt(token.encode())
-            return 'legacy'
+            return "legacy"
         except Exception:
             logger.warning("Legacy salt decrypt also failed")
             pass
         salt_missing_now = not os.path.exists(self.salt_path)
-        salt_was_regenerated = getattr(self, '_salt_regenerated', False)
+        salt_was_regenerated = getattr(self, "_salt_regenerated", False)
         if salt_missing_now or salt_was_regenerated:
-            return 'salt_lost'
-        return 'wrong_password'
+            return "salt_lost"
+        return "wrong_password"
 
     def migrate_legacy_vault(self, password: str) -> bool:
         """
@@ -320,16 +313,16 @@ class SecurityManager:
         current random salt. Decrypts in memory, re-encrypts with the current
         key, verifies the new token decrypts and matches, preserves the original
         bytes as <vault>.legacy.bak, then atomically replaces the vault.
-        
+
         Args:
             password: Master password used for the legacy vault
-            
+
         Returns:
             True if migration succeeded and the migrated vault was verified
         """
         if not os.path.exists(self.vault_path):
             return False
-        backup_path = self.vault_path + '.legacy.bak'
+        backup_path = self.vault_path + ".legacy.bak"
         try:
             with open(self.vault_path) as f:
                 legacy_token = f.read()
@@ -345,7 +338,7 @@ class SecurityManager:
                 logger.error("Migration failed: re-encryption verification failed.")
                 return False
             # Preserve the original bytes before touching the vault
-            with open(backup_path, 'wb') as f:
+            with open(backup_path, "wb") as f:
                 f.write(legacy_token.encode())
             # Atomic replace
             self._atomic_write_text(self.vault_path, new_token)
@@ -360,8 +353,8 @@ class SecurityManager:
         except Exception as e:
             logger.error(f"Migration failed: {e}")
             try:
-                if os.path.exists(self.vault_path + '.tmp'):
-                    os.remove(self.vault_path + '.tmp')
+                if os.path.exists(self.vault_path + ".tmp"):
+                    os.remove(self.vault_path + ".tmp")
             except Exception:
                 logger.debug("Tmp file cleanup skipped")
                 pass
@@ -370,7 +363,7 @@ class SecurityManager:
     def save_key(self, key_name: str, key_data: str):
         """
         Save an encrypted key (atomic write).
-        
+
         Args:
             key_name: Name of the key
             key_data: Key data to encrypt and save
@@ -378,7 +371,7 @@ class SecurityManager:
         encrypted = self.encrypt(key_data)
         key_path = os.path.join(self.keys_dir, f"{key_name}.enc")
         tmp_path = key_path + f".{os.getpid()}.tmp"
-        with open(tmp_path, 'w') as f:
+        with open(tmp_path, "w") as f:
             f.write(encrypted)
             f.flush()
             os.fsync(f.fileno())
@@ -387,10 +380,10 @@ class SecurityManager:
     def load_key(self, key_name: str) -> str:
         """
         Load an encrypted key.
-        
+
         Args:
             key_name: Name of the key
-            
+
         Returns:
             Decrypted key data
         """
@@ -409,7 +402,7 @@ class SecurityManager:
     def secure_delete(self, file_path: str):
         """
         Securely delete file by overwriting with random data.
-        
+
         Args:
             file_path: Path to file to delete
         """
@@ -420,7 +413,7 @@ class SecurityManager:
         size = os.path.getsize(file_path)
 
         # Overwrite with random data
-        with open(file_path, 'wb') as f:
+        with open(file_path, "wb") as f:
             f.write(os.urandom(size))
 
         # Delete the file
@@ -430,22 +423,20 @@ class SecurityManager:
         """
         Verify if password matches the master password.
         Uses constant-time comparison to prevent timing attacks.
-        
+
         Args:
             password: Password to verify
-            
+
         Returns:
             True if password matches
         """
         # encode to bytes: compare_digest rejects non-ASCII str comparisons
-        return hmac.compare_digest(
-            password.encode("utf-8"),
-            (self.master_password or "").encode("utf-8"))
+        return hmac.compare_digest(password.encode("utf-8"), (self.master_password or "").encode("utf-8"))
 
     def get_security_info(self) -> dict:
         """
         Get security information.
-        
+
         Returns:
             Dictionary with security details
         """
@@ -456,7 +447,7 @@ class SecurityManager:
             "vault_exists": self.vault_exists(),
             "keys_dir": self.keys_dir,
             "vault_path": self.vault_path,
-            "salt_exists": os.path.exists(self.salt_path)
+            "salt_exists": os.path.exists(self.salt_path),
         }
 
 
@@ -491,11 +482,7 @@ if __name__ == "__main__":
         print(f"Match: {test_data == decrypted}")
 
         # Test vault
-        vault_data = {
-            "user": "MASOOD NASIR",
-            "channel": "@bushranasir1075",
-            "settings": {"theme": "dark"}
-        }
+        vault_data = {"user": "MASOOD NASIR", "channel": "@bushranasir1075", "settings": {"theme": "dark"}}
 
         security.save_vault(vault_data)
         loaded_vault = security.load_vault()

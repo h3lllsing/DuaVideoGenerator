@@ -1,4 +1,5 @@
 """Quick audit script — checks for common issues."""
+
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -7,7 +8,13 @@ issues = []
 # 1. F821: Undefined names — check word_highlight.py
 wh = (PROJECT / "core" / "word_highlight.py").read_text(encoding="utf-8")
 if '"Image.Image"' in wh:
-    issues.append(("F821", "core/word_highlight.py:191", "Undefined name 'Image' in type hint — should use from __future__ import annotations or just str"))
+    issues.append(
+        (
+            "F821",
+            "core/word_highlight.py:191",
+            "Undefined name 'Image' in type hint — should use from __future__ import annotations or just str",
+        )
+    )
 
 # 2. F821: Undefined 'e' in wife_app.py
 wa = (PROJECT / "frontend" / "wife_app.py").read_text(encoding="utf-8")
@@ -15,7 +22,7 @@ lines = wa.split("\n")
 for i, line in enumerate(lines, 1):
     if "str(e)" in line and "except" not in line:
         # Check if 'e' is bound in an except clause
-        prev_lines = "\n".join(lines[max(0,i-5):i])
+        prev_lines = "\n".join(lines[max(0, i - 5) : i])
         if "except Exception:" in prev_lines and "as e" not in prev_lines:
             issues.append(("F821", f"frontend/wife_app.py:{i}", "Undefined 'e' — except clause missing 'as e'"))
 

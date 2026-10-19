@@ -1,6 +1,7 @@
 """Custom Voice Only TTS: custom arabic/urdu -> mastered mp3 jo
 remotion/public/audio/ me SAVE hota hai (portal list me nahi aata).
 Server /api/tts-custom isko chalata hai."""
+
 import json
 import os
 import re
@@ -32,6 +33,7 @@ def main():
     name = payload.get("name") or ""
     if not re.fullmatch(r"[a-z0-9_]{1,60}", name):
         import time
+
         name = "custom_" + time.strftime("%Y%m%d_%H%M%S")
 
     ok_a = False
@@ -62,8 +64,7 @@ def main():
         if os.path.exists(dst) and os.path.getsize(dst) > 0:
             saved = name + ".mp3"
 
-    print(json.dumps({"okA": ok_a, "okU": ok_u,
-                      "merged": bool(ok_a and ok_u), "saved": saved}))
+    print(json.dumps({"okA": ok_a, "okU": ok_u, "merged": bool(ok_a and ok_u), "saved": saved}))
     return 0
 
 

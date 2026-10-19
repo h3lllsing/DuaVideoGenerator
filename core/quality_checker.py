@@ -46,19 +46,14 @@ class QualityChecker:
     def check_video(self, video_path: str) -> dict:
         """
         Check video quality.
-        
+
         Args:
             video_path: Path to video file
-            
+
         Returns:
             Quality check results
         """
-        results: dict[str, Any] = {
-            "valid": True,
-            "issues": [],
-            "passed": [],
-            "video_info": {}
-        }
+        results: dict[str, Any] = {"valid": True, "issues": [], "passed": [], "video_info": {}}
 
         # Check if file exists
         if not os.path.exists(video_path):
@@ -91,7 +86,7 @@ class QualityChecker:
                 "width": width,
                 "height": height,
                 "fps": fps,
-                "file_size_mb": file_size_mb
+                "file_size_mb": file_size_mb,
             }
 
             # Check duration (VIDEO-002: 15-50s, boundary-inclusive)
@@ -118,18 +113,14 @@ class QualityChecker:
                 results["passed"].append(f"File size: {file_size_mb:.1f}MB (OK)")
             else:
                 results["valid"] = False
-                results["issues"].append(
-                    f"File size: {file_size_mb:.1f}MB (must be under {self.max_file_size_mb}MB)"
-                )
+                results["issues"].append(f"File size: {file_size_mb:.1f}MB (must be under {self.max_file_size_mb}MB)")
 
             # Check FPS (VIDEO-002: exactly 30, container-rounding tolerant)
             if abs(fps - self.required_fps) <= self.FPS_EPS:
                 results["passed"].append(f"FPS: {fps:.1f} (OK)")
             else:
                 results["valid"] = False
-                results["issues"].append(
-                    f"FPS: {fps:.1f} (FAIL \u2014 expected exactly {self.required_fps:.1f})"
-                )
+                results["issues"].append(f"FPS: {fps:.1f} (FAIL \u2014 expected exactly {self.required_fps:.1f})")
 
         except Exception as e:
             results["valid"] = False
@@ -167,11 +158,11 @@ class QualityChecker:
     def validate_resolution(self, width: int, height: int) -> bool:
         """
         Validate video resolution.
-        
+
         Args:
             width: Video width
             height: Video height
-            
+
         Returns:
             True if valid
         """

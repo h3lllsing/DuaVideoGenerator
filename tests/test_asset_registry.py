@@ -35,9 +35,15 @@ def _write_file(dirpath, name, data):
         f.write(data)
 
 
-def _entry(asset_id, file_name, data=b"fake-image-bytes",
-           categories=("general",), license_name="CC0", approved=True,
-           checksum=None):
+def _entry(
+    asset_id,
+    file_name,
+    data=b"fake-image-bytes",
+    categories=("general",),
+    license_name="CC0",
+    approved=True,
+    checksum=None,
+):
     return {
         "id": asset_id,
         "file": file_name,
@@ -86,10 +92,14 @@ def teardown_function():
 # ----------------------------------------------------------------------
 def test_manifest_parse_populates_assets():
     tmp = os.path.join(TEST_ROOT, "parse")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg"),
-        _entry("b", "b.jpg", categories=("morning",)),
-    ], images={"a.jpg": b"AAA", "b.jpg": b"BBB"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg"),
+            _entry("b", "b.jpg", categories=("morning",)),
+        ],
+        images={"a.jpg": b"AAA", "b.jpg": b"BBB"},
+    )
     assets = registry.get_assets()
     assert len(assets) == 2
     ids = {a.id for a in assets}
@@ -138,12 +148,16 @@ def test_manifest_wrong_root_type_is_not_an_error():
 
 def test_invalid_entries_are_skipped():
     tmp = os.path.join(TEST_ROOT, "skip")
-    registry = _registry_with(tmp, [
-        {"id": "no_file"},            # missing file -> skipped
-        {"file": "b.jpg"},            # missing id -> skipped
-        "not-a-dict",                  # non-dict -> skipped
-        _entry("ok", "ok.jpg"),
-    ], images={"ok.jpg": b"OK"})
+    registry = _registry_with(
+        tmp,
+        [
+            {"id": "no_file"},  # missing file -> skipped
+            {"file": "b.jpg"},  # missing id -> skipped
+            "not-a-dict",  # non-dict -> skipped
+            _entry("ok", "ok.jpg"),
+        ],
+        images={"ok.jpg": b"OK"},
+    )
     assets = registry.get_assets()
     assert [a.id for a in assets] == ["ok"]
 
@@ -164,10 +178,14 @@ def test_normalize_license():
 # ----------------------------------------------------------------------
 def test_only_approved_assets_loadable():
     tmp = os.path.join(TEST_ROOT, "approved")
-    registry = _registry_with(tmp, [
-        _entry("yes", "yes.jpg", approved=True),
-        _entry("no", "no.jpg", approved=False),
-    ], images={"yes.jpg": b"YES", "no.jpg": b"NO"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("yes", "yes.jpg", approved=True),
+            _entry("no", "no.jpg", approved=False),
+        ],
+        images={"yes.jpg": b"YES", "no.jpg": b"NO"},
+    )
     loadable = {a.id for a in registry.get_loadable_assets()}
     assert loadable == {"yes"}
     assert registry.is_loadable(next(a for a in registry.get_assets() if a.id == "no")) is False
@@ -183,12 +201,16 @@ def test_missing_approved_flag_is_rejected():
 
 def test_license_validation():
     tmp = os.path.join(TEST_ROOT, "license")
-    registry = _registry_with(tmp, [
-        _entry("cc0", "cc0.jpg", license_name="CC0"),
-        _entry("pd", "pd.jpg", license_name="Public Domain"),
-        _entry("by", "by.jpg", license_name="CC-BY 4.0"),
-        _entry("bad", "bad.jpg", license_name="All Rights Reserved"),
-    ], images={n + ".jpg": bytes(n, "ascii") for n in ("cc0", "pd", "by", "bad")})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("cc0", "cc0.jpg", license_name="CC0"),
+            _entry("pd", "pd.jpg", license_name="Public Domain"),
+            _entry("by", "by.jpg", license_name="CC-BY 4.0"),
+            _entry("bad", "bad.jpg", license_name="All Rights Reserved"),
+        ],
+        images={n + ".jpg": bytes(n, "ascii") for n in ("cc0", "pd", "by", "bad")},
+    )
     loadable = {a.id for a in registry.get_loadable_assets()}
     assert loadable == {"cc0", "pd", "by"}
 
@@ -203,9 +225,13 @@ def test_missing_license_is_rejected():
 
 def test_checksum_match_loadable():
     tmp = os.path.join(TEST_ROOT, "checksum_ok")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg", data=b"content-A"),
-    ], images={"a.jpg": b"content-A"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg", data=b"content-A"),
+        ],
+        images={"a.jpg": b"content-A"},
+    )
     loadable = registry.get_loadable_assets()
     assert len(loadable) == 1
     assert registry.verify_checksum(loadable[0]) is True
@@ -213,9 +239,13 @@ def test_checksum_match_loadable():
 
 def test_checksum_mismatch_rejected():
     tmp = os.path.join(TEST_ROOT, "checksum_bad")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg", data=b"content-A", checksum=_sha256(b"other-bytes")),
-    ], images={"a.jpg": b"content-A"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg", data=b"content-A", checksum=_sha256(b"other-bytes")),
+        ],
+        images={"a.jpg": b"content-A"},
+    )
     assert registry.get_loadable_assets() == []
 
 
@@ -236,9 +266,13 @@ def test_checksum_is_case_insensitive_hex():
 
 def test_missing_file_rejected():
     tmp = os.path.join(TEST_ROOT, "missing_file")
-    registry = _registry_with(tmp, [
-        _entry("a", "ghost.jpg", data=b"content-A"),
-    ], images={})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "ghost.jpg", data=b"content-A"),
+        ],
+        images={},
+    )
     assert registry.get_loadable_assets() == []
 
 
@@ -247,14 +281,16 @@ def test_missing_file_rejected():
 # ----------------------------------------------------------------------
 def test_selection_is_deterministic_for_same_seed():
     tmp = os.path.join(TEST_ROOT, "deterministic")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg", categories=("morning",)),
-        _entry("b", "b.jpg", categories=("morning",)),
-    ], images={"a.jpg": b"A", "b.jpg": b"B"})
-    first = registry.select_background("dua_123", "morning",
-                                        random_mode=False)
-    second = registry.select_background("dua_123", "morning",
-                                         random_mode=False)
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg", categories=("morning",)),
+            _entry("b", "b.jpg", categories=("morning",)),
+        ],
+        images={"a.jpg": b"A", "b.jpg": b"B"},
+    )
+    first = registry.select_background("dua_123", "morning", random_mode=False)
+    second = registry.select_background("dua_123", "morning", random_mode=False)
     assert first["kind"] == "asset"
     assert first["asset_id"] == second["asset_id"]
     assert first["path"] == second["path"]
@@ -262,23 +298,26 @@ def test_selection_is_deterministic_for_same_seed():
 
 def test_selection_deterministic_across_instances():
     tmp = os.path.join(TEST_ROOT, "cross_instance")
-    entries = [_entry("a", "a.jpg", categories=("morning",)),
-               _entry("b", "b.jpg", categories=("morning",))]
+    entries = [_entry("a", "a.jpg", categories=("morning",)), _entry("b", "b.jpg", categories=("morning",))]
     images = {"a.jpg": b"A", "b.jpg": b"B"}
     r1 = _registry_with(tmp, entries, images=images)
     r2 = _registry_with(tmp, entries, images=images)
-    assert r1.select_background("dua_abc",
-                                 random_mode=False)["asset_id"] == \
-        r2.select_background("dua_abc",
-                             random_mode=False)["asset_id"]
+    assert (
+        r1.select_background("dua_abc", random_mode=False)["asset_id"]
+        == r2.select_background("dua_abc", random_mode=False)["asset_id"]
+    )
 
 
 def test_selection_prefers_category_match():
     tmp = os.path.join(TEST_ROOT, "category_priority")
-    registry = _registry_with(tmp, [
-        _entry("specific", "s.jpg", categories=("morning",)),
-        _entry("generic", "g.jpg", categories=("general",)),
-    ], images={"s.jpg": b"S", "g.jpg": b"G"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("specific", "s.jpg", categories=("morning",)),
+            _entry("generic", "g.jpg", categories=("general",)),
+        ],
+        images={"s.jpg": b"S", "g.jpg": b"G"},
+    )
     result = registry.select_background("dua_x", "morning")
     assert result["kind"] == "asset"
     assert result["asset_id"] == "specific"
@@ -286,9 +325,13 @@ def test_selection_prefers_category_match():
 
 def test_selection_uses_general_fallback_for_any_category():
     tmp = os.path.join(TEST_ROOT, "general_fallback")
-    registry = _registry_with(tmp, [
-        _entry("generic", "g.jpg", categories=("general",)),
-    ], images={"g.jpg": b"G"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("generic", "g.jpg", categories=("general",)),
+        ],
+        images={"g.jpg": b"G"},
+    )
     for cat in ("morning", "bathroom", "evening"):
         result = registry.select_background("dua_y", cat)
         assert result["kind"] == "asset"
@@ -297,21 +340,23 @@ def test_selection_uses_general_fallback_for_any_category():
 
 def test_selection_is_seeded_by_dua_id():
     tmp = os.path.join(TEST_ROOT, "seeded_variety")
-    entries = [_entry(f"bg_{i}", f"{i}.jpg", categories=("morning",))
-               for i in range(6)]
+    entries = [_entry(f"bg_{i}", f"{i}.jpg", categories=("morning",)) for i in range(6)]
     images = {f"{i}.jpg": bytes([i]) for i in range(6)}
     registry = _registry_with(tmp, entries, images=images)
-    picked = {registry.select_background(f"dua_{i}", "morning")["asset_id"]
-              for i in range(40)}
+    picked = {registry.select_background(f"dua_{i}", "morning")["asset_id"] for i in range(40)}
     assert len(picked) > 1  # seed actually influences the choice
 
 
 def test_selection_excludes_used_assets():
     tmp = os.path.join(TEST_ROOT, "exclude")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg", categories=("morning",)),
-        _entry("b", "b.jpg", categories=("morning",)),
-    ], images={"a.jpg": b"A", "b.jpg": b"B"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg", categories=("morning",)),
+            _entry("b", "b.jpg", categories=("morning",)),
+        ],
+        images={"a.jpg": b"A", "b.jpg": b"B"},
+    )
     result = registry.select_background("dua_z", "morning", exclude_ids={"a"})
     assert result["kind"] == "asset"
     assert result["asset_id"] == "b"
@@ -319,9 +364,13 @@ def test_selection_excludes_used_assets():
 
 def test_selection_excluding_everything_falls_back():
     tmp = os.path.join(TEST_ROOT, "exclude_all")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg", categories=("morning",)),
-    ], images={"a.jpg": b"A"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg", categories=("morning",)),
+        ],
+        images={"a.jpg": b"A"},
+    )
     result = registry.select_background("dua_z", "morning", exclude_ids={"a"})
     assert result["kind"] == "procedural"
     assert "theme" in result
@@ -341,18 +390,26 @@ def test_procedural_fallback_when_no_assets():
 
 def test_procedural_fallback_when_no_approved_assets():
     tmp = os.path.join(TEST_ROOT, "none_approved")
-    registry = _registry_with(tmp, [
-        _entry("a", "a.jpg", categories=("morning",), approved=False),
-    ], images={"a.jpg": b"A"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("a", "a.jpg", categories=("morning",), approved=False),
+        ],
+        images={"a.jpg": b"A"},
+    )
     result = registry.select_background("dua_1", "morning")
     assert result["kind"] == "procedural"
 
 
 def test_procedural_fallback_when_no_category_match():
     tmp = os.path.join(TEST_ROOT, "no_match")
-    registry = _registry_with(tmp, [
-        _entry("bath", "b.jpg", categories=("bathroom",)),
-    ], images={"b.jpg": b"B"})
+    registry = _registry_with(
+        tmp,
+        [
+            _entry("bath", "b.jpg", categories=("bathroom",)),
+        ],
+        images={"b.jpg": b"B"},
+    )
     result = registry.select_background("dua_2", "prayer")
     assert result["kind"] == "procedural"
     assert result["theme"] in config.THEMES
@@ -361,8 +418,7 @@ def test_procedural_fallback_when_no_category_match():
 def test_procedural_theme_is_deterministic():
     tmp = os.path.join(TEST_ROOT, "theme_det")
     registry = _registry_with(tmp, [])
-    assert registry.select_background("dua_3")["theme"] == \
-        registry.select_background("dua_3")["theme"]
+    assert registry.select_background("dua_3")["theme"] == registry.select_background("dua_3")["theme"]
 
 
 def test_procedural_theme_respects_preference():

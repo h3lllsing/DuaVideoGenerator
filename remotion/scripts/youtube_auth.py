@@ -13,6 +13,7 @@ in project root or remotion/.
 Dependencies (live mode only): pip install google-auth-oauthlib
 google-api-python-client  (imports are lazy so dry-runs work without them)
 """
+
 import argparse
 import glob
 import json
@@ -26,9 +27,11 @@ except (AttributeError, ValueError):
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TOKEN_PATH = os.path.join(PROJECT, "data", "yt_token.json")
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload",
-           "https://www.googleapis.com/auth/youtube.readonly",
-           "https://www.googleapis.com/auth/youtube.force-ssl"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+]
 
 
 def set_token_path(path):
@@ -41,9 +44,11 @@ def find_client_secret():
     env = os.environ.get("YT_CLIENT_SECRET")
     if env and os.path.exists(env):
         return env
-    for pat in (os.path.join(PROJECT, "data", "client_secret*.json"),
-                os.path.join(PROJECT, "client_secret*.json"),
-                os.path.join(PROJECT, "remotion", "client_secret*.json")):
+    for pat in (
+        os.path.join(PROJECT, "data", "client_secret*.json"),
+        os.path.join(PROJECT, "client_secret*.json"),
+        os.path.join(PROJECT, "remotion", "client_secret*.json"),
+    ):
         hits = sorted(glob.glob(pat))
         if hits:
             return hits[0]
@@ -93,9 +98,11 @@ def get_credentials():
     if data and set(SCOPES) - set(data.get("scopes", [])):
         print("WARN token missing scopes:", list(set(SCOPES) - set(data.get("scopes", []))))
         print("  Re-login needed for full access (portal se AUTH karo)")
-    cred = Credentials(**{k: data[k] for k in
-                          ("token", "refresh_token", "token_uri",
-                           "client_id", "client_secret")}) if data else None
+    cred = (
+        Credentials(**{k: data[k] for k in ("token", "refresh_token", "token_uri", "client_id", "client_secret")})
+        if data
+        else None
+    )
     if cred and not cred.valid:
         try:
             cred.refresh(Request())
@@ -123,16 +130,18 @@ def cmd_login():
         secret_kind = list(json.load(fh).keys())[0]
     if secret_kind == "web":
         redirect_port = 8976
-        print("web-type secret detected: console me ye URI registered "
-              "hona chahiye -> http://localhost:%d/" % redirect_port)
-        cred = flow.run_local_server(host="localhost", port=redirect_port,
-                                     prompt="consent", access_type="offline")
+        print(
+            "web-type secret detected: console me ye URI registered "
+            "hona chahiye -> http://localhost:%d/" % redirect_port
+        )
+        cred = flow.run_local_server(host="localhost", port=redirect_port, prompt="consent", access_type="offline")
     else:
-        cred = flow.run_local_server(port=0, prompt="consent",
-                                     access_type="offline")
+        cred = flow.run_local_server(port=0, prompt="consent", access_type="offline")
     if not cred.refresh_token:
-        print("WARN: no refresh_token returned - headless re-use will fail."
-              " Re-run with prompt=consent after revoking app access.")
+        print(
+            "WARN: no refresh_token returned - headless re-use will fail."
+            " Re-run with prompt=consent after revoking app access."
+        )
     save_token(cred)
     print("token saved:", TOKEN_PATH)
     return 0
@@ -144,14 +153,14 @@ def cmd_test():
         return 1
     try:
         from googleapiclient.discovery import build
+
         yt = build("youtube", "v3", credentials=cred)
         r = yt.channels().list(part="snippet", mine=True).execute()
         items = r.get("items", [])
         if not items:
             print("token OK but no YouTube channel on this account")
             return 1
-        print("channel:", items[0]["snippet"]["title"],
-              "| id:", items[0]["id"])
+        print("channel:", items[0]["snippet"]["title"], "| id:", items[0]["id"])
         return 0
     except Exception as e:
         print("API test failed:", e)
@@ -168,9 +177,10 @@ def cmd_revoke():
         try:
             from google.auth.transport.requests import Request
             from google.oauth2.credentials import Credentials
-            cred = Credentials(**{k: data[k] for k in
-                                  ("token", "refresh_token", "token_uri",
-                                   "client_id", "client_secret")})
+
+            cred = Credentials(
+                **{k: data[k] for k in ("token", "refresh_token", "token_uri", "client_id", "client_secret")}
+            )
             cred.revoke(Request())
             print("revoked at Google")
         except Exception as e:
@@ -182,13 +192,11 @@ def cmd_revoke():
 
 
 def main():
-    ap = argparse.ArgumentParser(
-        description="YouTube OAuth token manager (multi-channel ready)")
-    ap.add_argument("cmd", nargs="?", default="status",
-                    choices=["status", "login", "test", "revoke"])
-    ap.add_argument("--token", default=None,
-                    help="token json path, e.g. data/yt_token_channel1.json "
-                         "(default: data/yt_token.json)")
+    ap = argparse.ArgumentParser(description="YouTube OAuth token manager (multi-channel ready)")
+    ap.add_argument("cmd", nargs="?", default="status", choices=["status", "login", "test", "revoke"])
+    ap.add_argument(
+        "--token", default=None, help="token json path, e.g. data/yt_token_channel1.json (default: data/yt_token.json)"
+    )
     args = ap.parse_args()
     if args.token:
         set_token_path(args.token)

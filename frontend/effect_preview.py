@@ -31,15 +31,16 @@ SAMPLE_URDU = "\u0627\u0644\u0644\u06c1 \u06a9\u06d2 \u0646\u0627\u0645 \u0633\u
 
 # Generate EFFECT_INFO dynamically from master config
 from core.master_config import MASTER_EFFECTS
+
 EFFECT_INFO = {
-    "auto": ("AI Director: dua ki category, text aur hardware dekh kar khud best "
-             "effect, word-sync pulse aur cinematic polish (vignette+grain) "
-             "lagaata hai - har video consistent aur premium."),
+    "auto": (
+        "AI Director: dua ki category, text aur hardware dekh kar khud best "
+        "effect, word-sync pulse aur cinematic polish (vignette+grain) "
+        "lagaata hai - har video consistent aur premium."
+    ),
     "none": "Koi extra effect nahi - simple aur clean.",
 }
-EFFECT_INFO.update({
-    key: info["desc"] for key, info in MASTER_EFFECTS.items()
-})
+EFFECT_INFO.update({key: info["desc"] for key, info in MASTER_EFFECTS.items()})
 
 PREVIEW_DIR = os.path.join(PROJECT.TEMP_DIR, "previews")
 
@@ -79,11 +80,14 @@ def build_effect_preview(effect: str, force: bool = False) -> str:
 
     frames = SceneRenderer(fps=PREVIEW_FPS).render(plan["timeline"], seed="preview")
     if effect == "auto":
-        dua = {"id": "preview", "category": "general",
-               "arabic": SAMPLE_ARABIC, "urdu": SAMPLE_URDU,
-               "title": SAMPLE_TITLE}
-        fxplan = EffectDirector(fps=PREVIEW_FPS).plan(
-            dua, plan, {}, effect_request="auto", dua_id="preview")
+        dua = {
+            "id": "preview",
+            "category": "general",
+            "arabic": SAMPLE_ARABIC,
+            "urdu": SAMPLE_URDU,
+            "title": SAMPLE_TITLE,
+        }
+        fxplan = EffectDirector(fps=PREVIEW_FPS).plan(dua, plan, {}, effect_request="auto", dua_id="preview")
         frames = EffectsEngine().apply_plan(frames, fxplan["frame_plan"])
     elif effect != "none":
         frames = EffectsEngine().apply_to_frames(frames, effect)

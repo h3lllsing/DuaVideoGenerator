@@ -30,6 +30,7 @@ Usage
     python facebook_upload.py rozi_ki_dua
     python facebook_upload.py rozi_ki_dua --no-trim
 """
+
 from __future__ import annotations
 
 import argparse
@@ -45,11 +46,22 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # `captions` live beside this file. Both roots are needed.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from captions import build_caption                       # noqa: E402
-from common import (CAPTION_LIMITS, CHUNK_BYTES, UploadError, chunked_put,  # noqa: E402
-                    emit, format_caption, load_tokens, log, probe_duration,
-                    resolve_video, retry_call, trim_for_platform)
-from social import state as ustate                       # noqa: E402
+from captions import build_caption  # noqa: E402
+from common import (
+    CAPTION_LIMITS,
+    CHUNK_BYTES,
+    UploadError,
+    chunked_put,  # noqa: E402
+    emit,
+    format_caption,
+    load_tokens,
+    log,
+    probe_duration,
+    resolve_video,
+    retry_call,
+    trim_for_platform,
+)
+from social import state as ustate  # noqa: E402
 
 PLATFORM = "facebook"
 GRAPH = "https://graph.facebook.com"
@@ -78,9 +90,9 @@ def _request(url: str, data=None, method="GET", headers=None, timeout=300):
 
 def start_upload(page_id: str, token: str, api_version: str = "") -> tuple:
     """Step 1: open a resumable upload session."""
-    url = (f"{GRAPH}/{api_version or API_VERSION}/{page_id}/video_reels?"
-           + urllib.parse.urlencode({"upload_phase": "start",
-                                     "access_token": token}))
+    url = f"{GRAPH}/{api_version or API_VERSION}/{page_id}/video_reels?" + urllib.parse.urlencode(
+        {"upload_phase": "start", "access_token": token}
+    )
     data = _request(url, method="POST")
     if "error" in data:
         raise UploadError(f"start rejected: {json.dumps(data)[:400]}")
@@ -106,22 +118,17 @@ def send_bytes(upload_url: str, video_path: str) -> None:
                 if response.status not in (200, 201, 202, 204):
                     raise UploadError(f"upload rejected: HTTP {response.status}")
         except urllib.error.HTTPError as exc:
-            raise UploadError(f"upload HTTP {exc.code}: "
-                              f"{exc.read().decode('utf-8', 'replace')[:300]}") from exc
-        log(f"uploaded {os.path.basename(video_path)} "
-            f"({round(size / 1048576.0, 2)} MB)")
+            raise UploadError(f"upload HTTP {exc.code}: {exc.read().decode('utf-8', 'replace')[:300]}") from exc
+        log(f"uploaded {os.path.basename(video_path)} ({round(size / 1048576.0, 2)} MB)")
         return
     chunked_put(upload_url, video_path, headers={"Content-Type": "video/mp4"})
 
 
-def finish_upload(page_id: str, token: str, video_id: str,
-                  description: str, api_version: str = "") -> str:
+def finish_upload(page_id: str, token: str, video_id: str, description: str, api_version: str = "") -> str:
     """Step 3: publish. Returns the resulting post id."""
-    url = (f"{GRAPH}/{api_version or API_VERSION}/{page_id}/video_reels?"
-           + urllib.parse.urlencode({"upload_phase": "finish",
-                                     "video_id": video_id,
-                                     "description": description,
-                                     "access_token": token}))
+    url = f"{GRAPH}/{api_version or API_VERSION}/{page_id}/video_reels?" + urllib.parse.urlencode(
+        {"upload_phase": "finish", "video_id": video_id, "description": description, "access_token": token}
+    )
     data = _request(url, method="POST")
     if "error" in data:
         raise UploadError(f"finish rejected: {json.dumps(data)[:400]}")
@@ -132,8 +139,7 @@ def finish_upload(page_id: str, token: str, video_id: str,
 
 
 def upload_one(dua_id: str, kind: str, allow_trim: bool, dry_run: bool) -> dict:
-    tokens = load_tokens(PLATFORM, required=("page_access_token", "page_id"),
-                         allow_placeholder=dry_run)
+    tokens = load_tokens(PLATFORM, required=("page_access_token", "page_id"), allow_placeholder=dry_run)
     token, page_id = tokens["page_access_token"], str(tokens["page_id"])
     api_version = str(tokens.get("api_version") or API_VERSION)
     video_path = resolve_video(dua_id, kind)
@@ -144,39 +150,52 @@ def upload_one(dua_id: str, kind: str, allow_trim: bool, dry_run: bool) -> dict:
     if will_trim and not allow_trim:
         raise UploadError(
             f"video is {duration:.0f}s, Facebook Reels cap at {REEL_MAX_SECONDS}s "
-            f"-- pass --trim to cut it, or --no-trim to fail (current behaviour)")
+            f"-- pass --trim to cut it, or --no-trim to fail (current behaviour)"
+        )
 
     if dry_run:
-        return {"duaId": dua_id, "status": "dry_run", "file": video_path,
-                "sizeMB": round(os.path.getsize(video_path) / 1048576.0, 2),
-                "duration": duration, "caption_len": len(description),
-                "caption_limit": CAPTION_LIMITS[PLATFORM],
-                "would_trim_to": REEL_MAX_SECONDS if will_trim else None,
-                "page_id": page_id,
-                "note": "no network call; credentials not validated"}
+        return {
+            "duaId": dua_id,
+            "status": "dry_run",
+            "file": video_path,
+            "sizeMB": round(os.path.getsize(video_path) / 1048576.0, 2),
+            "duration": duration,
+            "caption_len": len(description),
+            "caption_limit": CAPTION_LIMITS[PLATFORM],
+            "would_trim_to": REEL_MAX_SECONDS if will_trim else None,
+            "page_id": page_id,
+            "note": "no network call; credentials not validated",
+        }
 
     ustate.mark_uploading(dua_id, PLATFORM, video_path=video_path)
     try:
         final_path, trimmed = video_path, False
         if will_trim:
-            final_path = trim_for_platform(video_path, dua_id, PLATFORM,
-                                           REEL_MAX_SECONDS)
+            final_path = trim_for_platform(video_path, dua_id, PLATFORM, REEL_MAX_SECONDS)
             trimmed = True
-        video_id, upload_url = retry_call("fb start", start_upload, page_id, token,
-                                         api_version)
+        video_id, upload_url = retry_call("fb start", start_upload, page_id, token, api_version)
         send_bytes(upload_url, final_path)
-        post_id = retry_call("fb finish", finish_upload, page_id, token, video_id,
-                             description, api_version)
+        post_id = retry_call("fb finish", finish_upload, page_id, token, video_id, description, api_version)
     except Exception as exc:
         ustate.mark_failed(dua_id, PLATFORM, str(exc), video_path=video_path)
         raise
     url = ustate.platform_url(PLATFORM, post_id)
-    ustate.mark_uploaded(dua_id, PLATFORM, url=url, platform_id=post_id,
-                         video_path=video_path,
-                         extra={"trimmed": trimmed, "source_duration": duration,
-                                "posted_path": final_path})
-    return {"duaId": dua_id, "status": "uploaded", "platform_id": post_id,
-            "url": url, "trimmed": trimmed, "duration": duration}
+    ustate.mark_uploaded(
+        dua_id,
+        PLATFORM,
+        url=url,
+        platform_id=post_id,
+        video_path=video_path,
+        extra={"trimmed": trimmed, "source_duration": duration, "posted_path": final_path},
+    )
+    return {
+        "duaId": dua_id,
+        "status": "uploaded",
+        "platform_id": post_id,
+        "url": url,
+        "trimmed": trimmed,
+        "duration": duration,
+    }
 
 
 def main() -> int:
@@ -184,32 +203,35 @@ def main() -> int:
     ap.add_argument("dua_id", nargs="?", default=None)
     ap.add_argument("--batch", default=None)
     ap.add_argument("--kind", default="short", choices=["short", "long"])
-    ap.add_argument("--trim", dest="allow_trim", action="store_true",
-                    help=f"cut to {REEL_MAX_SECONDS}s when the render is longer")
-    ap.add_argument("--no-trim", dest="allow_trim", action="store_false",
-                    help="fail instead of trimming (default)")
+    ap.add_argument(
+        "--trim", dest="allow_trim", action="store_true", help=f"cut to {REEL_MAX_SECONDS}s when the render is longer"
+    )
+    ap.add_argument("--no-trim", dest="allow_trim", action="store_false", help="fail instead of trimming (default)")
     ap.add_argument("--dry-run", action="store_true")
     ap.set_defaults(allow_trim=False)
     args = ap.parse_args()
 
-    ids = [x.strip() for x in (args.batch or args.dua_id or "").split(",")
-           if x.strip()]
+    ids = [x.strip() for x in (args.batch or args.dua_id or "").split(",") if x.strip()]
     if not ids:
         return emit({"ok": False, "error": "no dua_id given"}, 1)
 
     results = []
     for dua_id in ids:
         try:
-            results.append(upload_one(dua_id, args.kind, args.allow_trim,
-                                      args.dry_run))
+            results.append(upload_one(dua_id, args.kind, args.allow_trim, args.dry_run))
         except Exception as exc:
-            results.append({"duaId": dua_id, "status": "error",
-                            "error": str(exc)[:400]})
+            results.append({"duaId": dua_id, "status": "error", "error": str(exc)[:400]})
     ok = [r for r in results if r["status"] in ("uploaded", "dry_run")]
-    return emit({"ok": len(ok) == len(results), "platform": PLATFORM,
-                 "uploaded": len([r for r in results if r["status"] == "uploaded"]),
-                 "total": len(results), "items": results},
-                0 if len(ok) == len(results) else 2)
+    return emit(
+        {
+            "ok": len(ok) == len(results),
+            "platform": PLATFORM,
+            "uploaded": len([r for r in results if r["status"] == "uploaded"]),
+            "total": len(results),
+            "items": results,
+        },
+        0 if len(ok) == len(results) else 2,
+    )
 
 
 if __name__ == "__main__":

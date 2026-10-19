@@ -36,10 +36,10 @@ SHORT_AR = "\u0627\u0644\u0644\u0647\u0645 \u0627\u0646\u064a \u0627\u0633\u0623
 SHORT_UR = "\u0627\u0644\u0644\u06c1 \u0633\u06d2 \u0639\u0627\u0641\u06cc\u062a \u06a9\u06cc \u062f\u0639\u0627"
 
 # Long synthetic content for layout stress tests (never touches real dua text)
-LONG_AR = " ".join([SHORT_AR] * 50)   # ~1300 chars
-LONG_UR = " ".join([SHORT_UR] * 35)   # ~700 chars
-MAX_AR = " ".join([SHORT_AR] * 70)    # ~1820 chars
-MAX_UR = " ".join([SHORT_UR] * 45)    # ~900 chars
+LONG_AR = " ".join([SHORT_AR] * 50)  # ~1300 chars
+LONG_UR = " ".join([SHORT_UR] * 35)  # ~700 chars
+MAX_AR = " ".join([SHORT_AR] * 70)  # ~1820 chars
+MAX_UR = " ".join([SHORT_UR] * 45)  # ~900 chars
 ABSURD_AR = " ".join([SHORT_AR] * 200)  # ~5200 chars (cannot fit)
 
 
@@ -47,12 +47,9 @@ def _renderer(fps=FPS):
     return SceneRenderer(width=CANVAS_WIDTH, height=CANVAS_HEIGHT, fps=fps)
 
 
-def _scene(seed="test_seed", arabic=SHORT_AR, urdu=SHORT_UR, title="Dua",
-           duration=1.0, palette=None, motion=None):
+def _scene(seed="test_seed", arabic=SHORT_AR, urdu=SHORT_UR, title="Dua", duration=1.0, palette=None, motion=None):
     r = _renderer()
-    return r.build_single_scene(seed, arabic, urdu, title,
-                                duration=duration, palette=palette,
-                                motion=motion)
+    return r.build_single_scene(seed, arabic, urdu, title, duration=duration, palette=palette, motion=motion)
 
 
 def _no_fade(scene):
@@ -133,8 +130,7 @@ class TestMotion:
         frames_static, _ = _render("seed_s", static)
         frames_zoom, _ = _render("seed_z", zoom)
         mid = FPS // 2  # middle frame (fade-free, clearly zoomed)
-        assert not np.array_equal(_as_np(frames_static[mid]),
-                                  _as_np(frames_zoom[mid]))
+        assert not np.array_equal(_as_np(frames_static[mid]), _as_np(frames_zoom[mid]))
 
 
 class TestTransitions:
@@ -183,11 +179,10 @@ class TestDeterminism:
         styles = []
         for i in range(24):
             s = _scene(f"seed_{i}", duration=1.0)
-            styles.append((s.palette_name(), s.motion.kind, s.text_style,
-                           s.particle_count, s.corner_style))
-        assert len({x[0] for x in styles}) >= 2   # palette variety
-        assert len({x[1] for x in styles}) >= 2   # motion variety
-        assert len({x[2] for x in styles}) >= 2   # text-style variety
+            styles.append((s.palette_name(), s.motion.kind, s.text_style, s.particle_count, s.corner_style))
+        assert len({x[0] for x in styles}) >= 2  # palette variety
+        assert len({x[1] for x in styles}) >= 2  # motion variety
+        assert len({x[2] for x in styles}) >= 2  # text-style variety
 
     def test_different_seeds_can_render_differently(self):
         seeds = []
@@ -199,8 +194,7 @@ class TestDeterminism:
         for i in range(len(seeds)):
             for j in range(i + 1, len(seeds)):
                 si, sj = seeds[i][1], seeds[j][1]
-                if (si.palette_name(), si.motion.kind) != \
-                   (sj.palette_name(), sj.motion.kind):
+                if (si.palette_name(), si.motion.kind) != (sj.palette_name(), sj.motion.kind):
                     pair = (seeds[i][0], seeds[j][0])
                     break
             if pair:
@@ -226,8 +220,7 @@ class TestSafeAreaGeometry:
         for layer in layout["layers"]:
             for line in layer["lines"]:
                 for r in RESERVED_RECTS:
-                    assert not rect_intersect(line["bbox"], r), \
-                        (line["bbox"], r)
+                    assert not rect_intersect(line["bbox"], r), (line["bbox"], r)
 
     def test_safe_rect_disjoint_from_reserved(self):
         for r in RESERVED_RECTS:
@@ -235,10 +228,12 @@ class TestSafeAreaGeometry:
 
     def test_verify_layout_flags_outside_bbox(self):
         layout = {
-            "layers": [{
-                "role": "arabic",
-                "lines": [{"text": "x", "bbox": (0, 0, 400, 50)}],
-            }],
+            "layers": [
+                {
+                    "role": "arabic",
+                    "lines": [{"text": "x", "bbox": (0, 0, 400, 50)}],
+                }
+            ],
         }
         issues = _renderer().verify_layout(_scene(), layout)
         assert len(issues) >= 1
@@ -246,10 +241,12 @@ class TestSafeAreaGeometry:
     def test_verify_layout_flags_colliding_bbox(self):
         # bbox inside top reserved band (0,0,1080,110)
         layout = {
-            "layers": [{
-                "role": "title",
-                "lines": [{"text": "x", "bbox": (100, 20, 900, 90)}],
-            }],
+            "layers": [
+                {
+                    "role": "title",
+                    "lines": [{"text": "x", "bbox": (100, 20, 900, 90)}],
+                }
+            ],
         }
         issues = _renderer().verify_layout(_scene(), layout)
         assert len(issues) >= 1
@@ -349,6 +346,7 @@ class TestProceduralFallback:
     def test_render_needs_no_image_assets(self):
         # backgrounds dir contains only manifest.json (no images) - render must work
         from core.project_info import PROJECT
+
         bg_dir = os.path.join(PROJECT.ASSETS_DIR, "backgrounds")
         assert os.path.exists(os.path.join(bg_dir, "manifest.json"))
         scene = _scene(duration=1.0)
@@ -377,8 +375,7 @@ class TestVideoBuilderCompatibility:
             scene = _scene(duration=1.0)
             frames, _ = _render("seed_vb2", scene)
             out = os.path.join(tmp_dir, "out.mp4")
-            assert VideoBuilder(fps=FPS, resolution=(1080, 1920)) \
-                .build_video(frames, out) is True
+            assert VideoBuilder(fps=FPS, resolution=(1080, 1920)).build_video(frames, out) is True
             assert os.path.exists(out) and os.path.getsize(out) > 0
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)

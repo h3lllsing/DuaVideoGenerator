@@ -22,6 +22,7 @@ Usage:
     python scripts/bulk_build.py --apply               # build missing
     python scripts/bulk_build.py --filter=category=family --apply
 """
+
 import json
 import os
 import random
@@ -36,11 +37,10 @@ DATA_DIR = os.path.join(PROJECT, "data")
 DUAS_FILE = os.path.join(DATA_DIR, "duas.json")
 MANIFEST_DIR = os.path.join(PROJECT, "remotion", "src", "data")
 PREPARE = os.path.join(PROJECT, "remotion", "scripts", "prepare_dua.py")
-MANIFESTER = os.path.join(PROJECT, "remotion", "scripts",
-                          "make_manifest.py")
+MANIFESTER = os.path.join(PROJECT, "remotion", "scripts", "make_manifest.py")
 
-PACE_MIN, PACE_MAX = 0.25, 0.75          # seconds between duas
-BACKOFF_MIN, BACKOFF_MAX = 30.0, 60.0    # rate-limit cool-down window
+PACE_MIN, PACE_MAX = 0.25, 0.75  # seconds between duas
+BACKOFF_MIN, BACKOFF_MAX = 30.0, 60.0  # rate-limit cool-down window
 MAX_ATTEMPTS = 3
 RATE_HINTS = ("429", "422", "rate limit", "ratelimit", "too many requests")
 
@@ -58,17 +58,15 @@ def select_duas(duas, filt):
         cat = filt.split("=", 1)[1].strip()
         sel = [d for d in duas if d.get("category") == cat]
         return sel, f"category={cat}"
-    sel = [d for d in duas
-           if not os.path.exists(os.path.join(MANIFEST_DIR,
-                                              d["id"] + ".json"))]
+    sel = [d for d in duas if not os.path.exists(os.path.join(MANIFEST_DIR, d["id"] + ".json"))]
     return sel, "missing-manifest"
 
 
 def run_step(cmd):
     """Returns (exit_code, combined_output)."""
-    p = subprocess.run([sys.executable, cmd[0], cmd[1]],
-                       capture_output=True, text=True,
-                       encoding="utf-8", errors="replace")
+    p = subprocess.run(
+        [sys.executable, cmd[0], cmd[1]], capture_output=True, text=True, encoding="utf-8", errors="replace"
+    )
     out = ((p.stdout or "") + "\n" + (p.stderr or "")).strip()
     return p.returncode, out
 
@@ -86,8 +84,7 @@ def process(dua_id):
             mcode, mout = run_step([MANIFESTER, dua_id])
             if mcode == 0:
                 return "ok"
-            print(f"    manifest failed (code {mcode}): "
-                  f"{mout.splitlines()[-1] if mout else '?'}")
+            print(f"    manifest failed (code {mcode}): {mout.splitlines()[-1] if mout else '?'}")
             return "manifest-failed"
         last_line = out.splitlines()[-1] if out else "?"
         if code == 3:
@@ -95,8 +92,7 @@ def process(dua_id):
             return "policy-reject"
         if is_rate_limited(out):
             wait = random.uniform(BACKOFF_MIN, BACKOFF_MAX)
-            print(f"    attempt {attempt}/{MAX_ATTEMPTS} hit rate limit; "
-                  f"cooling {wait:.1f}s ...")
+            print(f"    attempt {attempt}/{MAX_ATTEMPTS} hit rate limit; cooling {wait:.1f}s ...")
             time.sleep(wait)
             continue
         print(f"    attempt {attempt}/{MAX_ATTEMPTS} failed: {last_line}")
@@ -110,8 +106,7 @@ def main():
     filt = "missing-manifest"
     for a in argv:
         if a.startswith("--filter"):
-            filt = a.split("=", 1)[1] if "=" in a else \
-                argv[argv.index(a) + 1]
+            filt = a.split("=", 1)[1] if "=" in a else argv[argv.index(a) + 1]
             break
     limit = None
     for a in argv:
@@ -129,8 +124,7 @@ def main():
         print("[dry-run] pass --apply to execute")
         return 0
 
-    stats = {"ok": 0, "tts-failed": 0, "manifest-failed": 0,
-             "policy-reject": 0}
+    stats = {"ok": 0, "tts-failed": 0, "manifest-failed": 0, "policy-reject": 0}
     failures = []
     t0 = time.time()
     for i, d in enumerate(duas, 1):
@@ -144,10 +138,12 @@ def main():
             time.sleep(random.uniform(PACE_MIN, PACE_MAX))
 
     dt = time.time() - t0
-    print(f"\n[done] {dt/60:.1f} min | ok={stats['ok']} "
-          f"tts-failed={stats['tts-failed']} "
-          f"manifest-failed={stats['manifest-failed']} "
-          f"policy-reject={stats['policy-reject']}")
+    print(
+        f"\n[done] {dt / 60:.1f} min | ok={stats['ok']} "
+        f"tts-failed={stats['tts-failed']} "
+        f"manifest-failed={stats['manifest-failed']} "
+        f"policy-reject={stats['policy-reject']}"
+    )
     for did, st in failures:
         print(f"  FAILED: {did} -> {st}")
     return 0 if not failures else 1

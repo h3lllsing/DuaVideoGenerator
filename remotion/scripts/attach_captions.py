@@ -17,6 +17,7 @@ Usage:
     python attach_captions.py --only jism_mein_dard_ki_dua,murgh_ki_awaz_sunne_ki_dua
     python attach_captions.py --channel channel1 --gated   # upload only (skip approved check)
 """
+
 import argparse
 import json
 import os
@@ -30,8 +31,7 @@ try:
 except (AttributeError, ValueError):
     pass
 
-PROJECT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(PROJECT, "data")
 OUT = os.path.join(PROJECT, "remotion", "out")
 REVIEW_PATH = os.path.join(DATA, "en_review.json")
@@ -76,8 +76,7 @@ def fmt_ts(secs):
 
 def iso_duration_secs(d):
     """Parse ISO-8601 YouTube duration (PT#H#M#S) to seconds."""
-    m = re.fullmatch(r"P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?",
-                     (d or "").strip())
+    m = re.fullmatch(r"P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", (d or "").strip())
     if not m:
         return None
     parts = m.groups()
@@ -91,6 +90,7 @@ def iso_duration_secs(d):
 def get_youtube_service(channel):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import youtube_auth
+
     token_path = DEFAULT_TOKENS.get(channel)
     if token_path and os.path.exists(token_path):
         youtube_auth.set_token_path(os.path.abspath(token_path))
@@ -98,15 +98,18 @@ def get_youtube_service(channel):
     if not cred:
         return None, "no credentials for " + channel
     from googleapiclient.discovery import build
+
     return build("youtube", "v3", credentials=cred), None
 
 
 def list_caption_tracks(service, video_id):
     """Return dict/None of existing caption tracks for the video."""
     try:
-        resp = service.captions().list(part="snippet", videoId=video_id,
-                                       fields="items(id,snippet(name,language))"
-                                       ).execute()
+        resp = (
+            service.captions()
+            .list(part="snippet", videoId=video_id, fields="items(id,snippet(name,language))")
+            .execute()
+        )
         return resp.get("items", [])
     except Exception as e:
         return ("ERR", str(e)[:200])
@@ -153,20 +156,17 @@ def build_plan(channel, only=None, all_approved=False):
     candidates = dedup
 
     if all_approved:
-        candidates = [(i, v) for (i, v) in candidates
-                      if (review.get(i) or {}).get("status") == "approved"]
+        candidates = [(i, v) for (i, v) in candidates if (review.get(i) or {}).get("status") == "approved"]
 
     plan = []
     for dua_id, video_id in candidates:
         entry = review.get(dua_id) or {}
         if entry.get("status") != "approved":
-            plan.append((dua_id, video_id, None, None, None,
-                         "SKIP: EN review not approved"))
+            plan.append((dua_id, video_id, None, None, None, "SKIP: EN review not approved"))
             continue
         en = (entry.get("en") or "").strip()
         if not en:
-            plan.append((dua_id, video_id, None, None, None,
-                         "SKIP: approved entry has no EN text"))
+            plan.append((dua_id, video_id, None, None, None, "SKIP: approved entry has no EN text"))
             continue
         base = safe_title(titles.get(dua_id) or dua_id)
         srt_path = os.path.join(OUT, base + ".en.srt")
@@ -189,18 +189,12 @@ def write_generated_srt(en_text, duration_secs):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--only", default="",
-                    help="comma-separated dua_ids to process")
-    ap.add_argument("--all", action="store_true",
-                    help="process every APPROVED uploaded dua")
-    ap.add_argument("--channel", default="channel1",
-                    choices=["channel1", "channel2"])
-    ap.add_argument("--dry-run", action="store_true",
-                    help="print the plan, do not call YouTube")
-    ap.add_argument("--no-skip", action="store_true",
-                    help="re-attach even if an English track already exists")
-    ap.add_argument("--gated", action="store_true",
-                    help="assume approval done (attach regardless of review)")
+    ap.add_argument("--only", default="", help="comma-separated dua_ids to process")
+    ap.add_argument("--all", action="store_true", help="process every APPROVED uploaded dua")
+    ap.add_argument("--channel", default="channel1", choices=["channel1", "channel2"])
+    ap.add_argument("--dry-run", action="store_true", help="print the plan, do not call YouTube")
+    ap.add_argument("--no-skip", action="store_true", help="re-attach even if an English track already exists")
+    ap.add_argument("--gated", action="store_true", help="assume approval done (attach regardless of review)")
     args = ap.parse_args()
 
     only = set(filter(None, (x.strip() for x in args.only.split(",")))) if args.only else None
@@ -216,8 +210,7 @@ def main():
 
     plan = build_plan(args.channel, only=only, all_approved=args.all)
     if not plan:
-        print(json.dumps({"ok": True, "channel": args.channel,
-                          "planned": 0, "items": []}, ensure_ascii=False))
+        print(json.dumps({"ok": True, "channel": args.channel, "planned": 0, "items": []}, ensure_ascii=False))
         return 0
 
     service, err = get_youtube_service(args.channel)
@@ -228,8 +221,7 @@ def main():
     results = []
     for dua_id, video_id, en, srt_path, title, note in plan:
         if note:
-            results.append({"duaId": dua_id, "videoId": video_id,
-                            "status": "skipped", "note": note})
+            results.append({"duaId": dua_id, "videoId": video_id, "status": "skipped", "note": note})
             continue
         if args.gated and not review.get(dua_id):
             # --gated: proceed regardless of review state (explicit override)
@@ -242,16 +234,17 @@ def main():
                 # live duration fallback for the generated single block
                 # (read-only videos.list call - safe even in --dry-run)
                 duration = None
-                vid_resp = service.videos().list(
-                    part="contentDetails", id=video_id,
-                    fields="items(contentDetails(duration))").execute()
-                d = (vid_resp.get("items") or [{}])[0].get(
-                    "contentDetails", {}).get("duration")
+                vid_resp = (
+                    service.videos()
+                    .list(part="contentDetails", id=video_id, fields="items(contentDetails(duration))")
+                    .execute()
+                )
+                d = (vid_resp.get("items") or [{}])[0].get("contentDetails", {}).get("duration")
                 duration = iso_duration_secs(d)
                 if duration is None:
-                    results.append({"duaId": dua_id, "videoId": video_id,
-                                    "status": "error",
-                                    "note": "video duration unavailable"})
+                    results.append(
+                        {"duaId": dua_id, "videoId": video_id, "status": "error", "note": "video duration unavailable"}
+                    )
                     continue
                 gpath = write_generated_srt(en, duration)
                 srt_content = open(gpath, encoding="utf-8").read()
@@ -262,42 +255,53 @@ def main():
                         os.remove(gpath)
                     except OSError:
                         pass
-                results.append({"duaId": dua_id, "videoId": video_id,
-                                "status": "planned",
-                                "srt": srt_path or "generated",
-                                "len": len(srt_content)})
+                results.append(
+                    {
+                        "duaId": dua_id,
+                        "videoId": video_id,
+                        "status": "planned",
+                        "srt": srt_path or "generated",
+                        "len": len(srt_content),
+                    }
+                )
                 continue
 
             tracks = list_caption_tracks(service, video_id)
             already = False
             if isinstance(tracks, list):
                 for t in tracks:
-                    sn = (t.get("snippet") or {})
-                    if sn.get("language") == TRACK_LANG and \
-                       sn.get("name") == TRACK_NAME:
+                    sn = t.get("snippet") or {}
+                    if sn.get("language") == TRACK_LANG and sn.get("name") == TRACK_NAME:
                         already = True
                         break
             elif isinstance(tracks, tuple) and tracks[0] == "ERR":
-                results.append({"duaId": dua_id, "videoId": video_id,
-                                "status": "error",
-                                "note": "captions.list failed: %s" % (tracks[1],)})
+                results.append(
+                    {
+                        "duaId": dua_id,
+                        "videoId": video_id,
+                        "status": "error",
+                        "note": "captions.list failed: %s" % (tracks[1],),
+                    }
+                )
                 continue
             if already and SKIP_ALREADY:
-                results.append({"duaId": dua_id, "videoId": video_id,
-                                "status": "skipped", "note": "EN track exists"})
+                results.append({"duaId": dua_id, "videoId": video_id, "status": "skipped", "note": "EN track exists"})
                 continue
 
             from googleapiclient.http import MediaFileUpload
-            body = {"snippet": {"videoId": video_id, "language": TRACK_LANG,
-                                "name": TRACK_NAME, "isDraft": False}}
-            media = MediaFileUpload(gpath or srt_path,
-                                    mimetype="application/octet-stream")
-            resp = service.captions().insert(part="snippet", body=body,
-                                             media_body=media,
-                                             sync=True).execute()
-            results.append({"duaId": dua_id, "videoId": video_id,
-                            "status": "attached", "captionId": resp.get("id"),
-                            "track": resp.get("snippet", {}).get("name")})
+
+            body = {"snippet": {"videoId": video_id, "language": TRACK_LANG, "name": TRACK_NAME, "isDraft": False}}
+            media = MediaFileUpload(gpath or srt_path, mimetype="application/octet-stream")
+            resp = service.captions().insert(part="snippet", body=body, media_body=media, sync=True).execute()
+            results.append(
+                {
+                    "duaId": dua_id,
+                    "videoId": video_id,
+                    "status": "attached",
+                    "captionId": resp.get("id"),
+                    "track": resp.get("snippet", {}).get("name"),
+                }
+            )
             if gpath:
                 try:
                     os.remove(gpath)
@@ -305,12 +309,11 @@ def main():
                     pass
             time.sleep(1)
         except Exception as e:
-            results.append({"duaId": dua_id, "videoId": video_id,
-                            "status": "error", "note": str(e)[:300]})
+            results.append({"duaId": dua_id, "videoId": video_id, "status": "error", "note": str(e)[:300]})
 
-    print(json.dumps({"ok": True, "channel": args.channel,
-                      "planned": len(results), "items": results},
-                     ensure_ascii=False))
+    print(
+        json.dumps({"ok": True, "channel": args.channel, "planned": len(results), "items": results}, ensure_ascii=False)
+    )
     return 0
 
 

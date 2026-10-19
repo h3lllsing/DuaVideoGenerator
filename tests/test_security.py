@@ -32,7 +32,7 @@ def _make_manager(password, salt, vault_path, keys_dir, salt_path):
     sm._salt_regenerated = False
     os.makedirs(os.path.dirname(vault_path), exist_ok=True)
     os.makedirs(keys_dir, exist_ok=True)
-    with open(salt_path, 'wb') as f:
+    with open(salt_path, "wb") as f:
         f.write(salt)
     return sm
 
@@ -56,6 +56,7 @@ class TestSecurityManager:
             os.remove(self.sm.vault_path)
         if os.path.exists(self.sm.keys_dir):
             import shutil
+
             shutil.rmtree(self.sm.keys_dir)
         if os.path.exists(self.sm.salt_path):
             os.remove(self.sm.salt_path)
@@ -187,17 +188,15 @@ class TestVaultMigration:
             shutil.rmtree(self.tmp_dir)
 
     def _legacy_manager(self, password="correct_pw"):
-        return _make_manager(password, LEGACY_SALT, self.vault_path,
-                             self.keys_dir, self.legacy_salt_path)
+        return _make_manager(password, LEGACY_SALT, self.vault_path, self.keys_dir, self.legacy_salt_path)
 
     def _new_manager(self, password="correct_pw", salt=None):
         if salt is None:
             salt = os.urandom(16)
-        return _make_manager(password, salt, self.vault_path,
-                             self.keys_dir, self.salt_path)
+        return _make_manager(password, salt, self.vault_path, self.keys_dir, self.salt_path)
 
     def _read_vault_bytes(self):
-        with open(self.vault_path, 'rb') as f:
+        with open(self.vault_path, "rb") as f:
             return f.read()
 
     def test_detect_missing(self):
@@ -218,13 +217,12 @@ class TestVaultMigration:
     def test_detect_wrong_password(self):
         sm1 = self._new_manager()
         sm1.save_vault({"user": "X"})
-        sm2 = _make_manager("wrong_pw", sm1.salt, self.vault_path,
-                            self.keys_dir, self.salt_path)
+        sm2 = _make_manager("wrong_pw", sm1.salt, self.vault_path, self.keys_dir, self.salt_path)
         assert sm2.detect_vault_state("wrong_pw") == "wrong_password"
 
     def test_detect_corrupt(self):
         sm = self._new_manager()
-        with open(self.vault_path, 'w') as f:
+        with open(self.vault_path, "w") as f:
             f.write("this is not a fernet token at all")
         assert sm.detect_vault_state("correct_pw") == "corrupt"
 
@@ -254,9 +252,7 @@ class TestVaultMigration:
         assert sm.decrypt_dict(self._read_vault_bytes().decode()) == plaintext
 
     def test_migrated_plaintext_equals_original(self):
-        plaintext = {"user": "A",
-                     "settings": {"theme": "dark"},
-                     "learning_data": {"x": 0}}
+        plaintext = {"user": "A", "settings": {"theme": "dark"}, "learning_data": {"x": 0}}
         legacy = self._legacy_manager()
         legacy.save_vault(plaintext)
         sm = self._new_manager()
@@ -300,13 +296,13 @@ class TestVaultMigration:
         sm = self._new_manager()
 
         def _boom(path, content):
-            with open(path + '.tmp', 'w') as f:
+            with open(path + ".tmp", "w") as f:
                 f.write("partial")
             raise RuntimeError("injected write failure")
 
         monkeypatch.setattr(sm, "_atomic_write_text", _boom)
         sm.migrate_legacy_vault("correct_pw")
-        assert not os.path.exists(self.vault_path + '.tmp')
+        assert not os.path.exists(self.vault_path + ".tmp")
 
     def test_save_vault_refuses_overwrite_undecryptable(self):
         legacy = self._legacy_manager()
@@ -329,28 +325,24 @@ class TestVaultMigration:
         legacy.save_vault({"user": "A"})
         sm = self._new_manager()
         assert sm.migrate_legacy_vault("correct_pw") is True
-        assert os.path.exists(self.vault_path + '.legacy.bak')
+        assert os.path.exists(self.vault_path + ".legacy.bak")
 
     def test_main_block_non_destructive(self):
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        prod_vault = os.path.join(project_root, 'security', 'vault.enc')
+        prod_vault = os.path.join(project_root, "security", "vault.enc")
         before = None
         if os.path.exists(prod_vault):
-            with open(prod_vault, 'rb') as f:
+            with open(prod_vault, "rb") as f:
                 before = f.read()
         env = dict(os.environ)
-        env['PYTHONIOENCODING'] = 'utf-8'
+        env["PYTHONIOENCODING"] = "utf-8"
         proc = subprocess.run(
-            [sys.executable, 'core/security.py'],
-            cwd=project_root,
-            capture_output=True,
-            text=True,
-            env=env,
-            timeout=120)
+            [sys.executable, "core/security.py"], cwd=project_root, capture_output=True, text=True, env=env, timeout=120
+        )
         assert proc.returncode == 0, proc.stderr
         after = None
         if os.path.exists(prod_vault):
-            with open(prod_vault, 'rb') as f:
+            with open(prod_vault, "rb") as f:
                 after = f.read()
         assert before == after
 

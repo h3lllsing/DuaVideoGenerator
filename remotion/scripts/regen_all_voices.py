@@ -3,6 +3,7 @@
 Order per dua: prepare_dua(--force) -> make_manifest (master+manifest).
 Exit 3 from prepare = duration policy reject -> recorded, loop continues.
 """
+
 import json
 import os
 import subprocess
@@ -14,8 +15,7 @@ SCRIPTS = os.path.join(PROJECT, "remotion", "scripts")
 
 
 def run(args):
-    return subprocess.run([PY] + args, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace")
+    return subprocess.run([PY] + args, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def main():

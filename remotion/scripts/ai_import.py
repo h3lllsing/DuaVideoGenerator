@@ -7,6 +7,7 @@ Usage:
 API keys are loaded from data/ai_api_config.json (never hardcoded).
 All duas are Islamic Sunni from authentic sources.
 """
+
 import argparse
 import json
 import os
@@ -21,15 +22,13 @@ try:
 except (AttributeError, ValueError):
     pass
 
-PROJECT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT, "data")
 DUAS_PATH = os.path.join(DATA_DIR, "duas.json")
 DUAS_BACKUP_PATH = os.path.join(DATA_DIR, "duas.backup.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "ai_api_config.json")
 
-LOCK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         "ai_import.lock")
+LOCK_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ai_import.lock")
 LOCK_MAX_AGE = 10 * 60  # 10 minutes: stale-lock breakout
 
 
@@ -37,6 +36,7 @@ def _pid_alive(pid):
     """Windows-safe liveness probe via OpenProcess (stdlib only)."""
     try:
         import ctypes
+
         PROCESS_QUERY = 0x0400
         h = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY, False, int(pid))
         if not h:
@@ -138,17 +138,19 @@ def _call_keyless(messages, model=None):
     c = _config()
     base = (c.get("keyless_base_url") or KEYLESS_BASE).rstrip("/")
     mdl = model or c.get("keyless_model") or KEYLESS_MODEL
-    payload = json.dumps({
-        "model": mdl,
-        "messages": messages,
-        "temperature": 0.6,
-        "max_tokens": 1600,
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "model": mdl,
+            "messages": messages,
+            "temperature": 0.6,
+            "max_tokens": 1600,
+        }
+    ).encode("utf-8")
     url = base + "/openai/chat/completions"
     try:
-        req = urllib.request.Request(url, data=payload, headers={
-            "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(
+            url, data=payload, headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+        )
         with urllib.request.urlopen(req, timeout=90) as resp:
             body = resp.read().decode("utf-8", errors="replace")
         result = json.loads(body)
@@ -158,27 +160,26 @@ def _call_keyless(messages, model=None):
         print("  [skip] keyless model=" + str(mdl) + ": " + str(e)[:150])
         return None, None
 
+
 # Valid aihubmix FREE model IDs (live catalog 2026-08-28). Ye sirf fallback
 # candidate list hai — config ke models pehle try hote hain, phir ye sorted
 # by quality ke order me (vision-capable text models pehle). Invalid
 # `qwen3.8-flash` jaise IDs harness me nhi rakhe (403 dete hain).
 VALID_FREE_MODELS = [
-    "minimax-m3-free",          # vision, 1.05M ctx
-    "gemini-3.7-flash-free",    # vision, 1M ctx
-    "gemini-3.6-flash-free",    # vision, 1M ctx
-    "gpt-5.5-free",             # 1.05M ctx
+    "minimax-m3-free",  # vision, 1.05M ctx
+    "gemini-3.7-flash-free",  # vision, 1M ctx
+    "gemini-3.6-flash-free",  # vision, 1M ctx
+    "gpt-5.5-free",  # 1.05M ctx
     "glm-5.3-flash-free",
     "gpt-4.1-mini-free",
     "minimax-m3-flash-free",
     "gemini-3.5-flash-lite-free",
-    "hy3-free",                 # 256K ctx
+    "hy3-free",  # 256K ctx
     "qwen3.6-plus-preview-free",  # 1M ctx
 ]
 
 # Config ke models ko priority par rakho, phir valid list bhar do, dedupe.
-FREE_MODELS = list(dict.fromkeys(
-    api_models() + VALID_FREE_MODELS
-))
+FREE_MODELS = list(dict.fromkeys(api_models() + VALID_FREE_MODELS))
 
 # Quota/balance exhausted message fingerprints — insaan ko "ye free model
 # khatam hai, next try karo" batane ke liye (aur fake success se bachne ke liye).
@@ -199,9 +200,21 @@ BLOCK_MARKERS = [
 ]
 
 CATEGORIES = [
-    "general", "prayer", "travel", "food", "sleep", "health",
-    "study", "safety", "parents", "ramadan", "morning_evening",
-    "mosque", "work", "clothing", "weather",
+    "general",
+    "prayer",
+    "travel",
+    "food",
+    "sleep",
+    "health",
+    "study",
+    "safety",
+    "parents",
+    "ramadan",
+    "morning_evening",
+    "mosque",
+    "work",
+    "clothing",
+    "weather",
 ]
 
 SYSTEM_PROMPT = """You are an expert Islamic Sunni scholar specializing in authentic duas from Quran and Hadith.
@@ -278,9 +291,17 @@ def _is_empty_block(content, require_dua=True):
     if not content:
         return True
     c = content.lower()
-    if any(m in c for m in ("try 10 times", "trial is used up",
-                            "prevention", "insufficient",
-                            "balance is insufficient", "recharge")):
+    if any(
+        m in c
+        for m in (
+            "try 10 times",
+            "trial is used up",
+            "prevention",
+            "insufficient",
+            "balance is insufficient",
+            "recharge",
+        )
+    ):
         return True
     # A real dua JSON array always has at least one { "id": ... } object.
     if require_dua and ('"id"' not in content or "arabic" not in content):
@@ -322,17 +343,23 @@ def call_api(messages, api_key, model=None, require_dua=True):
 
     models_to_try = [model] if model else FREE_MODELS
     for m in models_to_try:
-        payload = json.dumps({
-            "model": m,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 4000,
-        }).encode("utf-8")
-        req = urllib.request.Request(API_URL, data=payload, headers={
-            "Authorization": "Bearer " + api_key,
-            "Content-Type": "application/json",
-            "User-Agent": "DuaStudio/0.11",
-        })
+        payload = json.dumps(
+            {
+                "model": m,
+                "messages": messages,
+                "temperature": 0.7,
+                "max_tokens": 4000,
+            }
+        ).encode("utf-8")
+        req = urllib.request.Request(
+            API_URL,
+            data=payload,
+            headers={
+                "Authorization": "Bearer " + api_key,
+                "Content-Type": "application/json",
+                "User-Agent": "DuaStudio/0.11",
+            },
+        )
         try:
             resp = urllib.request.urlopen(req, timeout=60)
             body = resp.read().decode("utf-8", errors="replace")
@@ -341,8 +368,7 @@ def call_api(messages, api_key, model=None, require_dua=True):
             # Genuine response check — real answer hona chahiye.
             if _is_empty_block(content, require_dua):
                 why = _block_reason(content) or "empty/blocked"
-                print("  [skip] model=" + m + " key=" + _mask_key(api_key)
-                      + " -> " + why)
+                print("  [skip] model=" + m + " key=" + _mask_key(api_key) + " -> " + why)
                 continue
             return content, m
         except urllib.error.HTTPError as e:
@@ -352,8 +378,7 @@ def call_api(messages, api_key, model=None, require_dua=True):
             except Exception:
                 pass
             why = _block_reason(body) or ("HTTP " + str(e.code))
-            print("  [skip] model=" + m + " key=" + _mask_key(api_key)
-                  + " -> " + why)
+            print("  [skip] model=" + m + " key=" + _mask_key(api_key) + " -> " + why)
             continue
         except Exception as e:
             print("  [skip] model=" + m + ": " + str(e)[:200])
@@ -375,7 +400,7 @@ def parse_duas(text):
         end = text.rfind("]")
         if start >= 0 and end > start:
             try:
-                return json.loads(text[start:end + 1])
+                return json.loads(text[start : end + 1])
             except json.JSONDecodeError:
                 pass
     return []
@@ -405,8 +430,7 @@ def load_existing():
             return None
         return existing
     except Exception as e:
-        print("ERROR: duas.json unreadable/corrupt (save ABORTED): "
-              + str(e)[:200], file=sys.stderr)
+        print("ERROR: duas.json unreadable/corrupt (save ABORTED): " + str(e)[:200], file=sys.stderr)
         return None
 
 
@@ -424,8 +448,7 @@ def save_duas(new_items):
 
     existing = load_existing()
     if existing is None:
-        print("ABORT: library load failed - no changes written",
-              file=sys.stderr)
+        print("ABORT: library load failed - no changes written", file=sys.stderr)
         return []
     existing_ids = {d.get("id") for d in existing}
     existing_ar = [_norm(d.get("arabic")) for d in existing if d.get("arabic")]
@@ -448,8 +471,7 @@ def save_duas(new_items):
         def _best_ratio(text, pool):
             if not text or not pool:
                 return 1.0 if (not text and not pool) else 0.0
-            return max(difflib.SequenceMatcher(None, text, p).ratio()
-                       for p in pool)
+            return max(difflib.SequenceMatcher(None, text, p).ratio() for p in pool)
 
         # Title duplicate check — DISABLED (similar titles for different
         # duas are normal, e.g. "Hidayat ki Dua" vs "Hidayat Aur Taqwa Ki Dua")
@@ -506,8 +528,7 @@ def save_duas(new_items):
             json.dump(existing, f, ensure_ascii=False, indent=2)
         os.replace(tmp, DUAS_PATH)
     except Exception as e:
-        print("ERROR: duas.json save failed: " + str(e)[:200],
-              file=sys.stderr)
+        print("ERROR: duas.json save failed: " + str(e)[:200], file=sys.stderr)
         try:
             os.remove(tmp)
         except OSError:
@@ -518,12 +539,9 @@ def save_duas(new_items):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--count", type=int, default=5,
-                    help="Number of duas to generate (default 5)")
-    ap.add_argument("--category", default="general",
-                    help="Category: food, travel, sleep, health, study, etc.")
-    ap.add_argument("--topic", default="",
-                    help="Custom topic/prompt for dua generation")
+    ap.add_argument("--count", type=int, default=5, help="Number of duas to generate (default 5)")
+    ap.add_argument("--category", default="general", help="Category: food, travel, sleep, health, study, etc.")
+    ap.add_argument("--topic", default="", help="Custom topic/prompt for dua generation")
     args = ap.parse_args()
 
     count = max(1, min(args.count, 15))
@@ -563,13 +581,15 @@ def main():
             if duas:
                 complete = []
                 for d in duas:
-                    missing = [k for k in ("id", "title", "titleEn",
-                                           "arabic", "urdu", "english")
-                               if not (d.get(k) or "").strip()]
+                    missing = [
+                        k
+                        for k in ("id", "title", "titleEn", "arabic", "urdu", "english")
+                        if not (d.get(k) or "").strip()
+                    ]
                     if missing:
-                        print("  [skip] dua '" + str(d.get("id") or "?")
-                              + "' incomplete - missing: "
-                              + ", ".join(missing))
+                        print(
+                            "  [skip] dua '" + str(d.get("id") or "?") + "' incomplete - missing: " + ", ".join(missing)
+                        )
                         continue
                     complete.append(d)
                 added = save_duas(complete)
@@ -586,23 +606,22 @@ def main():
     if all_new:
         print(f"\n=== RESULT: {len(all_new)} new duas added ===")
         for d in all_new:
-            print("  + {} | {} | {}".format(d["id"], d["title"],
-                                             d["reference"]))
-        print(json.dumps({"ok": True, "added": len(all_new),
-                          "duas": [{"id": d["id"], "title": d["title"]}
-                                   for d in all_new]}))
+            print("  + {} | {} | {}".format(d["id"], d["title"], d["reference"]))
+        print(
+            json.dumps(
+                {"ok": True, "added": len(all_new), "duas": [{"id": d["id"], "title": d["title"]} for d in all_new]}
+            )
+        )
         return 0
     else:
         print("\n=== RESULT: 0 new duas ===")
-        print(json.dumps({"ok": False, "added": 0,
-                          "error": "No duas generated - check API keys/balance"}))
+        print(json.dumps({"ok": False, "added": 0, "error": "No duas generated - check API keys/balance"}))
         return 1
 
 
 if __name__ == "__main__":
     if not acquire_lock():
-        print("ERROR: another ai_import run already holds "
-              + LOCK_PATH, file=sys.stderr)
+        print("ERROR: another ai_import run already holds " + LOCK_PATH, file=sys.stderr)
         raise SystemExit(3)
     try:
         raise SystemExit(main())

@@ -21,6 +21,7 @@ Exit codes
     0  backup written and verified
     1  backup failed / destination rejected / verification mismatch
 """
+
 from __future__ import annotations
 
 import argparse
@@ -77,8 +78,15 @@ def volume_info(path: str) -> dict:
         fsbuf = ctypes.create_unicode_buffer(261)
         serial, maxcomp, flags = (ctypes.c_ulong(), ctypes.c_ulong(), ctypes.c_ulong())
         if ctypes.windll.kernel32.GetVolumeInformationW(
-                ctypes.c_wchar_p(root), buf, 261, ctypes.byref(serial),
-                ctypes.byref(maxcomp), ctypes.byref(flags), fsbuf, 261):
+            ctypes.c_wchar_p(root),
+            buf,
+            261,
+            ctypes.byref(serial),
+            ctypes.byref(maxcomp),
+            ctypes.byref(flags),
+            fsbuf,
+            261,
+        ):
             label, fs = buf.value, fsbuf.value
     except Exception:
         pass
@@ -87,8 +95,7 @@ def volume_info(path: str) -> dict:
         total, free = usage.total, usage.free
     except OSError:
         total = free = 0
-    return {"root": root, "label": label, "fs": fs,
-            "total": total, "free": free, "free_mb": free // (1024 * 1024)}
+    return {"root": root, "label": label, "fs": fs, "total": total, "free": free, "free_mb": free // (1024 * 1024)}
 
 
 def validate_dest(dest: str, source: str) -> tuple:
@@ -101,23 +108,26 @@ def validate_dest(dest: str, source: str) -> tuple:
     if label in BLOCKED_LABELS:
         reasons.append(
             f"destination volume {info['root']} is labelled "
-            f"'{info['label'] or '?'}' -- a boot/reserved partition, unsafe for data")
+            f"'{info['label'] or '?'}' -- a boot/reserved partition, unsafe for data"
+        )
     if info["free_mb"] < MIN_FREE_MB:
         reasons.append(
-            f"destination volume {info['root']} has only {info['free_mb']} MB free "
-            f"(minimum {MIN_FREE_MB} MB)")
+            f"destination volume {info['root']} has only {info['free_mb']} MB free (minimum {MIN_FREE_MB} MB)"
+        )
     try:
         payload = os.path.getsize(source)
         if info["free"] and info["free"] < payload * MIN_FREE_MULTIPLE:
             reasons.append(
                 f"destination free space ({info['free_mb']} MB) is under "
-                f"{MIN_FREE_MULTIPLE}x the source size ({payload // 1024} KB)")
+                f"{MIN_FREE_MULTIPLE}x the source size ({payload // 1024} KB)"
+            )
     except OSError:
         pass
     if src_info["root"] and info["root"] == src_info["root"]:
         reasons.append(
             f"destination is on the same volume as the source ({info['root']}) -- "
-            f"that is a copy, not a backup; it will not survive disk failure")
+            f"that is a copy, not a backup; it will not survive disk failure"
+        )
 
     if not reasons:
         try:
@@ -175,13 +185,18 @@ def verify_backup(backup_path: str, source: str) -> tuple:
 def prune(dest: str, keep: int, pattern: str = "duas_*.json") -> list:
     try:
         files = sorted(
-            (os.path.join(dest, f) for f in os.listdir(dest) if f.startswith("duas_")
-             and f.endswith(".json") and not f.endswith(".corrupt")),
-            key=os.path.getmtime, reverse=True)
+            (
+                os.path.join(dest, f)
+                for f in os.listdir(dest)
+                if f.startswith("duas_") and f.endswith(".json") and not f.endswith(".corrupt")
+            ),
+            key=os.path.getmtime,
+            reverse=True,
+        )
     except OSError:
         return []
     removed = []
-    for stale in files[max(keep, 1):]:
+    for stale in files[max(keep, 1) :]:
         try:
             os.remove(stale)
             removed.append(stale)
@@ -194,18 +209,21 @@ def list_backups(dest: str) -> int:
     if not os.path.isdir(dest):
         print(f"  no backup directory yet: {dest}")
         return 0
-    files = sorted((f for f in os.listdir(dest)
-                    if f.startswith("duas_") and f.endswith(".json")),
-                   key=lambda f: os.path.getmtime(os.path.join(dest, f)),
-                   reverse=True)
+    files = sorted(
+        (f for f in os.listdir(dest) if f.startswith("duas_") and f.endswith(".json")),
+        key=lambda f: os.path.getmtime(os.path.join(dest, f)),
+        reverse=True,
+    )
     if not files:
         print(f"  no backups found in {dest}")
         return 0
     print(f"  {len(files)} backup(s) in {dest}:")
     for name in files:
         full = os.path.join(dest, name)
-        print(f"    {name}  {os.path.getsize(full) / 1024:8.1f} KB  "
-              f"{datetime.fromtimestamp(os.path.getmtime(full)):%Y-%m-%d %H:%M}")
+        print(
+            f"    {name}  {os.path.getsize(full) / 1024:8.1f} KB  "
+            f"{datetime.fromtimestamp(os.path.getmtime(full)):%Y-%m-%d %H:%M}"
+        )
     return len(files)
 
 
@@ -218,20 +236,23 @@ def do_backup(source: str, dest: str, keep: int, allow_unsafe: bool) -> int:
     ok, reasons, info = validate_dest(dest, source)
     print(f"  source      : {source} ({payload / 1024:.1f} KB)")
     print(f"  destination : {dest}")
-    print(f"  volume      : {info['root']} label={info['label'] or '(none)'} "
-          f"free={info['free_mb']} MB fs={info['fs'] or '?'}")
+    print(
+        f"  volume      : {info['root']} label={info['label'] or '(none)'} "
+        f"free={info['free_mb']} MB fs={info['fs'] or '?'}"
+    )
 
     if not ok and not allow_unsafe:
         log_event("failed", reason="unsafe destination", dest=dest, problems=reasons)
         print("  REFUSING to write:", file=sys.stderr)
         for reason in reasons:
             print(f"    - {reason}", file=sys.stderr)
-        print("  Pick a different volume, e.g. --dest E:\\backups, or pass "
-              "--allow-unsafe-dest to override deliberately.", file=sys.stderr)
+        print(
+            "  Pick a different volume, e.g. --dest E:\\backups, or pass --allow-unsafe-dest to override deliberately.",
+            file=sys.stderr,
+        )
         return 1
     if not ok:
-        log_event("warning", reason="unsafe destination accepted by flag",
-                  dest=dest, problems=reasons)
+        log_event("warning", reason="unsafe destination accepted by flag", dest=dest, problems=reasons)
         print("  WARNING: proceeding despite destination problems (--allow-unsafe-dest)")
 
     try:
@@ -278,8 +299,7 @@ def do_backup(source: str, dest: str, keep: int, allow_unsafe: bool) -> int:
             except OSError:
                 pass
             suspect = target
-        log_event("failed", reason="verification failed", backup=target,
-                  quarantined=suspect, problems=problems)
+        log_event("failed", reason="verification failed", backup=target, quarantined=suspect, problems=problems)
         print("  VERIFICATION FAILED:", file=sys.stderr)
         for problem in problems:
             print(f"    - {problem}", file=sys.stderr)
@@ -290,9 +310,17 @@ def do_backup(source: str, dest: str, keep: int, allow_unsafe: bool) -> int:
         log_event("pruned", file=os.path.basename(old))
         print(f"  pruned old backup: {os.path.basename(old)}")
 
-    log_event("backup_ok", source=source, backup=target, entries=count,
-              bytes=payload, dest_volume=info["root"],
-              dest_label=info["label"], verified=True, sha256=sha256(target)[:16])
+    log_event(
+        "backup_ok",
+        source=source,
+        backup=target,
+        entries=count,
+        bytes=payload,
+        dest_volume=info["root"],
+        dest_label=info["label"],
+        verified=True,
+        sha256=sha256(target)[:16],
+    )
     print(f"  OK  {count} entries -> {target}  (sha256 {sha256(target)[:16]}... verified)")
     return 0
 
@@ -303,8 +331,7 @@ def main() -> int:
     ap.add_argument("--source", default=SOURCE, help="catalog to back up")
     ap.add_argument("--keep", type=int, default=30, help="retain newest N backups")
     ap.add_argument("--list", action="store_true", help="list backups and exit")
-    ap.add_argument("--allow-unsafe-dest", action="store_true",
-                    help="skip destination safety checks")
+    ap.add_argument("--allow-unsafe-dest", action="store_true", help="skip destination safety checks")
     args = ap.parse_args()
 
     if args.list:

@@ -23,8 +23,7 @@ class SelfTrainer:
     def __init__(self):
         """Initialize self-trainer."""
         self.learning_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data", "learned_styles"
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "learned_styles"
         )
 
         self.feedback_file = os.path.join(self.learning_dir, "feedback.json")
@@ -36,7 +35,7 @@ class SelfTrainer:
     def save_feedback(self, video_data: dict, rating: int, comments: str = ""):
         """
         Save user feedback for learning.
-        
+
         Args:
             video_data: Video metadata
             rating: User rating (1-5 stars)
@@ -51,7 +50,7 @@ class SelfTrainer:
             "color": video_data.get("color"),
             "duration": video_data.get("duration"),
             "rating": rating,
-            "comments": comments
+            "comments": comments,
         }
 
         feedback.append(entry)
@@ -86,10 +85,7 @@ class SelfTrainer:
 
         # Find best effect
         if prefs["effect_averages"]:
-            prefs["best_effect"] = max(
-                prefs["effect_averages"],
-                key=prefs["effect_averages"].get
-            )
+            prefs["best_effect"] = max(prefs["effect_averages"], key=prefs["effect_averages"].get)
 
         # Track color ratings
         color = entry.get("color")
@@ -110,17 +106,14 @@ class SelfTrainer:
 
         # Find best color
         if prefs.get("color_averages"):
-            prefs["best_color"] = max(
-                prefs["color_averages"],
-                key=prefs["color_averages"].get
-            )
+            prefs["best_color"] = max(prefs["color_averages"], key=prefs["color_averages"].get)
 
         self._save_preferences(prefs)
 
     def get_recommendation(self) -> dict:
         """
         Get AI recommendation based on learning.
-        
+
         Returns:
             Recommendation dictionary
         """
@@ -136,7 +129,7 @@ class SelfTrainer:
             "effect_averages": prefs.get("effect_averages", {}),
             "color_averages": prefs.get("color_averages", {}),
             "total_feedback": len(feedback),
-            "average_rating": self._calculate_avg_rating()
+            "average_rating": self._calculate_avg_rating(),
         }
 
         # Merge with video analysis patterns
@@ -163,7 +156,7 @@ class SelfTrainer:
             return []
 
         try:
-            with open(self.feedback_file, encoding='utf-8') as f:
+            with open(self.feedback_file, encoding="utf-8") as f:
                 return cast(list[Any], json.load(f))
         except Exception:
             return []
@@ -171,13 +164,15 @@ class SelfTrainer:
     def _save_feedback(self, feedback: list):
         """Save feedback to file with atomic write."""
         import tempfile
+
         dir_name = os.path.dirname(self.feedback_file)
         os.makedirs(dir_name, exist_ok=True)
         fd, tmp_path = tempfile.mkstemp(dir=dir_name, suffix=".tmp")
         try:
-            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(feedback, f, indent=2, ensure_ascii=False)
             import shutil
+
             shutil.move(tmp_path, self.feedback_file)
         except Exception:
             try:
@@ -192,14 +187,14 @@ class SelfTrainer:
             return {}
 
         try:
-            with open(self.preferences_file, encoding='utf-8') as f:
+            with open(self.preferences_file, encoding="utf-8") as f:
                 return cast(dict[str, Any], json.load(f))
         except Exception:
             return {}
 
     def _save_preferences(self, prefs: dict):
         """Save preferences to file."""
-        with open(self.preferences_file, 'w', encoding='utf-8') as f:
+        with open(self.preferences_file, "w", encoding="utf-8") as f:
             json.dump(prefs, f, indent=2, ensure_ascii=False)
 
     def _load_master_patterns(self) -> dict[str, Any] | None:
@@ -210,7 +205,7 @@ class SelfTrainer:
             return None
 
         try:
-            with open(master_patterns_file, encoding='utf-8') as f:
+            with open(master_patterns_file, encoding="utf-8") as f:
                 return cast(dict[str, Any], json.load(f))
         except Exception:
             return None
@@ -226,7 +221,7 @@ class SelfTrainer:
             "best_effect": prefs.get("best_effect", "N/A"),
             "best_color": prefs.get("best_color", "N/A"),
             "effect_averages": prefs.get("effect_averages", {}),
-            "color_averages": prefs.get("color_averages", {})
+            "color_averages": prefs.get("color_averages", {}),
         }
 
 
@@ -237,12 +232,7 @@ if __name__ == "__main__":
     trainer = SelfTrainer()
 
     # Test feedback
-    test_video_data = {
-        "id": "test_video_001",
-        "effect": "neon_glow",
-        "color": "gold",
-        "duration": 7.5
-    }
+    test_video_data = {"id": "test_video_001", "effect": "neon_glow", "color": "gold", "duration": 7.5}
 
     # Save feedback
     trainer.save_feedback(test_video_data, rating=5, comments="Great video!")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate a 3-second voice preview sample for a given edge-tts voice."""
+
 import os, sys, json, tempfile, asyncio
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -11,13 +12,16 @@ SAMPLE_TEXTS = {
     "ur": "اللہ کے نام سے شروع جو بڑا مہربان نہایت رحم والا ہے",
 }
 
+
 async def _preview(text: str, voice: str, lang: str, out_path: str) -> bool:
     import edge_tts
+
     rate = "-8%" if lang == "ar" else "-5%"
     pitch = "-2Hz" if lang == "ar" else "-1Hz"
     communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
     await communicate.save(out_path)
     return True
+
 
 def main():
     if len(sys.argv) < 3:
@@ -40,6 +44,7 @@ def main():
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)[:200]}))
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

@@ -24,16 +24,16 @@ class TTSEngine:
     """
 
     VOICES = {
-        'ar': 'ar-SA-HamedNeural',  # Arabic
-        'ur': 'ur-PK-AsadNeural'    # Urdu
+        "ar": "ar-SA-HamedNeural",  # Arabic
+        "ur": "ur-PK-AsadNeural",  # Urdu
     }
 
     # Solemn tilawat feel (user-approved "2+4 combo"):
     # thora slow + thora deep. Timing sidecars iske sath hi banti hain
     # is liye karaoke sync perfect rehta hai.
     PROSODY = {
-        'ar': {'rate': '-8%', 'pitch': '-2Hz'},
-        'ur': {'rate': '-5%', 'pitch': '-1Hz'},
+        "ar": {"rate": "-8%", "pitch": "-2Hz"},
+        "ur": {"rate": "-5%", "pitch": "-1Hz"},
     }
 
     # STYLE-ROTATION (2026-08-23): deterministic per-dua voice variation.
@@ -47,21 +47,24 @@ class TTSEngine:
     # (Hamed<->Zariyah SA, Hamdan<->Fatima AE, Laith<->Amany SY,
     # Saleh<->Maryam YE, Asad<->Uzma PK, Salman<->Gul IN).
     VOICE_POOLS = {
-        'ar': ('ar-SA-HamedNeural',    # SA male (primary)
-               'ar-AE-HamdanNeural',   # AE male
-               'ar-SY-LaithNeural',    # SY male
-               'ar-YE-SalehNeural'),   # YE male
-        'ur': ('ur-PK-AsadNeural',     # PK male (primary)
-               'ur-IN-SalmanNeural'),  # IN male
+        "ar": (
+            "ar-SA-HamedNeural",  # SA male (primary)
+            "ar-AE-HamdanNeural",  # AE male
+            "ar-SY-LaithNeural",  # SY male
+            "ar-YE-SalehNeural",
+        ),  # YE male
+        "ur": (
+            "ur-PK-AsadNeural",  # PK male (primary)
+            "ur-IN-SalmanNeural",
+        ),  # IN male
     }
 
     GENDER_POOLS = {
-        'ar': (('ar-SA-HamedNeural', 'ar-AE-HamdanNeural',
-                'ar-SY-LaithNeural', 'ar-YE-SalehNeural'),
-               ('ar-SA-ZariyahNeural', 'ar-AE-FatimaNeural',
-                'ar-SY-AmanyNeural', 'ar-YE-MaryamNeural')),
-        'ur': (('ur-PK-AsadNeural', 'ur-IN-SalmanNeural'),
-               ('ur-PK-UzmaNeural', 'ur-IN-GulNeural')),
+        "ar": (
+            ("ar-SA-HamedNeural", "ar-AE-HamdanNeural", "ar-SY-LaithNeural", "ar-YE-SalehNeural"),
+            ("ar-SA-ZariyahNeural", "ar-AE-FatimaNeural", "ar-SY-AmanyNeural", "ar-YE-MaryamNeural"),
+        ),
+        "ur": (("ur-PK-AsadNeural", "ur-IN-SalmanNeural"), ("ur-PK-UzmaNeural", "ur-IN-GulNeural")),
     }
 
     @staticmethod
@@ -75,7 +78,7 @@ class TTSEngine:
         """
         banks = TTSEngine.GENDER_POOLS.get(language)
         if not banks:
-            return TTSEngine.VOICES.get(language, '')
+            return TTSEngine.VOICES.get(language, "")
         h = sum(map(ord, str(dua_id)))
         g = (h >> 3) & 1
         return banks[g][h % len(banks[0])]
@@ -91,10 +94,11 @@ class TTSEngine:
         Returns a dict keyed by voice name with 'rate' and 'pitch' values,
         or an empty dict if the file is missing or invalid.
         """
-        cfg_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                'data', 'voice_prosody.json')
+        cfg_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "voice_prosody.json"
+        )
         try:
-            with open(cfg_path, encoding='utf-8') as f:
+            with open(cfg_path, encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict):
                 return data
@@ -105,17 +109,20 @@ class TTSEngine:
     @staticmethod
     async def _save_with_timeout(communicate, output_file, **kwargs):
         try:
-            return await asyncio.wait_for(
-                communicate.save(output_file, **kwargs), timeout=TTSEngine.SAVE_TIMEOUT)
+            return await asyncio.wait_for(communicate.save(output_file, **kwargs), timeout=TTSEngine.SAVE_TIMEOUT)
         except TimeoutError:
             logger.error("edge-tts save timed out")
             raise
 
     @staticmethod
-    async def _async_generate(text: str, voice: str, output_file: str,
-                              timing_path: str | None = None,
-                              rate: str | None = None,
-                              pitch: str | None = None) -> bool:
+    async def _async_generate(
+        text: str,
+        voice: str,
+        output_file: str,
+        timing_path: str | None = None,
+        rate: str | None = None,
+        pitch: str | None = None,
+    ) -> bool:
         """Internal async helper to generate TTS audio.
 
         When timing_path is provided, WordBoundary metadata is captured as a
@@ -131,22 +138,18 @@ class TTSEngine:
             if timing_path:
                 try:
                     communicate = edge_tts.Communicate(
-                        text, voice, boundary="WordBoundary",
-                        rate=cast(str, rate), pitch=cast(str, pitch))
-                    await TTSEngine._save_with_timeout(
-                        communicate, output_file, metadata_fname=timing_path)
+                        text, voice, boundary="WordBoundary", rate=cast(str, rate), pitch=cast(str, pitch)
+                    )
+                    await TTSEngine._save_with_timeout(communicate, output_file, metadata_fname=timing_path)
                     return True
                 except Exception as e:
-                    logger.warning(f"Word boundary capture failed ({e}); "
-                                   "retrying without metadata.")
+                    logger.warning(f"Word boundary capture failed ({e}); retrying without metadata.")
                     if timing_path and os.path.exists(timing_path):
                         try:
                             os.remove(timing_path)
                         except OSError:
                             pass
-            communicate = edge_tts.Communicate(
-                text, voice, rate=cast(str, rate),
-                pitch=cast(str, pitch))
+            communicate = edge_tts.Communicate(text, voice, rate=cast(str, rate), pitch=cast(str, pitch))
             await TTSEngine._save_with_timeout(communicate, output_file)
             return True
         except Exception as e:
@@ -154,9 +157,9 @@ class TTSEngine:
             return False
 
     @staticmethod
-    def generate_audio(text: str, language: str, output_path: str,
-                       timing_path: str | None = None,
-                       voice: str | None = None) -> bool:
+    def generate_audio(
+        text: str, language: str, output_path: str, timing_path: str | None = None, voice: str | None = None
+    ) -> bool:
         """
         Synchronous wrapper to generate MP3 audio with retry logic.
 
@@ -187,8 +190,8 @@ class TTSEngine:
         # Check per-voice config first, then fall back to language defaults
         voice_cfg = TTSEngine._load_voice_prosody().get(voice, {})
         lang_prosody = TTSEngine.PROSODY.get(language, {})
-        rate = voice_cfg.get('rate') or lang_prosody.get('rate')
-        pitch = voice_cfg.get('pitch') or lang_prosody.get('pitch')
+        rate = voice_cfg.get("rate") or lang_prosody.get("rate")
+        pitch = voice_cfg.get("pitch") or lang_prosody.get("pitch")
         # Ensure the temp folder exists
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
@@ -196,10 +199,7 @@ class TTSEngine:
         for attempt in range(TTSEngine.MAX_RETRIES):
             try:
                 # Async function ko sync mein run karna
-                result = asyncio.run(
-                    TTSEngine._async_generate(text, voice, output_path,
-                                              timing_path, rate, pitch)
-                )
+                result = asyncio.run(TTSEngine._async_generate(text, voice, output_path, timing_path, rate, pitch))
 
                 if result:
                     return True
@@ -221,9 +221,9 @@ class TTSEngine:
         return False
 
     @staticmethod
-    def generate_both(ar_text, ur_text, ar_output, ur_output,
-                      ar_timing=None, ur_timing=None,
-                      ar_voice=None, ur_voice=None):
+    def generate_both(
+        ar_text, ur_text, ar_output, ur_output, ar_timing=None, ur_timing=None, ar_voice=None, ur_voice=None
+    ):
         """Generate Arabic + Urdu TTS in parallel (network I/O bound).
 
         Runs both TTS calls concurrently using asyncio, then returns
@@ -233,23 +233,22 @@ class TTSEngine:
             tuple: (ar_success: bool, ur_success: bool)
         """
         voice_cfg = TTSEngine._load_voice_prosody()
-        ar_v = (ar_voice or "").strip() or TTSEngine.VOICES['ar']
-        ur_v = (ur_voice or "").strip() or TTSEngine.VOICES['ur']
-        ar_prosody = voice_cfg.get(ar_v, TTSEngine.PROSODY.get('ar', {}))
-        ur_prosody = voice_cfg.get(ur_v, TTSEngine.PROSODY.get('ur', {}))
+        ar_v = (ar_voice or "").strip() or TTSEngine.VOICES["ar"]
+        ur_v = (ur_voice or "").strip() or TTSEngine.VOICES["ur"]
+        ar_prosody = voice_cfg.get(ar_v, TTSEngine.PROSODY.get("ar", {}))
+        ur_prosody = voice_cfg.get(ur_v, TTSEngine.PROSODY.get("ur", {}))
 
         os.makedirs(os.path.dirname(os.path.abspath(ar_output)), exist_ok=True)
         os.makedirs(os.path.dirname(os.path.abspath(ur_output)), exist_ok=True)
 
         async def _parallel():
             ar_task = TTSEngine._async_generate(
-                ar_text, ar_v, ar_output, ar_timing,
-                ar_prosody.get('rate'), ar_prosody.get('pitch'))
+                ar_text, ar_v, ar_output, ar_timing, ar_prosody.get("rate"), ar_prosody.get("pitch")
+            )
             ur_task = TTSEngine._async_generate(
-                ur_text, ur_v, ur_output, ur_timing,
-                ur_prosody.get('rate'), ur_prosody.get('pitch'))
-            return await asyncio.gather(ar_task, ur_task,
-                                        return_exceptions=True)
+                ur_text, ur_v, ur_output, ur_timing, ur_prosody.get("rate"), ur_prosody.get("pitch")
+            )
+            return await asyncio.gather(ar_task, ur_task, return_exceptions=True)
 
         for attempt in range(TTSEngine.MAX_RETRIES):
             try:
@@ -261,13 +260,18 @@ class TTSEngine:
                 # Partial success — don't retry the succeeded side
                 if attempt < TTSEngine.MAX_RETRIES - 1:
                     delay = TTSEngine.RETRY_DELAY_BASE ** (attempt + 1)
-                    logger.info("Parallel TTS attempt %d partial (ar=%s, ur=%s), retry in %ds...",
-                                attempt+1, ar_ok, ur_ok, delay)
+                    logger.info(
+                        "Parallel TTS attempt %d partial (ar=%s, ur=%s), retry in %ds...",
+                        attempt + 1,
+                        ar_ok,
+                        ur_ok,
+                        delay,
+                    )
                     time.sleep(delay)
                 else:
                     return (ar_ok, ur_ok)
             except Exception as e:
-                logger.error("Parallel TTS attempt %d: %s", attempt+1, e)
+                logger.error("Parallel TTS attempt %d: %s", attempt + 1, e)
                 if attempt < TTSEngine.MAX_RETRIES - 1:
                     delay = TTSEngine.RETRY_DELAY_BASE ** (attempt + 1)
                     time.sleep(delay)
@@ -308,12 +312,14 @@ class TTSEngine:
                         continue
                     offset_s = float(entry.get("offset", 0)) / 10_000_000.0
                     duration_s = float(entry.get("duration", 0)) / 10_000_000.0
-                    words.append({
-                        "word": entry.get("text", ""),
-                        "offset": round(offset_s, 6),
-                        "duration": round(duration_s, 6),
-                        "end": round(offset_s + duration_s, 6),
-                    })
+                    words.append(
+                        {
+                            "word": entry.get("text", ""),
+                            "offset": round(offset_s, 6),
+                            "duration": round(duration_s, 6),
+                            "end": round(offset_s + duration_s, 6),
+                        }
+                    )
         except Exception as e:
             logger.error(f"Failed to parse word boundaries: {e}")
             return []

@@ -6,6 +6,7 @@ Produces in temp:
 
 Skips work when outputs already exist (pass --force to redo).
 """
+
 import os
 import sys
 
@@ -42,10 +43,9 @@ def with_bismillah(arabic, urdu):
     ur_out = urdu.strip()
     # Skip agar pehle se Bismillah hai (fixed phrase) YA tarjuma khud
     # "اللہ کے نام سے" se shuru hota hai (warna double ho jata hai)
-    already = ("\u0634\u0631\u0648\u0639 \u0627\u0644\u0644\u06c1" in ur_out
-               or ur_out.startswith(
-                   "\u0627\u0644\u0644\u06c1 \u06a9\u06d2 "
-                   "\u0646\u0627\u0645 \u0633\u06d2"))
+    already = "\u0634\u0631\u0648\u0639 \u0627\u0644\u0644\u06c1" in ur_out or ur_out.startswith(
+        "\u0627\u0644\u0644\u06c1 \u06a9\u06d2 \u0646\u0627\u0645 \u0633\u06d2"
+    )
     if not already:
         ur_out = BISMILLAH_UR_FIXED + " " + ur_out
     return ar_out, ur_out
@@ -53,8 +53,8 @@ def with_bismillah(arabic, urdu):
 
 # TTS pronunciation fixes (sirf awaz ke liye, stored/display text nahi)
 _PRONOUNCE_AR = {
-    "\uFDFA": "\u0635\u064e\u0644\u0651\u064e\u0649 \u0627\u0644\u0644\u0651\u064e\u0647\u064f "
-              "\u0639\u064e\u0644\u064e\u064a\u0652\u0647\u0650 \u0648\u064e\u0633\u064e\u0644\u0651\u064e\u0645\u064e",
+    "\ufdfa": "\u0635\u064e\u0644\u0651\u064e\u0649 \u0627\u0644\u0644\u0651\u064e\u0647\u064f "
+    "\u0639\u064e\u0644\u064e\u064a\u0652\u0647\u0650 \u0648\u064e\u0633\u064e\u0644\u0651\u064e\u0645\u064e",
     "\u0640": "",
 }
 
@@ -78,9 +78,11 @@ def main(dua_id, force=False, only=None):
         print("ERROR: dua not found:", dua_id)
         return 1
     if dua.get("archived"):
-        print("NOTE: entry is ARCHIVED (superseded_by: {}) - legacy files "
-              "kept, prefer the replacement parts".format(
-                  ", ".join(dua.get("superseded_by") or [])))
+        print(
+            "NOTE: entry is ARCHIVED (superseded_by: {}) - legacy files kept, prefer the replacement parts".format(
+                ", ".join(dua.get("superseded_by") or [])
+            )
+        )
 
     temp = os.path.join(PROJECT, "temp")
     ar = os.path.join(temp, f"{dua_id}_ar.mp3")
@@ -107,22 +109,22 @@ def main(dua_id, force=False, only=None):
     if need_ar or need_ur:
         ar_voice = dua.get("voice_arabic") if need_ar else None
         ur_voice = dua.get("voice_urdu") if need_ur else None
-        print("[1/3] TTS (parallel, ar_voice={}, ur_voice={})...".format(
-            ar_voice or "default Hamed", ur_voice or "default Asad"))
+        print(
+            "[1/3] TTS (parallel, ar_voice={}, ur_voice={})...".format(
+                ar_voice or "default Hamed", ur_voice or "default Asad"
+            )
+        )
 
         if need_ar and need_ur:
             ar_ok, ur_ok = tts.generate_both(
-                ar_text, ur_text, ar, ur,
-                ar_timing=ar_t, ur_timing=ur_t,
-                ar_voice=ar_voice, ur_voice=ur_voice)
+                ar_text, ur_text, ar, ur, ar_timing=ar_t, ur_timing=ur_t, ar_voice=ar_voice, ur_voice=ur_voice
+            )
         elif need_ar:
-            ar_ok = tts.generate_audio(ar_text, "ar", ar, timing_path=ar_t,
-                                       voice=ar_voice)
+            ar_ok = tts.generate_audio(ar_text, "ar", ar, timing_path=ar_t, voice=ar_voice)
             ur_ok = True
         else:
             ar_ok = True
-            ur_ok = tts.generate_audio(ur_text, "ur", ur, timing_path=ur_t,
-                                       voice=ur_voice)
+            ur_ok = tts.generate_audio(ur_text, "ur", ur, timing_path=ur_t, voice=ur_voice)
 
         if not ar_ok:
             print("ERROR: arabic tts failed")
@@ -132,8 +134,11 @@ def main(dua_id, force=False, only=None):
             return 1
 
     if not (os.path.exists(ar) and os.path.exists(ur)):
-        print("OK partial: sirf {} side bana - dusra side missing, "
-              "merge nahi ho sakta".format("urdu" if need_ur else "arabic"))
+        print(
+            "OK partial: sirf {} side bana - dusra side missing, merge nahi ho sakta".format(
+                "urdu" if need_ur else "arabic"
+            )
+        )
         return 0
 
     print("[2/3] Merging...")
@@ -155,18 +160,14 @@ def main(dua_id, force=False, only=None):
     base, ext = os.path.splitext(merged)
     normalized = f"{base}.normalized{ext}"
     if AudioMixer.normalize_loudness(merged, normalized):
-        ok = AudioMixer.merge_audio_sequential(
-            [normalized], merged, gap_seconds=0.0,
-            pad_to_duration=final_duration)
+        ok = AudioMixer.merge_audio_sequential([normalized], merged, gap_seconds=0.0, pad_to_duration=final_duration)
         if os.path.exists(normalized):
             try:
                 os.remove(normalized)
             except OSError:
                 pass
     else:
-        ok = AudioMixer.merge_audio_sequential(
-            [ar, ur], merged, gap_seconds=0.3,
-            pad_to_duration=final_duration)
+        ok = AudioMixer.merge_audio_sequential([ar, ur], merged, gap_seconds=0.3, pad_to_duration=final_duration)
     if not ok:
         print("ERROR: pad failed")
         return 1

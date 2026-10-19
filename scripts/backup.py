@@ -48,6 +48,7 @@ def _get_backup_key():
     else:
         seed += b"dua-backup-fallback"
     import base64
+
     h = hashlib.sha256(seed).digest()
     return base64.urlsafe_b64encode(h)
 
@@ -55,6 +56,7 @@ def _get_backup_key():
 def encrypt_backup_file(src_path, dst_path):
     """Encrypt a file for backup using Fernet."""
     from cryptography.fernet import Fernet
+
     key = _get_backup_key()
     cipher = Fernet(key)
     data = src_path.read_bytes()
@@ -65,9 +67,11 @@ def encrypt_backup_file(src_path, dst_path):
 def decrypt_backup_file(src_path):
     """Decrypt a backup file. Returns decrypted bytes."""
     from cryptography.fernet import Fernet
+
     key = _get_backup_key()
     cipher = Fernet(key)
     return cipher.decrypt(src_path.read_bytes())
+
 
 def compute_checksum(file_path):
     """Compute SHA-256 checksum of a file."""
@@ -79,6 +83,7 @@ def compute_checksum(file_path):
         return sha256_hash.hexdigest()
     except Exception:
         return None
+
 
 def create_backup():
     """Create timestamped backup. Sensitive files are encrypted."""
@@ -112,11 +117,9 @@ def create_backup():
         "files": backed_up,
         "checksums": checksums,
         "encrypted": encrypted,
-        "project": str(PROJECT)
+        "project": str(PROJECT),
     }
-    (backup_path / "manifest.json").write_text(
-        json.dumps(manifest, indent=2), encoding="utf-8"
-    )
+    (backup_path / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     print(f"Backup created: {backup_path}")
     print("Files backed up:")
@@ -124,6 +127,7 @@ def create_backup():
         print(item)
 
     return backup_path
+
 
 def list_backups():
     """List available backups."""
@@ -146,6 +150,7 @@ def list_backups():
             else:
                 print(f"  {backup.name}")
 
+
 def _backup_dirs_sorted():
     """All backup directories ordered oldest first (by mtime, not name)."""
     if not BACKUP_DIR.exists():
@@ -165,10 +170,11 @@ def rotate_backups(max_backups=10):
     if len(backups) <= max_backups:
         return
 
-    to_delete = backups[:len(backups) - max_backups]
+    to_delete = backups[: len(backups) - max_backups]
     for backup in to_delete:
         shutil.rmtree(backup)
         print(f"  Rotated old backup: {backup.name}")
+
 
 if __name__ == "__main__":
     import sys

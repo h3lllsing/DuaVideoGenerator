@@ -5,6 +5,7 @@ Usage:
 
 Output: JSON with per-video stats + channel stats to stdout.
 """
+
 import argparse
 import json
 import os
@@ -15,8 +16,7 @@ try:
 except (AttributeError, ValueError):
     pass
 
-PROJECT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_TOKENS = {
     "channel1": os.path.join(PROJECT, "data", "yt_token_channel1.json"),
     "channel2": os.path.join(PROJECT, "data", "yt_token_channel2.json"),
@@ -26,11 +26,8 @@ DEFAULT_TOKENS = {
 def fetch_video_stats(service, video_ids):
     stats = {}
     for i in range(0, len(video_ids), 50):
-        batch = video_ids[i:i + 50]
-        resp = service.videos().list(
-            part="statistics,contentDetails",
-            id=",".join(batch)
-        ).execute()
+        batch = video_ids[i : i + 50]
+        resp = service.videos().list(part="statistics,contentDetails", id=",".join(batch)).execute()
         for item in resp.get("items", []):
             vid = item["id"]
             s = item.get("statistics", {})
@@ -45,10 +42,7 @@ def fetch_video_stats(service, video_ids):
 
 
 def fetch_channel_stats(service):
-    resp = service.channels().list(
-        part="statistics,snippet",
-        mine=True
-    ).execute()
+    resp = service.channels().list(part="statistics,snippet", mine=True).execute()
     items = resp.get("items", [])
     if not items:
         return None
@@ -66,12 +60,9 @@ def fetch_channel_stats(service):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ids", default="",
-                    help="comma-separated YouTube video IDs (optional)")
-    ap.add_argument("--channel", default="channel1",
-                    help="channel1 or channel2")
-    ap.add_argument("--token", default=None,
-                    help="path to token json (overrides --channel)")
+    ap.add_argument("--ids", default="", help="comma-separated YouTube video IDs (optional)")
+    ap.add_argument("--channel", default="channel1", help="channel1 or channel2")
+    ap.add_argument("--token", default=None, help="path to token json (overrides --channel)")
     args = ap.parse_args()
 
     token_path = args.token or DEFAULT_TOKENS.get(args.channel)
@@ -79,6 +70,7 @@ def main():
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import youtube_auth
+
         if token_path:
             youtube_auth.set_token_path(os.path.abspath(token_path))
         cred = youtube_auth.get_credentials()
@@ -87,6 +79,7 @@ def main():
             return 1
 
         from googleapiclient.discovery import build
+
         service = build("youtube", "v3", credentials=cred)
 
         result = {"ok": True, "channel": None, "stats": {}}

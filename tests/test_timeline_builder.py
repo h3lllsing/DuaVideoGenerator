@@ -35,10 +35,9 @@ def plan(ar_s, ur_s, ar_text=AR_TEXT, ur_text=UR_TEXT, final=None, dua="dua_x"):
     if final is None:
         speech = ar_s + ur_s + (0.3 if (ar_text and ur_text) else 0.0)
         final = _final(speech)
-    return TimelineBuilder().build(dua, ar_text, ur_text, "Dua",
-                                   arabic_duration=ar_s,
-                                   urdu_duration=ur_s,
-                                   final_duration=final)
+    return TimelineBuilder().build(
+        dua, ar_text, ur_text, "Dua", arabic_duration=ar_s, urdu_duration=ur_s, final_duration=final
+    )
 
 
 def roles(p):
@@ -149,8 +148,7 @@ class TestLayoutSafety:
         verify_safe(p, SceneRenderer(fps=FPS))
 
     def test_maximum_content_safe(self):
-        p = plan(8.0, 7.0, ar_text=" ".join([AR_TEXT] * 70),
-                 ur_text=" ".join([UR_TEXT] * 45))
+        p = plan(8.0, 7.0, ar_text=" ".join([AR_TEXT] * 70), ur_text=" ".join([UR_TEXT] * 45))
         verify_safe(p, SceneRenderer(fps=FPS))
 
     def test_arabic_scene_contains_only_title_and_arabic(self):
@@ -194,10 +192,9 @@ class TestRoundingAndOffsets:
     def test_negative_hold_rounding_is_clamped(self):
         # ar 7.52 -> 180, gap 7, ur 7.23 -> 174 => 361 > 360 => hold -1
         # Force final 15.0 explicitly to trigger the -1 overshoot.
-        p = TimelineBuilder().build("dua_x", AR_TEXT, UR_TEXT, "Dua",
-                                    arabic_duration=7.52,
-                                    urdu_duration=7.23,
-                                    final_duration=15.0)
+        p = TimelineBuilder().build(
+            "dua_x", AR_TEXT, UR_TEXT, "Dua", arabic_duration=7.52, urdu_duration=7.23, final_duration=15.0
+        )
         assert p["valid"] is True
         assert frames(p) == [180, 7, 173]  # 1 frame absorbed into Urdu
         assert p["segments"]["hold_frames"] == 0
@@ -207,10 +204,9 @@ class TestRoundingAndOffsets:
 
     def test_urdu_only_negative_rounding_absorbs_into_urdu(self):
         # ur 15.03 -> 360.72 -> 361 > 360 => -1 absorbed into urdu => 360
-        p = TimelineBuilder().build("dua_x", "", UR_TEXT, "Dua",
-                                    arabic_duration=0.0,
-                                    urdu_duration=15.03,
-                                    final_duration=15.0)
+        p = TimelineBuilder().build(
+            "dua_x", "", UR_TEXT, "Dua", arabic_duration=0.0, urdu_duration=15.03, final_duration=15.0
+        )
         assert p["valid"] is True
         assert roles(p) == ["urdu"]
         assert frames(p) == [360]
@@ -222,8 +218,7 @@ class TestRoundingAndOffsets:
         assert offsets["arabic_base"] == 0.0
         assert abs(offsets["urdu_base"] - 3.3) < 1e-9  # 3.0 + 0.3
 
-        ar_words = [{"word": "w1", "offset": 0.5},
-                    {"word": "w2", "offset": 1.2}]
+        ar_words = [{"word": "w1", "offset": 0.5}, {"word": "w2", "offset": 1.2}]
         ur_words = [{"word": "u1", "offset": 0.1}]
 
         ar_mapped = TimelineBuilder.map_words_absolute(offsets, "ar", ar_words)
@@ -236,8 +231,7 @@ class TestRoundingAndOffsets:
     def test_urdu_offsets_absent_when_no_urdu(self):
         p = plan(6.0, 0.0, ur_text="")
         assert p["offsets"]["urdu_base"] is None
-        assert TimelineBuilder.absolute_word_offset(
-            p["offsets"], "ur", 0.5) is None
+        assert TimelineBuilder.absolute_word_offset(p["offsets"], "ur", 0.5) is None
 
 
 class TestNoZeroDurationAndContract:
@@ -262,13 +256,11 @@ class TestNoZeroDurationAndContract:
         try:
             # short timeline (2s worth of frames via small durations)
             p = TimelineBuilder().build(
-                "dua_x", AR_TEXT, UR_TEXT, "Dua",
-                arabic_duration=0.5, urdu_duration=0.5,
-                final_duration=15.0)
+                "dua_x", AR_TEXT, UR_TEXT, "Dua", arabic_duration=0.5, urdu_duration=0.5, final_duration=15.0
+            )
             frames = render(p)
             out = os.path.join(tmp_dir, "tb_out.mp4")
-            assert VideoBuilder(fps=FPS, resolution=(1080, 1920)) \
-                .build_video(frames, out) is True
+            assert VideoBuilder(fps=FPS, resolution=(1080, 1920)).build_video(frames, out) is True
             assert os.path.exists(out) and os.path.getsize(out) > 0
         finally:
             shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -277,6 +269,4 @@ class TestNoZeroDurationAndContract:
         # Builder receives only durations/texts - no audio IO exists by design.
         p = plan(3.0, 2.7)
         assert "audio" not in p or True  # no audio key in plan
-        assert all(k in p for k in
-                   ("valid", "timeline", "scene_metadata", "final_frames",
-                    "segments", "offsets"))
+        assert all(k in p for k in ("valid", "timeline", "scene_metadata", "final_frames", "segments", "offsets"))

@@ -26,6 +26,7 @@ Safety:
 
 Live mode requires google libs + data/yt_token.json (youtube_auth.py login).
 """
+
 import argparse
 import atexit
 import difflib
@@ -93,25 +94,23 @@ def auto_log(runs_path, msg):
     """Append-only structured journal: data/auto_runs.log"""
     try:
         with open(runs_path, "a", encoding="utf-8") as f:
-            f.write("[{}] {}\n".format(
-                time.strftime("%Y-%m-%d %H:%M:%S"), msg))
+            f.write("[{}] {}\n".format(time.strftime("%Y-%m-%d %H:%M:%S"), msg))
     except OSError as e:
         print("auto-log write fail:", e)
 
 
 def safe_title(title):
-    s = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', '', title or 'Dua').strip()
-    return re.sub(r'[. ]+$', '', s) or 'Dua'
+    s = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "", title or "Dua").strip()
+    return re.sub(r"[. ]+$", "", s) or "Dua"
 
 
 def norm_ref(r):
-    return re.sub(r'[^a-z0-9]+', ' ', (r or '').lower()).strip()
+    return re.sub(r"[^a-z0-9]+", " ", (r or "").lower()).strip()
 
 
 def manifest_reference(dua_id):
     try:
-        m = json.load(open(os.path.join(DATA_DIR, dua_id + ".json"),
-                           encoding="utf-8"))
+        m = json.load(open(os.path.join(DATA_DIR, dua_id + ".json"), encoding="utf-8"))
         return norm_ref(m.get("reference"))
     except Exception:
         return ""
@@ -144,6 +143,7 @@ def en_caption_allowed(dua_id):
 
 
 # ---------------- ledger ----------------
+
 
 def load_ledger(path=LEDGER_PATH):
     if os.path.exists(path):
@@ -180,16 +180,15 @@ def save_ledger(ledger, path=LEDGER_PATH):
 
 def uploads_today(ledger):
     today = date.today().isoformat()
-    return sum(1 for v in ledger.values()
-               if v.get("status") == "uploaded"
-               and str(v.get("uploaded_at", "")).startswith(today))
+    return sum(
+        1 for v in ledger.values() if v.get("status") == "uploaded" and str(v.get("uploaded_at", "")).startswith(today)
+    )
 
 
 def quota_path_for(ledger_path):
     d = os.path.dirname(os.path.abspath(ledger_path)) or "."
     b = os.path.basename(ledger_path)
-    b = b.replace("upload_state", "quota_state") \
-        if "upload_state" in b else "quota_" + b
+    b = b.replace("upload_state", "quota_state") if "upload_state" in b else "quota_" + b
     return os.path.join(d, b)
 
 
@@ -232,8 +231,7 @@ def locked_duas():
 
 def archived_ids():
     try:
-        duas = json.load(open(os.path.join(PROJECT, "data", "duas.json"),
-                              encoding="utf-8"))
+        duas = json.load(open(os.path.join(PROJECT, "data", "duas.json"), encoding="utf-8"))
         if isinstance(duas, dict):
             duas = duas["duas"]
         return {d["id"] for d in duas if d.get("archived")}
@@ -242,6 +240,7 @@ def archived_ids():
 
 
 # ---------------- item resolution ----------------
+
 
 def parse_sidecar(path):
     meta = {"title": None, "description": None, "tags": []}
@@ -255,8 +254,7 @@ def parse_sidecar(path):
             meta["description"] = m.group(1).strip()
         m = re.search(r"^TAGS:\s*\n(.+)$", text, re.M)
         if m:
-            meta["tags"] = [t.strip() for t in m.group(1).split(",")
-                            if t.strip()]
+            meta["tags"] = [t.strip() for t in m.group(1).split(",") if t.strip()]
     except Exception:
         pass
     return meta
@@ -276,8 +274,7 @@ def _shrink_thumb(path):
         w, h = im.size
         target_w = 720
         if w > target_w:
-            im = im.resize((target_w, int(h * target_w / w)),
-                           Image.LANCZOS)
+            im = im.resize((target_w, int(h * target_w / w)), Image.LANCZOS)
         im.save(path, optimize=True)
         return os.path.getsize(path) <= MAX_THUMB_BYTES
     except Exception:
@@ -321,17 +318,14 @@ def resolve_item(dua_id):
 
     sidecar = os.path.join(OUT, safe_title(title) + ".txt")
     if not os.path.exists(sidecar):
-        r = subprocess.run([sys.executable, METADATA_PY, dua_id],
-                           capture_output=True, text=True)
+        r = subprocess.run([sys.executable, METADATA_PY, dua_id], capture_output=True, text=True)
         if r.returncode != 0:
             reasons.append("sidecar missing & regen failed")
     meta = parse_sidecar(sidecar)
     if not meta["title"]:
         meta["title"] = title[:MAX_TITLE]
         reasons.append("sidecar parse fallback (manifest title)")
-    return {"dua_id": dua_id, "mp4": mp4, "thumb": thumb,
-            "reference": ref_raw,
-            "meta": meta}, reasons
+    return {"dua_id": dua_id, "mp4": mp4, "thumb": thumb, "reference": ref_raw, "meta": meta}, reasons
 
 
 def full_cleanup_after_upload(dua_id, title):
@@ -372,8 +366,7 @@ def full_cleanup_after_upload(dua_id, title):
                 os.remove(p)
                 removed += 1
         except OSError as ce:
-            print("  WARN cleanup failed:", os.path.basename(p), "-",
-                  str(ce)[:100])
+            print("  WARN cleanup failed:", os.path.basename(p), "-", str(ce)[:100])
     print(f"  FULL-CLEANUP removed {removed} file(s) for {dua_id}")
     return removed
 
@@ -416,26 +409,28 @@ def build_payload(item, privacy, category_id):
 
 # ---------------- live upload ----------------
 
+
 def get_youtube_service(token_path=None):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import youtube_auth
+
     if token_path:
         youtube_auth.set_token_path(token_path)
     cred = youtube_auth.get_credentials()
     if not cred:
         return None
     from googleapiclient.discovery import build
+
     return build("youtube", "v3", credentials=cred)
 
 
 def do_live_upload(service, item, payload):
     from googleapiclient.errors import HttpError
     from googleapiclient.http import MediaFileUpload
+
     body = dict(payload)
-    media = MediaFileUpload(item["mp4"], chunksize=8 * 1024 * 1024,
-                            resumable=True, mimetype="video/mp4")
-    req = service.videos().insert(part="snippet,status", body=body,
-                                  media_body=media)
+    media = MediaFileUpload(item["mp4"], chunksize=8 * 1024 * 1024, resumable=True, mimetype="video/mp4")
+    req = service.videos().insert(part="snippet,status", body=body, media_body=media)
     response = None
     attempts = 0
     while response is None:
@@ -445,7 +440,7 @@ def do_live_upload(service, item, payload):
             code = getattr(getattr(e, "resp", None), "status", 0) or 0
             if (code >= 500 or code == 429) and attempts < 3:
                 attempts += 1
-                wait = 2 ** attempts
+                wait = 2**attempts
                 print(f"  retry {attempts}/3 in {wait}s (HTTP {code})", flush=True)
                 time.sleep(wait)
                 continue
@@ -453,22 +448,19 @@ def do_live_upload(service, item, payload):
         except OSError as e:
             if attempts < 3:
                 attempts += 1
-                wait = 2 ** attempts
+                wait = 2**attempts
                 print(f"  retry {attempts}/3 in {wait}s (network: {str(e)[:80]})", flush=True)
                 time.sleep(wait)
                 continue
             raise
         if status:
-            print(f"\r  upload {int(status.progress() * 100)}%",
-                  end="", flush=True)
+            print(f"\r  upload {int(status.progress() * 100)}%", end="", flush=True)
     print()
     vid = response.get("id")
     if not vid:
-        raise RuntimeError("no video id in response: "
-                           + json.dumps(response)[:300])
+        raise RuntimeError("no video id in response: " + json.dumps(response)[:300])
     try:
-        service.thumbnails().set(videoId=vid,
-                                 media_body=item["thumb"]).execute()
+        service.thumbnails().set(videoId=vid, media_body=item["thumb"]).execute()
     except Exception as e:
         print("  WARN thumbnail attach failed (account verified?):", e)
     # EN subtitle policy: NEVER auto-attach captions. The .en.srt is created
@@ -486,31 +478,37 @@ def do_live_upload(service, item, payload):
 
 # ---------------- main ----------------
 
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--live", action="store_true",
-                    help="actually upload (default is dry-run)")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="explicit dry-run (default anyway)")
-    ap.add_argument("--only", default="",
-                    help="comma-separated dua_ids (MANUAL selection)")
-    ap.add_argument("--auto", type=int, default=0, metavar="N",
-                    help="AUTOPILOT: pick up to N oldest rendered-not-"
-                         "uploaded videos automatically; locks, REF-GUARD "
-                         "and remaining daily quota all honoured")
+    ap.add_argument("--live", action="store_true", help="actually upload (default is dry-run)")
+    ap.add_argument("--dry-run", action="store_true", help="explicit dry-run (default anyway)")
+    ap.add_argument("--only", default="", help="comma-separated dua_ids (MANUAL selection)")
+    ap.add_argument(
+        "--auto",
+        type=int,
+        default=0,
+        metavar="N",
+        help="AUTOPILOT: pick up to N oldest rendered-not-"
+        "uploaded videos automatically; locks, REF-GUARD "
+        "and remaining daily quota all honoured",
+    )
     ap.add_argument("--limit", type=int, default=0)
-    ap.add_argument("--privacy", default="unlisted",
-                    choices=["private", "public", "unlisted"])
+    ap.add_argument("--privacy", default="unlisted", choices=["private", "public", "unlisted"])
     ap.add_argument("--category-id", default="22")
-    ap.add_argument("--token", default=None,
-                    help="yt token json path for target channel, e.g. "
-                         "data/yt_token_channel1.json (default "
-                         "data/yt_token.json)")
-    ap.add_argument("--ledger", default=LEDGER_PATH,
-                    help="upload state ledger path; use per-channel files "
-                         "e.g. data/upload_state_channel1.json to keep "
-                         "channels independent (default data/"
-                         "upload_state.json)")
+    ap.add_argument(
+        "--token",
+        default=None,
+        help="yt token json path for target channel, e.g. data/yt_token_channel1.json (default data/yt_token.json)",
+    )
+    ap.add_argument(
+        "--ledger",
+        default=LEDGER_PATH,
+        help="upload state ledger path; use per-channel files "
+        "e.g. data/upload_state_channel1.json to keep "
+        "channels independent (default data/"
+        "upload_state.json)",
+    )
     args = ap.parse_args()
     if not args.only.strip() and not (args.auto and args.auto > 0):
         ap.error("either --only id1,id2 or --auto N is required")
@@ -518,8 +516,7 @@ def main():
     qpath = quota_path_for(ledger_path)
     token_label = args.token or "data/yt_token.json (default)"
     auto_mode = bool(args.auto and args.auto > 0)
-    auto_runs_path = os.path.join(os.path.dirname(ledger_path),
-                                  "auto_runs.log")
+    auto_runs_path = os.path.join(os.path.dirname(ledger_path), "auto_runs.log")
     # Graceful cancel: portal is flag-file likhta hai; hum har video se
     # PEHLE check karte hain - chalta hua upload poora hota hai, agla
     # nahi shuru hota (no orphan uploads, no ledger mismatch).
@@ -541,12 +538,13 @@ def main():
     remaining_today = DAILY_CEILING - eff_used
 
     if auto_mode:
-        auto_log(auto_runs_path,
-                 f"RUN start mode=AUTO n={args.auto} live={bool(args.live)} privacy={args.privacy} "
-                 f"token={token_label} used_today={eff_used}/{DAILY_CEILING} remaining={max(remaining_today, 0)}")
+        auto_log(
+            auto_runs_path,
+            f"RUN start mode=AUTO n={args.auto} live={bool(args.live)} privacy={args.privacy} "
+            f"token={token_label} used_today={eff_used}/{DAILY_CEILING} remaining={max(remaining_today, 0)}",
+        )
 
-    all_manifests = sorted(f[:-5] for f in os.listdir(DATA_DIR)
-                           if f.endswith(".json"))
+    all_manifests = sorted(f[:-5] for f in os.listdir(DATA_DIR) if f.endswith(".json"))
     only_set = {x.strip() for x in args.only.split(",") if x.strip()}
     ids = [i for i in all_manifests if not only_set or i in only_set]
     arch = archived_ids()
@@ -560,33 +558,33 @@ def main():
     # Content-level guard: collect Arabic text of already-uploaded duas
     # so we don't re-upload the same dua content under a different id.
     def _strip_diacritics(s):
-        return re.sub(r'[\u064B-\u065F\u0670\u0640]+', '', s or '')
+        return re.sub(r"[\u064B-\u065F\u0670\u0640]+", "", s or "")
 
     def _normalize_ar(s):
-        return re.sub(r'\s+', ' ', (s or '').strip())
+        return re.sub(r"\s+", " ", (s or "").strip())
 
     uploaded_arabic = []
     duas_db = []
-    _db_path = os.path.join(PROJECT, 'data', 'duas.json')
+    _db_path = os.path.join(PROJECT, "data", "duas.json")
     if os.path.exists(_db_path):
         try:
-            _raw = json.load(open(_db_path, encoding='utf-8'))
-            duas_db = _raw if isinstance(_raw, list) else _raw.get('duas', [])
+            _raw = json.load(open(_db_path, encoding="utf-8"))
+            duas_db = _raw if isinstance(_raw, list) else _raw.get("duas", [])
         except Exception:
             duas_db = []
-    uploaded_ids = {u for u, st in ledger.items() if st.get('status') == 'uploaded'}
+    uploaded_ids = {u for u, st in ledger.items() if st.get("status") == "uploaded"}
     for _d in duas_db:
-        if _d.get('id') in uploaded_ids:
-            _a = _normalize_ar(_strip_diacritics(_d.get('arabic')))
+        if _d.get("id") in uploaded_ids:
+            _a = _normalize_ar(_strip_diacritics(_d.get("arabic")))
             if _a:
                 uploaded_arabic.append(_a)
 
     def _uploaded_dup(dua_id):
         # candidate Arabic from duas.json (manifest may already be cleaned up)
-        cand = next((x for x in duas_db if x.get('id') == dua_id), None)
+        cand = next((x for x in duas_db if x.get("id") == dua_id), None)
         if not cand:
             return None
-        a = _normalize_ar(_strip_diacritics(cand.get('arabic')))
+        a = _normalize_ar(_strip_diacritics(cand.get("arabic")))
         if not a:
             return None
         for ua in uploaded_arabic:
@@ -599,13 +597,11 @@ def main():
     ready, skipped, failed_parse = [], [], []
     for dua_id in ids:
         if dua_id in locks:
-            skipped.append((dua_id, "LOCKED (permanent): "
-                            + locks[dua_id].get("reason", "")))
+            skipped.append((dua_id, "LOCKED (permanent): " + locks[dua_id].get("reason", "")))
             continue
         refn = manifest_reference(dua_id)
         if refn and refn in locked_refs:
-            skipped.append((dua_id, "REF-GUARD: same hadith reference "
-                            "as LOCKED " + locked_refs[refn]))
+            skipped.append((dua_id, "REF-GUARD: same hadith reference as LOCKED " + locked_refs[refn]))
             continue
         if dua_id in arch and dua_id not in only_set:
             skipped.append((dua_id, "archived entry"))
@@ -618,8 +614,7 @@ def main():
             skipped.append((dua_id, dup_reason))
             continue
         item, reasons = resolve_item(dua_id)
-        if item is None or any("no video" in r or "no thumb" in r
-                               or ">2MB" in r for r in reasons):
+        if item is None or any("no video" in r or "no thumb" in r or ">2MB" in r for r in reasons):
             failed_parse.append((dua_id, "; ".join(reasons)))
         else:
             ready.append((item, reasons))
@@ -631,15 +626,15 @@ def main():
         dropped = ready[cap:]
         ready = ready[:cap]
         for d_item, _dw in dropped:
-            skipped.append((d_item["dua_id"],
-                            "auto: deferred (N/quota cap)"))
-        print(f"AUTO-PICK         : {len(ready)} oldest-first of {len(ready) + len(dropped)} eligible "
-              f"({len(dropped)} deferred by N/quota)")
+            skipped.append((d_item["dua_id"], "auto: deferred (N/quota cap)"))
+        print(
+            f"AUTO-PICK         : {len(ready)} oldest-first of {len(ready) + len(dropped)} eligible "
+            f"({len(dropped)} deferred by N/quota)"
+        )
         for sid, why in skipped[:5]:
             auto_log(auto_runs_path, f"SKIP {sid} :: {why}")
         if len(skipped) > 5:
-            auto_log(auto_runs_path,
-                     f"SKIP ... +{len(skipped) - 5} more (see console)")
+            auto_log(auto_runs_path, f"SKIP ... +{len(skipped) - 5} more (see console)")
 
     plan_units = min(len(ready), max(remaining_today, 0)) * UPLOAD_UNITS
     print(f"library manifests : {len(ids)}")
@@ -649,8 +644,10 @@ def main():
     print(f"READY             : {len(ready)}")
     print(f"skipped           : {len(skipped)} (archived/done)")
     print(f"not-ready         : {len(failed_parse)}")
-    print(f"quota             : {eff_used}/{DAILY_CEILING} uploads used today (ledger:{used_today}, quota-log:{quploads}); "
-          f"this run plans {plan_units} units ({min(len(ready), max(remaining_today, 0))} x {UPLOAD_UNITS})")
+    print(
+        f"quota             : {eff_used}/{DAILY_CEILING} uploads used today (ledger:{used_today}, quota-log:{quploads}); "
+        f"this run plans {plan_units} units ({min(len(ready), max(remaining_today, 0))} x {UPLOAD_UNITS})"
+    )
     for sid, why in skipped[:6]:
         print(f"  skip  {sid}: {why}")
     for fid, why in failed_parse[:6]:
@@ -659,7 +656,7 @@ def main():
     mode = "LIVE" if args.live else "DRY-RUN"
     print(f"\n=== {mode.upper()} MODE | privacy={args.privacy} ===")
     if args.limit > 0:
-        ready = ready[:args.limit]
+        ready = ready[: args.limit]
 
     ok_n = fail_n = 0
     stop_cancel = False
@@ -674,37 +671,46 @@ def main():
     audit_entries = []
     for i, (item, warnings) in enumerate(ready, 1):
         if os.path.exists(cancel_flag):
-            print(f"[{i}/{len(ready)}] CANCEL requested - stopping gracefully "
-                  "(current video ke baad koi naya upload nahi)")
+            print(
+                f"[{i}/{len(ready)}] CANCEL requested - stopping gracefully "
+                "(current video ke baad koi naya upload nahi)"
+            )
             if auto_mode:
-                auto_log(auto_runs_path,
-                         f"CANCELLED by user at {i}/{len(ready)}")
+                auto_log(auto_runs_path, f"CANCELLED by user at {i}/{len(ready)}")
             stop_cancel = True
             break
-        if max(uploads_today(load_ledger(ledger_path)),
-               units_today(load_quota(qpath)) // UPLOAD_UNITS) >= DAILY_CEILING:
-            print(f"[{i}/{len(ready)}] QUOTA CEILING reached - stopping safely"
-                  )
+        if (
+            max(uploads_today(load_ledger(ledger_path)), units_today(load_quota(qpath)) // UPLOAD_UNITS)
+            >= DAILY_CEILING
+        ):
+            print(f"[{i}/{len(ready)}] QUOTA CEILING reached - stopping safely")
             if auto_mode:
-                auto_log(auto_runs_path,
-                         f"QUOTA CEILING stop at {i}/{len(ready)}")
+                auto_log(auto_runs_path, f"QUOTA CEILING stop at {i}/{len(ready)}")
             break
         payload = build_payload(item, args.privacy, args.category_id)
         tags_len = len(", ".join(payload["snippet"]["tags"]))
-        print("[{}/{}] {} | '{}' | {}KB thumb | tags:{}ch{}".format(
-            i, len(ready), item["dua_id"],
-            payload["snippet"]["title"][:48],
-            os.path.getsize(item["thumb"]) // 1024, tags_len,
-            "  warn: " + "; ".join(warnings) if warnings else ""))
+        print(
+            "[{}/{}] {} | '{}' | {}KB thumb | tags:{}ch{}".format(
+                i,
+                len(ready),
+                item["dua_id"],
+                payload["snippet"]["title"][:48],
+                os.path.getsize(item["thumb"]) // 1024,
+                tags_len,
+                "  warn: " + "; ".join(warnings) if warnings else "",
+            )
+        )
         if args.live:
             try:
                 vid = do_live_upload(service, item, payload)
                 ledger[item["dua_id"]] = {
-                    "status": "uploaded", "video_id": vid,
+                    "status": "uploaded",
+                    "video_id": vid,
                     "privacy": args.privacy,
                     "locked": True,
                     "units_spent": UPLOAD_UNITS,
-                    "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
+                    "uploaded_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                }
                 save_ledger(ledger, ledger_path)
                 spent = record_units(qpath, UPLOAD_UNITS)
                 print(f"  quota-log: {spent} units today")
@@ -723,36 +729,45 @@ def main():
                 except OSError as ce:
                     print("  WARN cleanup failed:", str(ce)[:120])
                 if auto_mode:
-                    auto_log(auto_runs_path,
-                             "UPLOADED {} -> https://youtu.be/{} "
-                             "(privacy={})".format(item["dua_id"], vid,
-                                                   args.privacy))
+                    auto_log(
+                        auto_runs_path,
+                        "UPLOADED {} -> https://youtu.be/{} (privacy={})".format(item["dua_id"], vid, args.privacy),
+                    )
                 time.sleep(2)
             except Exception as e:
                 fail_n += 1
                 print("  FAIL:", str(e)[:250])
                 if auto_mode:
-                    auto_log(auto_runs_path, "FAILED {} :: {}".format(
-                        item["dua_id"], str(e)[:200]))
+                    auto_log(auto_runs_path, "FAILED {} :: {}".format(item["dua_id"], str(e)[:200]))
         else:
             ok_n += 1
-        audit_entries.append({
-            "dua_id": item["dua_id"],
-            "title": item["meta"]["title"],
-            "tags": item["meta"]["tags"],
-            "description": item["meta"]["description"],
-            "reference": item.get("reference", "")})
+        audit_entries.append(
+            {
+                "dua_id": item["dua_id"],
+                "title": item["meta"]["title"],
+                "tags": item["meta"]["tags"],
+                "description": item["meta"]["description"],
+                "reference": item.get("reference", ""),
+            }
+        )
 
     if audit_entries:
         dups, n_hashes = uniqueness_audit(audit_entries)
         n = len(audit_entries)
         print(f"\n=== UNIQUENESS AUDIT ({mode}) ===")
-        print("titles       : {} ({}/{})".format(
-            "UNIQUE" if not dups["title"] else "DUPLICATES", n - len(dups["title"]), n))
-        print("tag-sets     : {} ({}/{})".format(
-            "UNIQUE" if not dups["tags"] else "DUPLICATES", n - len(dups["tags"]), n))
-        print("descriptions : {} ({}/{}, body sans disclaimer)".format(
-            "UNIQUE" if not dups["desc"] else "DUPLICATES", n - len(dups["desc"]), n))
+        print(
+            "titles       : {} ({}/{})".format(
+                "UNIQUE" if not dups["title"] else "DUPLICATES", n - len(dups["title"]), n
+            )
+        )
+        print(
+            "tag-sets     : {} ({}/{})".format("UNIQUE" if not dups["tags"] else "DUPLICATES", n - len(dups["tags"]), n)
+        )
+        print(
+            "descriptions : {} ({}/{}, body sans disclaimer)".format(
+                "UNIQUE" if not dups["desc"] else "DUPLICATES", n - len(dups["desc"]), n
+            )
+        )
         print(f"title hashes : {n_hashes}/{n} distinct (sha1[:8])")
         ref_groups = {}
         for e in audit_entries:
@@ -762,8 +777,7 @@ def main():
         shared = {k: v for k, v in ref_groups.items() if len(v) > 1}
         print(f"references   : {len(shared)} shared-ref group(s)")
         for rk, members in sorted(shared.items()):
-            print("  REF-SHARED [{}]: {}".format(
-                rk.title()[:40], ", ".join(members)))
+            print("  REF-SHARED [{}]: {}".format(rk.title()[:40], ", ".join(members)))
         for key, pairs in dups.items():
             for a, b in pairs:
                 print(f"  DUP[{key}]: {a} == {b}")
@@ -776,15 +790,18 @@ def main():
         except OSError:
             pass
 
-    print("\n=== SUMMARY ({}) {:.1f}s | ok:{} fail:{}{} | ledger:{} ==="
-          .format(mode, time.time() - t0, ok_n, fail_n,
-                  " | CANCELLED" if stop_cancel else "", ledger_path))
+    print(
+        "\n=== SUMMARY ({}) {:.1f}s | ok:{} fail:{}{} | ledger:{} ===".format(
+            mode, time.time() - t0, ok_n, fail_n, " | CANCELLED" if stop_cancel else "", ledger_path
+        )
+    )
     if auto_mode:
-        auto_log(auto_runs_path,
-                 "RUN end {}: ok={} fail={} picked={} "
-                 "elapsed={:.1f}s{}".format(
-                     mode, ok_n, fail_n, len(ready), time.time() - t0,
-                     " | CANCELLED" if stop_cancel else ""))
+        auto_log(
+            auto_runs_path,
+            "RUN end {}: ok={} fail={} picked={} elapsed={:.1f}s{}".format(
+                mode, ok_n, fail_n, len(ready), time.time() - t0, " | CANCELLED" if stop_cancel else ""
+            ),
+        )
     return 1 if fail_n else 0
 
 

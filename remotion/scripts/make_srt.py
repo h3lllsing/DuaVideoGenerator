@@ -26,6 +26,7 @@ Usage:
 
 Output: JSON on the LAST stdout line: {"ok":true,"files":[...]}
 """
+
 import argparse
 import json
 import os
@@ -37,8 +38,7 @@ try:
 except (AttributeError, ValueError):
     pass
 
-PROJECT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REMOTION = os.path.join(PROJECT, "remotion")
 DEFAULT_DATA = os.path.join(REMOTION, "src", "data")
 DEFAULT_OUT = os.path.join(REMOTION, "out")
@@ -73,11 +73,19 @@ def load_local_en_tokens():
 
 def norm_token(t):
     import unicodedata
+
     t = unicodedata.normalize("NFKC", t)
     t = "".join(c for c in t if not unicodedata.combining(c))
-    return (t.replace("إ", "ا").replace("أ", "ا").replace("آ", "ا")
-            .replace("ٱ", "ا").replace("ى", "ي").replace("ی", "ي")
-            .replace("ة", "ه").replace("ک", "ك"))
+    return (
+        t.replace("إ", "ا")
+        .replace("أ", "ا")
+        .replace("آ", "ا")
+        .replace("ٱ", "ا")
+        .replace("ى", "ي")
+        .replace("ی", "ي")
+        .replace("ة", "ه")
+        .replace("ک", "ك")
+    )
 
 
 def gloss_from_tokens(arabic_words, tokens):
@@ -179,7 +187,7 @@ def ai_translate_words(words):
 
 
 def safe_title(title):
-    return re.sub(r'[<>:"/\\|?*\x00-\x1f]+', '', title or 'Dua').strip()
+    return re.sub(r'[<>:"/\\|?*\x00-\x1f]+', "", title or "Dua").strip()
 
 
 def fmt_ts(secs):
@@ -206,21 +214,16 @@ def group_words(words, max_words=MAX_WORDS, max_span=MAX_SPAN):
         if len(cur) < max_words and span <= max_span:
             cur.append((idx, w))
         else:
-            lines.append((cur[0][1]["start"], cur[-1][1]["end"],
-                          " ".join(x["t"] for _, x in cur),
-                          [i for i, _ in cur]))
+            lines.append((cur[0][1]["start"], cur[-1][1]["end"], " ".join(x["t"] for _, x in cur), [i for i, _ in cur]))
             cur = [(idx, w)]
     if cur:
-        lines.append((cur[0][1]["start"], cur[-1][1]["end"],
-                      " ".join(x["t"] for _, x in cur),
-                      [i for i, _ in cur]))
+        lines.append((cur[0][1]["start"], cur[-1][1]["end"], " ".join(x["t"] for _, x in cur), [i for i, _ in cur]))
     return lines
 
 
 def en_from_glossary(ar_idx, gloss):
     """Build English line texts from per-word glosses aligned with arabicWords."""
-    return [" ".join(gloss[i] for i in idxs if i < len(gloss) and gloss[i])
-            for (_, _, _, idxs) in ar_idx]
+    return [" ".join(gloss[i] for i in idxs if i < len(gloss) and gloss[i]) for (_, _, _, idxs) in ar_idx]
 
 
 def srt_from_lines(lines):
@@ -256,6 +259,7 @@ def verified_en_source(dua_id):
     try:
         sys.path.insert(0, os.path.join(REMOTION, "scripts"))
         import verified_en
+
         dua = verified_en.get_dua(dua_id)
         if not dua:
             return None, None
@@ -272,6 +276,7 @@ def queue_en_review(dua_id, ref, ar, en, source):
     try:
         sys.path.insert(0, os.path.join(REMOTION, "scripts"))
         import verified_en
+
         verified_en.queue_for_review(dua_id, ref, ar, en, source)
         return True
     except Exception:
@@ -335,31 +340,24 @@ def main():
     ap.add_argument("--dua-id", required=True)
     ap.add_argument("--data", default=DEFAULT_DATA)
     ap.add_argument("--out", default=DEFAULT_OUT)
-    ap.add_argument("--no-en", action="store_true",
-                    help="skip AI English translation")
+    ap.add_argument("--no-en", action="store_true", help="skip AI English translation")
     args = ap.parse_args()
 
     manifest_path = os.path.join(args.data, args.dua_id + ".json")
     if not os.path.exists(manifest_path):
-        print(json.dumps({"ok": False,
-                          "error": "manifest not found: " + manifest_path},
-                         ensure_ascii=False))
+        print(json.dumps({"ok": False, "error": "manifest not found: " + manifest_path}, ensure_ascii=False))
         return 1
     try:
         with open(manifest_path, encoding="utf-8") as f:
             manifest = json.load(f)
     except Exception as e:
-        print(json.dumps({"ok": False,
-                          "error": "manifest read fail: %s" % (e,)},
-                         ensure_ascii=False))
+        print(json.dumps({"ok": False, "error": "manifest read fail: %s" % (e,)}, ensure_ascii=False))
         return 1
 
     ar_lines = group_words(manifest.get("arabicWords") or [])
     ur_lines = group_words(manifest.get("urduWords") or [])
     if not ar_lines and not ur_lines:
-        print(json.dumps({"ok": False,
-                          "error": "no word timing data in manifest"},
-                         ensure_ascii=False))
+        print(json.dumps({"ok": False, "error": "no word timing data in manifest"}, ensure_ascii=False))
         return 1
 
     title = manifest.get("title") or args.dua_id
@@ -432,9 +430,11 @@ def main():
         if not verified_en and gloss and not missing:
             en_texts = en_from_glossary(ar_lines, gloss)
             if any(en_texts):
-                source = "local" if used == "per-dua" else (
-                    "local-tokens-grown" if used == "tokens-grown"
-                    else "local-tokens")
+                source = (
+                    "local"
+                    if used == "per-dua"
+                    else ("local-tokens-grown" if used == "tokens-grown" else "local-tokens")
+                )
             else:
                 en_texts = None
         if not verified_en and en_texts is None:
@@ -450,27 +450,32 @@ def main():
             en = True
             # Fallback translations review queue me jaati hain - YouTube se
             # pehle insaan ka approval lazmi.
-            queue_en_review(args.dua_id,
-                            (en_meta or {}).get("reference"),
-                            (en_meta or {}).get("arabic") or
-                            " ".join(w.get("t", "") for w in
-                                     (manifest.get("arabicWords") or [])),
-                            " ".join(str(t).strip() for t in en_texts),
-                            source)
+            queue_en_review(
+                args.dua_id,
+                (en_meta or {}).get("reference"),
+                (en_meta or {}).get("arabic") or " ".join(w.get("t", "") for w in (manifest.get("arabicWords") or [])),
+                " ".join(str(t).strip() for t in en_texts),
+                source,
+            )
 
-    print(json.dumps({
-        "ok": True,
-        "duaId": args.dua_id,
-        "title": title,
-        "totalDuration": manifest.get("totalDuration"),
-        "arLines": len(ar_lines),
-        "urLines": len(ur_lines),
-        "en": en,
-        "enSource": source if en else None,
-        "enNewWords": en_new_words if en else None,
-        "enWarn": en_warn,
-        "files": files_written,
-    }, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "duaId": args.dua_id,
+                "title": title,
+                "totalDuration": manifest.get("totalDuration"),
+                "arLines": len(ar_lines),
+                "urLines": len(ur_lines),
+                "en": en,
+                "enSource": source if en else None,
+                "enNewWords": en_new_words if en else None,
+                "enWarn": en_warn,
+                "files": files_written,
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 

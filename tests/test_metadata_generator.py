@@ -165,8 +165,7 @@ class TestGenerateDescription:
 
     def test_all_categories_work(self):
         g = MetadataGenerator()
-        for cat in ["bathroom", "sleep", "food", "travel",
-                     "morning", "evening", "prayer", "general"]:
+        for cat in ["bathroom", "sleep", "food", "travel", "morning", "evening", "prayer", "general"]:
             desc = g.generate_description("a", "u", cat)
             assert isinstance(desc, str)
             assert len(desc) > 0
@@ -379,8 +378,7 @@ class TestGenerate:
 
     def test_all_categories_produce_valid_metadata(self):
         g = MetadataGenerator()
-        for cat in ["bathroom", "sleep", "food", "travel",
-                     "morning", "evening", "prayer", "general"]:
+        for cat in ["bathroom", "sleep", "food", "travel", "morning", "evening", "prayer", "general"]:
             m = g.generate("a", "u", cat)
             assert len(m["title"]) > 0
             assert len(m["description"]) > 0
@@ -395,8 +393,11 @@ class TestGenerate:
 
     def test_unicode_arabic_urdu(self):
         g = MetadataGenerator()
-        m = g.generate("\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650",
-                        "\u0627\u0644\u0644\u0647 \u06a9\u06d2 \u0646\u0627\u0645", "food")
+        m = g.generate(
+            "\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650",
+            "\u0627\u0644\u0644\u0647 \u06a9\u06d2 \u0646\u0627\u0645",
+            "food",
+        )
         assert "\u0627\u0644\u0644\u0647" in m["description"]
         assert len(m["title"]) > 0
 
@@ -538,8 +539,7 @@ class TestEdgeCases:
 
     def test_all_seven_categories_covered(self):
         g = MetadataGenerator()
-        cats = ["bathroom", "sleep", "food", "travel",
-                "morning", "evening", "prayer", "general"]
+        cats = ["bathroom", "sleep", "food", "travel", "morning", "evening", "prayer", "general"]
         for cat in cats:
             m = g.generate("a", "u", cat)
             assert m["title"] != "Islamic Dua | Prayer" or cat == "general"
