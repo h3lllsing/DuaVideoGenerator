@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 
-PROJECT = os.path.dirname(os.path.abspath(__file__))
+PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT = os.path.join(PROJECT, "remotion", "scripts", "make_manifest.py")
 DATA_DIR = os.path.join(PROJECT, "data")
 
