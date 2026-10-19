@@ -18,11 +18,10 @@ import json
 import os
 import re
 import sys
+import contextlib
 
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT, "data")

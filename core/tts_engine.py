@@ -11,6 +11,7 @@ except ImportError:
 from typing import cast
 
 from moviepy import AudioFileClip  # Audio duration nikalne ke liye
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -146,10 +147,8 @@ class TTSEngine:
                 except Exception as e:
                     logger.warning(f"Word boundary capture failed ({e}); retrying without metadata.")
                     if timing_path and os.path.exists(timing_path):
-                        try:
+                        with contextlib.suppress(OSError):
                             os.remove(timing_path)
-                        except OSError:
-                            pass
             communicate = edge_tts.Communicate(text, voice, rate=cast(str, rate), pitch=cast(str, pitch))
             await TTSEngine._save_with_timeout(communicate, output_file)
             return True

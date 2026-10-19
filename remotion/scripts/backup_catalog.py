@@ -34,6 +34,7 @@ import shutil
 import sys
 import tempfile
 from datetime import datetime
+import contextlib
 
 if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -279,10 +280,8 @@ def do_backup(source: str, dest: str, keep: int, allow_unsafe: bool) -> int:
             os.fsync(fh.fileno())
         os.replace(tmp, target)
     except Exception as exc:
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(tmp)
-        except OSError:
-            pass
         log_event("failed", reason=f"write error: {exc}", dest=target)
         return 1
 
@@ -294,10 +293,8 @@ def do_backup(source: str, dest: str, keep: int, allow_unsafe: bool) -> int:
         try:
             os.replace(target, suspect)
         except OSError:
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(target)
-            except OSError:
-                pass
             suspect = target
         log_event("failed", reason="verification failed", backup=target, quarantined=suspect, problems=problems)
         print("  VERIFICATION FAILED:", file=sys.stderr)

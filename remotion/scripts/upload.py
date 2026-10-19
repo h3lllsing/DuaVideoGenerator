@@ -40,11 +40,10 @@ import sys
 import tempfile
 import time
 from datetime import date, timedelta
+import contextlib
 
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(PROJECT, "remotion", "out")
@@ -84,10 +83,8 @@ def autopilot_lock_acquire():
 
 
 def autopilot_lock_release():
-    try:
+    with contextlib.suppress(OSError):
         os.remove(AUTO_LOCK)
-    except OSError:
-        pass
 
 
 def auto_log(runs_path, msg):
@@ -167,10 +164,8 @@ def _atomic_json_write(path, data):
             os.fsync(f.fileno())
         os.replace(tmp, path)
     except Exception:
-        try:
+        with contextlib.suppress(OSError):
             os.remove(tmp)
-        except OSError:
-            pass
         raise
 
 
@@ -785,10 +780,8 @@ def main():
         print("RESULT: {}".format("PASS" if clean else "WARN"))
 
     if os.path.exists(cancel_flag):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(cancel_flag)
-        except OSError:
-            pass
 
     print(
         "\n=== SUMMARY ({}) {:.1f}s | ok:{} fail:{}{} | ledger:{} ===".format(

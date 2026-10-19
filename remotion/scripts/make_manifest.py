@@ -8,6 +8,7 @@ import sys
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT)
 import config as project_config
+import contextlib
 
 REMOTION = os.path.join(PROJECT, "remotion")
 TEMP = os.path.join(PROJECT, "temp")
@@ -143,10 +144,8 @@ def master_audio(wav_src, audio_dst):
     finally:
         for tmp in (chained, normalized):
             if os.path.exists(tmp):
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(tmp)
-                except OSError:
-                    pass
 
 
 # STYLE-ROTATION v2 (2026-08-23): anti dark-monotony rebalance.

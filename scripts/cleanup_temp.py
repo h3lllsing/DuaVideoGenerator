@@ -20,6 +20,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "remotion", "scripts"))
 from upload import safe_title  # same naming logic as the uploader
+import contextlib
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMP = os.path.join(PROJECT, "temp")
@@ -71,10 +72,8 @@ def main():
             freed[0] += os.path.getsize(p)
             deleted[0] += 1
             if not args.dry_run:
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(p)
-                except OSError:
-                    pass
 
     for d in arr:
         dua_id = d.get("id") or ""
@@ -92,10 +91,8 @@ def main():
                 freed[0] += os.path.getsize(p)
                 deleted[0] += 1
                 if not args.dry_run:
-                    try:
+                    with contextlib.suppress(OSError):
                         os.remove(p)
-                    except OSError:
-                        pass
         # (b) id-based thumbnail (genThumb writes out/thumbs/{id}.png)
         # KEPT: thumbnails are required by the upload ready-check
         # (upload.py -> "no thumb" skip). They are NOT regenerated on
@@ -109,10 +106,8 @@ def main():
                     freed[0] += os.path.getsize(p)
                     deleted[0] += 1
                     if not args.dry_run:
-                        try:
+                        with contextlib.suppress(OSError):
                             os.remove(p)
-                        except OSError:
-                            pass
 
     # stray temp files that belong to no known dua (custom/test) - report only
     known = {d.get("id") or "" for d in arr}

@@ -32,11 +32,10 @@ import json
 import os
 import re
 import sys
+import contextlib
 
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 REMOTION = os.path.join(PROJECT, "remotion")
@@ -157,7 +156,7 @@ def ai_translate_words(words):
         sys.path.insert(0, os.path.join(REMOTION, "scripts"))
         from ai_import import API_KEYS, call_api, keyless_enabled
     except Exception as e:
-        return None, "AI infra load fail: %s" % (e,)
+        return None, "AI infra load fail: {}".format(e)
 
     if not API_KEYS and not keyless_enabled():
         return None, "Koi API key configured nahi hai - en.srt skipped"
@@ -180,7 +179,7 @@ def ai_translate_words(words):
             parsed = _parse_ts(content)
             if parsed is not None and len(parsed) == len(words):
                 return dict(zip(words, [str(x).strip() for x in parsed])), None
-            last_err = "bad response (%s)" % model
+            last_err = "bad response ({})".format(model)
         else:
             last_err = "all models failed"
     return None, last_err
@@ -289,7 +288,7 @@ def ai_translate_lines(lines):
         sys.path.insert(0, os.path.join(REMOTION, "scripts"))
         from ai_import import API_KEYS, call_api, keyless_enabled
     except Exception as e:
-        return None, "AI infra load fail: %s" % (e,)
+        return None, "AI infra load fail: {}".format(e)
 
     if not API_KEYS and not keyless_enabled():
         return None, "Koi API key configured nahi hai - en.srt skipped"
@@ -313,7 +312,7 @@ def ai_translate_lines(lines):
             parsed = _parse_ts(content)
             if parsed is not None and len(parsed) == len(lines):
                 return parsed, None
-            last_err = "bad response (%s)" % model
+            last_err = "bad response ({})".format(model)
         else:
             last_err = "all models failed"
     return None, last_err
@@ -351,7 +350,7 @@ def main():
         with open(manifest_path, encoding="utf-8") as f:
             manifest = json.load(f)
     except Exception as e:
-        print(json.dumps({"ok": False, "error": "manifest read fail: %s" % (e,)}, ensure_ascii=False))
+        print(json.dumps({"ok": False, "error": "manifest read fail: {}".format(e)}, ensure_ascii=False))
         return 1
 
     ar_lines = group_words(manifest.get("arabicWords") or [])

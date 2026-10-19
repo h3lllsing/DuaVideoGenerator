@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 import imageio_ffmpeg
 import numpy as np
 from moviepy import AudioFileClip, concatenate_audioclips
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -227,15 +228,11 @@ class AudioMixer:
 
         finally:
             for clip in clips:
-                try:
+                with contextlib.suppress(OSError, ValueError):
                     clip.close()
-                except (OSError, ValueError):
-                    pass
             if final_clip is not None:
-                try:
+                with contextlib.suppress(OSError, ValueError):
                     final_clip.close()
-                except (OSError, ValueError):
-                    pass
 
     @staticmethod
     def merge_audio_crossfade(
@@ -325,15 +322,11 @@ class AudioMixer:
 
         finally:
             for c in clips:
-                try:
+                with contextlib.suppress(OSError, ValueError):
                     c.close()
-                except (OSError, ValueError):
-                    pass
             if final is not None:
-                try:
+                with contextlib.suppress(OSError, ValueError):
                     final.close()
-                except (OSError, ValueError):
-                    pass
 
     @staticmethod
     async def _measure_loudness_async(input_path: str) -> dict:
@@ -349,7 +342,7 @@ class AudioMixer:
                 "-i",
                 input_path,
                 "-af",
-                "loudnorm=I=%s:TP=%s:LRA=%s:print_format=json" % (LOUDNESS_TARGET, TRUE_PEAK_TARGET, LRA_TARGET),
+                "loudnorm=I={}:TP={}:LRA={}:print_format=json".format(LOUDNESS_TARGET, TRUE_PEAK_TARGET, LRA_TARGET),
                 "-f",
                 "null",
                 "-",
@@ -366,7 +359,7 @@ class AudioMixer:
             stderr_text = stderr.decode("utf-8", errors="replace")
             out = {}
             for key in ("input_i", "input_tp", "input_lra", "input_thresh", "target_offset"):
-                m = re.search(r'"%s"\s*:\s*"(-?[\d.]+)"' % key, stderr_text)
+                m = re.search(r'"{}"\s*:\s*"(-?[\d.]+)"'.format(key), stderr_text)
                 if m:
                     out[key] = float(m.group(1))
             return out
@@ -402,9 +395,8 @@ class AudioMixer:
                 return False, {}
 
             af = (
-                "loudnorm=I=%s:TP=%s:LRA=%s:measured_I=%s:measured_TP=%s:"
-                "measured_LRA=%s:measured_thresh=%s:offset=%s:linear=true"
-                % (
+                "loudnorm=I={}:TP={}:LRA={}:measured_I={}:measured_TP={}:"
+                "measured_LRA={}:measured_thresh={}:offset={}:linear=true".format(
                     LOUDNESS_TARGET,
                     TRUE_PEAK_TARGET,
                     LRA_TARGET,

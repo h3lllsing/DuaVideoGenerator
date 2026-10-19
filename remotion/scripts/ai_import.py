@@ -16,11 +16,10 @@ import shutil
 import sys
 import time
 import urllib.request
+import contextlib
 
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT, "data")
@@ -67,10 +66,8 @@ def acquire_lock():
             except Exception:
                 stale = True
             if stale:
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(LOCK_PATH)
-                except OSError:
-                    pass
                 continue
             return False
         except OSError:
@@ -79,10 +76,8 @@ def acquire_lock():
 
 
 def release_lock():
-    try:
+    with contextlib.suppress(OSError):
         os.remove(LOCK_PATH)
-    except OSError:
-        pass
 
 
 def load_config():
@@ -373,10 +368,8 @@ def call_api(messages, api_key, model=None, require_dua=True):
             return content, m
         except urllib.error.HTTPError as e:
             body = ""
-            try:
+            with contextlib.suppress(Exception):
                 body = e.read().decode("utf-8", errors="replace")[:500]
-            except Exception:
-                pass
             why = _block_reason(body) or ("HTTP " + str(e.code))
             print("  [skip] model=" + m + " key=" + _mask_key(api_key) + " -> " + why)
             continue
@@ -529,10 +522,8 @@ def save_duas(new_items):
         os.replace(tmp, DUAS_PATH)
     except Exception as e:
         print("ERROR: duas.json save failed: " + str(e)[:200], file=sys.stderr)
-        try:
+        with contextlib.suppress(OSError):
             os.remove(tmp)
-        except OSError:
-            pass
         return []
     return added
 

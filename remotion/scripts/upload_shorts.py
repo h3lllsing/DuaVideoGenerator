@@ -142,7 +142,7 @@ def mirror_upload(service, body, media, progress=False, max_attempts=MAX_ATTEMPT
         media_obj, path = None, media
 
     if path is not None and not os.path.isfile(path):
-        raise FileNotFoundError("video file not found: %s" % path)
+        raise FileNotFoundError("video file not found: {}".format(path))
 
     attempts, last = 0, None
     while True:
@@ -202,7 +202,7 @@ def main():
                     {
                         "ok": False,
                         "total": 0,
-                        "error": "no prepared short found for: %s" % ",".join(want),
+                        "error": "no prepared short found for: {}".format(",".join(want)),
                         "prepared_count": len({k: v for k, v in load_state().items() if v.get("shortHref")}),
                     },
                     ensure_ascii=False,
@@ -281,7 +281,7 @@ def main():
             ustate.mark_uploading(did, "youtube", video_path=media_path)
         try:
             if not os.path.isfile(media_path):
-                raise FileNotFoundError("video file not found: %s" % media_path)
+                raise FileNotFoundError("video file not found: {}".format(media_path))
             resp = mirror_upload(
                 service, body, media_path, max_attempts=max(1, args.max_attempts), backoff_base=args.backoff_base
             )

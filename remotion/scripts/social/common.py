@@ -169,8 +169,9 @@ def resolve_video(dua_id: str, kind: str = "short", require_short: bool = False)
         if os.path.isfile(path) and os.path.getsize(path) > 0:
             return path
     raise UploadError(
-        "no rendered video for '%s' (looked in: %s)"
-        % (dua_id, ", ".join(os.path.relpath(c, PROJECT_ROOT) for c in candidates))
+        "no rendered video for '{}' (looked in: {})".format(
+            dua_id, ", ".join(os.path.relpath(c, PROJECT_ROOT) for c in candidates)
+        )
     )
 
 

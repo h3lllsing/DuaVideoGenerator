@@ -134,7 +134,7 @@ class ArabicRenderer:
                 import freetype
                 import uharfbuzz as hb
             except ImportError as exc:  # pragma: no cover
-                raise RuntimeError("arabic_renderer needs uharfbuzz + freetype-py: %r" % exc)
+                raise RuntimeError("arabic_renderer needs uharfbuzz + freetype-py: {!r}".format(exc))
             with open(self.font_path, "rb") as f:
                 self._hb_face = hb.Face(f.read())
             self._hb_font = hb.Font(self._hb_face)

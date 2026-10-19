@@ -8,6 +8,7 @@ import logging
 import os
 from datetime import datetime
 from typing import Any, cast
+import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -175,10 +176,8 @@ class SelfTrainer:
 
             shutil.move(tmp_path, self.feedback_file)
         except Exception:
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(tmp_path)
-            except OSError:
-                pass
             raise
 
     def _load_preferences(self) -> dict[str, Any]:

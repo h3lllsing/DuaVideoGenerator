@@ -104,7 +104,7 @@ class TestEffectDirector:
         base = np.random.randint(15, 60, (640, 360, 3), dtype=np.uint8)
         base[230:430, 120:260] = 235  # bright text block
         out = eng._fx_vignette(base, {"strength": 0.35}, 1, 0, 10)
-        assert out.mean() < 120, "vignette whitewashed the frame (mean %.0f)" % out.mean()
+        assert out.mean() < 120, "vignette whitewashed the frame (mean {:.0f})".format(out.mean())
         assert out.max() >= 200, "bright text lost after vignette"
 
     def test_full_auto_plan_keeps_dark_background(self):
@@ -119,7 +119,7 @@ class TestEffectDirector:
         )
         out = EffectsEngine(width=360, height=640).apply_plan(frames, d["frame_plan"])
         means = [np.asarray(f).mean() for f in out]
-        assert max(means) < 150, "auto plan whitewashed frames (max mean %.0f)" % max(means)
+        assert max(means) < 150, "auto plan whitewashed frames (max mean {:.0f})".format(max(means))
 
 
 class TestHardware:

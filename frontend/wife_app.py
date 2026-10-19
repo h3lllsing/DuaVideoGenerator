@@ -31,6 +31,7 @@ from frontend.effect_preview import (
     preview_path,
 )
 from main import DuaVideoPipeline, dua_video_filename
+import contextlib
 
 # Generate EFFECT_OPTIONS dynamically from master config
 EFFECT_OPTIONS = (
@@ -108,10 +109,8 @@ class DuaApp(ctk.CTk):
     def _set_icon(self):
         icon = os.path.join(PROJECT.ASSETS_DIR, "icons", "app.ico")
         if os.path.exists(icon):
-            try:
+            with contextlib.suppress(tk.TclError):
                 self.iconbitmap(icon)
-            except tk.TclError:
-                pass
 
     def _on_close(self):
         if self.running and not messagebox.askyesno(
@@ -704,10 +703,8 @@ class DuaApp(ctk.CTk):
             return
         self._remove_dua_from_file(dua)
         for p in video_paths:
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(p)
-            except OSError:
-                pass
         self.selected_dua = None
         self._select_category(dua.get("category"))
 
@@ -858,10 +855,8 @@ class DuaApp(ctk.CTk):
             shutil.copy2(path, os.path.join(bdir, f"{name}_{stamp}.json"))
             old = sorted(glob.glob(os.path.join(bdir, f"{name}_*.json")))
             for stale in old[:-20]:
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(stale)
-                except OSError:
-                    pass
         except OSError:
             pass
 

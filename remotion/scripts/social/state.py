@@ -52,6 +52,7 @@ import os
 import tempfile
 import threading
 from datetime import UTC, datetime
+import contextlib
 
 # --- paths ---------------------------------------------------------------
 SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -204,10 +205,8 @@ def atomic_write(file_path: str, data) -> str:
                 os.fsync(fh.fileno())
             os.replace(tmp, path)
         except BaseException:
-            try:
+            with contextlib.suppress(OSError):
                 os.unlink(tmp)
-            except OSError:
-                pass
             raise
     return path
 

@@ -25,11 +25,10 @@ import re
 import sys
 import tempfile
 import time
+import contextlib
 
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(PROJECT, "data")
@@ -180,7 +179,7 @@ def write_generated_srt(en_text, duration_secs):
     """Single caption block spanning the video (verified/hadith single-line
     style) -> temp srt file path."""
     tt = fmt_ts(duration_secs)
-    body = "1\n00:00:00,000 --> %s\n%s\n" % (tt, en_text)
+    body = "1\n00:00:00,000 --> {}\n{}\n".format(tt, en_text)
     fd, path = tempfile.mkstemp(suffix=".en.srt", prefix="cap_")
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(body)
@@ -251,10 +250,8 @@ def main():
 
             if args.dry_run:
                 if gpath:
-                    try:
+                    with contextlib.suppress(OSError):
                         os.remove(gpath)
-                    except OSError:
-                        pass
                 results.append(
                     {
                         "duaId": dua_id,
@@ -280,7 +277,7 @@ def main():
                         "duaId": dua_id,
                         "videoId": video_id,
                         "status": "error",
-                        "note": "captions.list failed: %s" % (tracks[1],),
+                        "note": "captions.list failed: {}".format(tracks[1]),
                     }
                 )
                 continue
@@ -303,10 +300,8 @@ def main():
                 }
             )
             if gpath:
-                try:
+                with contextlib.suppress(OSError):
                     os.remove(gpath)
-                except OSError:
-                    pass
             time.sleep(1)
         except Exception as e:
             results.append({"duaId": dua_id, "videoId": video_id, "status": "error", "note": str(e)[:300]})

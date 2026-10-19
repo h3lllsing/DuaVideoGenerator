@@ -16,6 +16,7 @@ import json
 import os
 import re
 import sys
+import contextlib
 
 if __name__ == "__main__":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -368,10 +369,8 @@ def main():
     rot = Rot(dua_id)
     cfg = {}
     if os.path.exists(CFG_PATH):
-        try:
+        with contextlib.suppress(Exception):
             cfg = load_json(CFG_PATH)
-        except Exception:
-            pass
 
     lines = [
         "TITLE:",

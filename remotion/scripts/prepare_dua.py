@@ -18,6 +18,7 @@ from moviepy import AudioFileClip
 from core.audio_mixer import AudioMixer
 from core.dua_database import DB
 from core.tts_engine import TTSEngine
+import contextlib
 
 # Hierarchy: har dua Bismillah se shuru hoti hai. Data me likhna zaroori
 # nahi — pipeline khud prepend karti hai (agar pehle se na ho).
@@ -162,10 +163,8 @@ def main(dua_id, force=False, only=None):
     if AudioMixer.normalize_loudness(merged, normalized):
         ok = AudioMixer.merge_audio_sequential([normalized], merged, gap_seconds=0.0, pad_to_duration=final_duration)
         if os.path.exists(normalized):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(normalized)
-            except OSError:
-                pass
     else:
         ok = AudioMixer.merge_audio_sequential([ar, ur], merged, gap_seconds=0.3, pad_to_duration=final_duration)
     if not ok:

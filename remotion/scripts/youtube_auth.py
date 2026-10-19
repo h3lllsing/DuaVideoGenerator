@@ -19,11 +19,10 @@ import glob
 import json
 import os
 import sys
+import contextlib
 
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TOKEN_PATH = os.path.join(PROJECT, "data", "yt_token.json")
@@ -79,10 +78,8 @@ def save_token(cred):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(payload, f, indent=1)
     os.replace(tmp, TOKEN_PATH)
-    try:
+    with contextlib.suppress(OSError):
         os.chmod(TOKEN_PATH, 0o600)
-    except OSError:
-        pass
 
 
 def get_credentials():

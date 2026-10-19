@@ -8,6 +8,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
+import contextlib
 
 PROJECT = Path(__file__).resolve().parent.parent
 BACKUP_DIR = PROJECT / "backups"
@@ -165,10 +166,8 @@ def list_backups():
 if __name__ == "__main__":
     import argparse
 
-    try:
+    with contextlib.suppress(AttributeError, ValueError):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    except (AttributeError, ValueError):
-        pass
 
     ap = argparse.ArgumentParser(prog="restore.py")
     ap.add_argument("command", nargs="?", default="list", help="list | restore")

@@ -16,12 +16,11 @@ import json
 import os
 import sys
 import time
+import contextlib
 
 SYSOUT = None
-try:
+with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-except (AttributeError, ValueError):
-    pass
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(os.path.dirname(SCRIPTS))

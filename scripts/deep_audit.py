@@ -5,6 +5,8 @@ import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
 from pathlib import Path
+import contextlib
+import builtins
 
 PROJECT = Path(__file__).resolve().parent.parent
 results = []
@@ -100,10 +102,8 @@ file_list = [
     "tests/test_concurrent.py",
 ]
 for f in file_list:
-    try:
+    with contextlib.suppress(builtins.BaseException):
         files[f] = read(f)
-    except:
-        pass
 
 print("=" * 70)
 print("PHASE 1: CRITICAL FIXES")

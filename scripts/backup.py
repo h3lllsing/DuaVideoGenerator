@@ -10,6 +10,7 @@ import os
 import shutil
 from datetime import datetime
 from pathlib import Path
+import contextlib
 
 PROJECT = Path(__file__).resolve().parent.parent
 BACKUP_DIR = PROJECT / "backups"
@@ -179,10 +180,8 @@ def rotate_backups(max_backups=10):
 if __name__ == "__main__":
     import sys
 
-    try:
+    with contextlib.suppress(AttributeError, ValueError):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    except (AttributeError, ValueError):
-        pass
 
     if len(sys.argv) > 1 and sys.argv[1] == "list":
         list_backups()

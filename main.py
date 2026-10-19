@@ -40,6 +40,7 @@ setup_logging()
 # ── Temp cleanup on crash/exit ──
 import atexit
 import signal
+import contextlib
 
 
 def _load_known_dua_ids():
@@ -381,10 +382,8 @@ class DuaVideoPipeline:
             return None
 
         if os.path.exists(normalized_audio):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(normalized_audio)
-            except OSError:
-                pass
 
         logger.info(f"[2/5] Audio ready. {timeline['reason']}")
         return timeline
@@ -444,10 +443,8 @@ class DuaVideoPipeline:
             return None
 
         if os.path.exists(normalized_audio):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(normalized_audio)
-            except OSError:
-                pass
 
         logger.info(f"[2/5] Audio ready (parallel). {timeline['reason']}")
         return timeline

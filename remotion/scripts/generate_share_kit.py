@@ -56,7 +56,7 @@ def get_channel_id():
     info = {
         "id": item.get("id"),
         "title": item.get("snippet", {}).get("title"),
-        "url": "https://www.youtube.com/channel/%s" % item.get("id"),
+        "url": "https://www.youtube.com/channel/{}".format(item.get("id")),
         "subs": item.get("statistics", {}).get("subscriberCount"),
         "videos": item.get("statistics", {}).get("videoCount"),
     }
@@ -73,14 +73,14 @@ def build_text(dua, video_id, is_short, cid, cinfo):
     arabic = (dua.get("arabic") or "").strip()
     urdu = (dua.get("urdu") or "").strip()
     if is_short:
-        watch = "https://youtube.com/shorts/%s" % video_id
+        watch = "https://youtube.com/shorts/{}".format(video_id)
     else:
-        watch = "https://youtu.be/%s" % video_id
-    sub = "https://www.youtube.com/channel/%s?sub_confirmation=1" % cid if cid else ""
+        watch = "https://youtu.be/{}".format(video_id)
+    sub = "https://www.youtube.com/channel/{}?sub_confirmation=1".format(cid) if cid else ""
     lines = []
     head = title
     if ref:
-        head += "  🔖 %s" % ref
+        head += "  🔖 {}".format(ref)
     lines.append(head)
     lines.append("")
     lines.append("🤲 " + arabic)
@@ -129,18 +129,18 @@ def main():
             index.append((dua_id, dua.get("title") or "", kind, video_id, (dua.get("reference") or "")))
         written += 1
 
-    sub = "https://www.youtube.com/channel/%s?sub_confirmation=1" % cid
+    sub = "https://www.youtube.com/channel/{}?sub_confirmation=1".format(cid)
     md = [
         "# Share Kit — %s" % (cinfo.get("title") or "Noor-e-Iman"),
         "",
-        "Subs: %s | Videos: %s" % (cinfo.get("subs"), cinfo.get("videos")),
-        "Subscribe: %s" % sub,
+        "Subs: {} | Videos: {}".format(cinfo.get("subs"), cinfo.get("videos")),
+        "Subscribe: {}".format(sub),
         "",
         "| dua_id | title | kind | video_id | reference |",
         "|---|---|---|---|---|",
     ]
     for dua_id, title, kind, video_id, ref in sorted(index):
-        md.append("| %s | %s | %s | %s | %s |" % (dua_id, title, kind, video_id, ref))
+        md.append("| {} | {} | {} | {} | {} |".format(dua_id, title, kind, video_id, ref))
     with open(os.path.join(KIT_DIR, "INDEX.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(md) + "\n")
 
