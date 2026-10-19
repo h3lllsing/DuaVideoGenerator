@@ -97,7 +97,6 @@ jobs:
           ruff check .
 
       - name: Format check with ruff
-        continue-on-error: true
         run: |
           ruff format --check .
 
