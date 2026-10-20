@@ -207,7 +207,6 @@ def build(dry_run: bool, include_orphans: bool):
 
 
 def report(stats, catalog_ids, dry_run):
-    verb = "would write" if dry_run else "wrote"
     print(f"  long-form ledger entries   : {stats['long']}")
     print(f"  shorts ledger entries      : {stats['shorts']}")
     print(f"  unique dua_ids             : {stats['unique']}")

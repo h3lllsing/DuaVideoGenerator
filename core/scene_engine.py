@@ -797,7 +797,7 @@ class SceneRenderer:
             # surfaces list, regardless of early skips below.
             spans_out: list[list[Any]] = []
             spans_ok = True
-            for line in lines:
+            for _line in lines:
                 s = next(surf_iter, None) if surf_iter is not None else None
                 ws = s.get("words") if s is not None else None
                 if ws:
@@ -842,7 +842,7 @@ class SceneRenderer:
         """Draw the active word's overlay on the frame at scene time ``t``."""
         from core.word_highlight import highlight_targets, make_word_highlight_box, make_word_overlay
 
-        for role, info in highlight.items():
+        for _role, info in highlight.items():
             rect = highlight_targets(info["events"], info["geometry"], t)
             if rect is None:
                 continue

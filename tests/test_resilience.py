@@ -65,7 +65,7 @@ def corrupt_wav(tmp_dir):
 def empty_file(tmp_dir):
     """Create an empty file."""
     path = os.path.join(tmp_dir, "empty.wav")
-    with open(path, "wb") as f:
+    with open(path, "wb") as _f:
         pass  # Empty file
     return path
 
@@ -372,7 +372,7 @@ class TestVaultEncryptionRecovery:
         vault_path = security_manager.vault_path
 
         # Create empty vault file
-        with open(vault_path, "wb") as f:
+        with open(vault_path, "wb") as _f:
             pass  # Empty file
 
         # Should handle empty vault gracefully
@@ -468,7 +468,7 @@ class TestVaultEncryptionRecovery:
         security_manager.save_vault(test_data)
 
         # Simulate key rotation (new salt)
-        old_salt = security_manager.salt
+        _old_salt = security_manager.salt
         new_salt = os.urandom(16)
         security_manager.salt = new_salt
         security_manager.key = security_manager._derive_key_with_salt(security_manager.master_password, new_salt)

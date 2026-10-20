@@ -301,7 +301,7 @@ class ArabicRenderer:
         min_x = min_y = 1 << 30
         max_x = max_y = -(1 << 30)
         pen_x = 0.0
-        for gid, x_adv, y_adv, x_off, y_off, _cluster in glyphs:
+        for gid, x_adv, _y_adv, x_off, y_off, _cluster in glyphs:
             face.load_glyph(gid, freetype.FT_LOAD_RENDER | freetype.FT_LOAD_TARGET_NORMAL)
             bmp = face.glyph.bitmap
             if bmp.buffer is not None and bmp.rows > 0 and bmp.width > 0:
@@ -442,7 +442,7 @@ class ArabicRenderer:
         ink_min = 1 << 30
         ink_max = -(1 << 30)
         pen_x = 0.0
-        for gid, x_adv, y_adv, x_off, y_off, cluster in glyphs:
+        for gid, x_adv, _y_adv, x_off, _y_off, cluster in glyphs:
             face.load_glyph(gid, freetype.FT_LOAD_RENDER | freetype.FT_LOAD_TARGET_NORMAL)
             bmp = face.glyph.bitmap
             if bmp.buffer is not None and bmp.rows > 0 and bmp.width > 0:

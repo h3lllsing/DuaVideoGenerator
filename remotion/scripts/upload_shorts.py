@@ -144,7 +144,7 @@ def mirror_upload(service, body, media, progress=False, max_attempts=MAX_ATTEMPT
     if path is not None and not os.path.isfile(path):
         raise FileNotFoundError(f"video file not found: {path}")
 
-    attempts, last = 0, None
+    attempts, _last = 0, None
     while True:
         try:
             if path is not None:

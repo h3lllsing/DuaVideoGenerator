@@ -135,7 +135,7 @@ class MegaPackPipeline:
             from core.scene_engine import MotionSpec, SceneRenderer
 
             # Create Arabic renderer with selected font
-            arabic_renderer = ArabicRenderer(font_key=config.arabic_font)
+            _arabic_renderer = ArabicRenderer(font_key=config.arabic_font)
 
             # 6. Create scene with random settings
             scene_renderer = SceneRenderer()

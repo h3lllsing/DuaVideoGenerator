@@ -68,14 +68,14 @@ class TestColorSchemesStructure:
 
     def test_has_required_keys(self):
         engine = RevampEngine()
-        for name, scheme in engine.color_schemes.items():
+        for _name, scheme in engine.color_schemes.items():
             assert "primary" in scheme
             assert "secondary" in scheme
             assert "background" in scheme
 
     def test_tuples_are_valid_rgb(self):
         engine = RevampEngine()
-        for name, scheme in engine.color_schemes.items():
+        for _name, scheme in engine.color_schemes.items():
             for key in ("primary", "secondary", "background"):
                 assert isinstance(scheme[key], tuple)
                 assert len(scheme[key]) == 3

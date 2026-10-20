@@ -639,9 +639,9 @@ class UltraConfig:
 
     def summary(self) -> str:
         """Human-readable summary."""
-        font_info = MASTER_FONTS.get(self.arabic_font, {})
-        effect_info = MASTER_EFFECTS.get(self.text_effect, {})
-        palette_info = MASTER_PALETTES.get(self.palette, {})
+        MASTER_FONTS.get(self.arabic_font, {})
+        MASTER_EFFECTS.get(self.text_effect, {})
+        MASTER_PALETTES.get(self.palette, {})
 
         vfx_lines = ""
         if self.vfx_pattern:

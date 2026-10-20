@@ -173,7 +173,7 @@ def main():
             if not photos:
                 break
 
-            for i, ph in enumerate(photos):
+            for _i, ph in enumerate(photos):
                 if got_new >= args.per_category:
                     break
                 ph_id = ph.get("id")
@@ -240,7 +240,7 @@ def main():
                 vids = vresp.get("videos", [])
                 if not vids:
                     break
-                for vi, vid in enumerate(vids):
+                for _vi, vid in enumerate(vids):
                     if vgot >= args.videos_per_category:
                         break
                     # pick the smallest file that is >= 720 height (keep size sane)

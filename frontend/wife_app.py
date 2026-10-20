@@ -95,7 +95,7 @@ class DuaApp(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._set_icon()
 
-        cats = self.db.get_categories()
+        _cats = self.db.get_categories()
         self._select_category(None)
 
     # ---------- Window helpers ----------

@@ -42,7 +42,7 @@ def _tags_for(dua_id: str) -> list:
     head = "".join(w[0] for w in title.split()[:3])
     if head:
         tags.append("#" + head.lower())
-    reference = (entry.get("reference") or "").strip()
+    (entry.get("reference") or "").strip()
     return tags
 
 

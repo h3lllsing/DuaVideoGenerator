@@ -176,11 +176,9 @@ def main():
         want = [x.strip() for x in args.only.split(",") if x.strip()]
         sources = {k: v for k, v in sources.items() if k in want}
         order = sorted(sources)
-        missing = [
-            w for w in want if w not in sources and not os.path.exists(os.path.join(SHORT_DIR, w + ".short.mp4"))
-        ]
+        [w for w in want if w not in sources and not os.path.exists(os.path.join(SHORT_DIR, w + ".short.mp4"))]
     else:
-        missing = []
+        pass
 
     if args.dry_run:
         items = []

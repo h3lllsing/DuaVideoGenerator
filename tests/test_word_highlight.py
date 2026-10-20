@@ -143,7 +143,7 @@ def _spans(texts, per_line_x):
     """line_spans aligned with _lines(texts): per line a list of
     (logical_token_index, x0, x1) FRAME-coordinate boxes."""
     out, ti = [], 0
-    for texts_i, xs in zip(texts, per_line_x, strict=False):
+    for _texts_i, xs in zip(texts, per_line_x, strict=False):
         entry = []
         for x0, x1 in xs:
             entry.append((ti, x0, x1))
@@ -191,7 +191,7 @@ def test_build_word_geometry_single_line_rtl_order():
     assert geo["mode"] == "word"
     assert set(geo["targets"]) == {0, 1, 2}
     assert geo["targets"][0][0] > geo["targets"][1][0] > geo["targets"][2][0]
-    for k, rect in geo["targets"].items():
+    for _k, rect in geo["targets"].items():
         assert rect[0] >= 200 and rect[2] <= 880
         assert rect[1] >= 300 and rect[3] <= 380
 
@@ -203,7 +203,7 @@ def test_build_word_geometry_mixed_direction():
     assert geo["mode"] == "word"
     assert set(geo["targets"]) == {0, 1, 2, 3, 4}
     # Logical word 1 is "Allah" (Latin) but is still mapped by position.
-    for k, rect in geo["targets"].items():
+    for _k, rect in geo["targets"].items():
         assert rect[0] >= 200 and rect[2] <= 880
 
 

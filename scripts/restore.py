@@ -42,7 +42,7 @@ def auto_backup():
         ]
 
     backed_up = 0
-    for rel_path, description, _encrypt in BACKUP_FILES:
+    for rel_path, _description, _encrypt in BACKUP_FILES:
         src = PROJECT / rel_path
         if src.exists():
             dst = backup_path / rel_path

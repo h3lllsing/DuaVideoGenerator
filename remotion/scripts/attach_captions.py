@@ -218,7 +218,7 @@ def main():
         return 1
 
     results = []
-    for dua_id, video_id, en, srt_path, title, note in plan:
+    for dua_id, video_id, en, srt_path, _title, note in plan:
         if note:
             results.append({"duaId": dua_id, "videoId": video_id, "status": "skipped", "note": note})
             continue
