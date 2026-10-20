@@ -171,7 +171,7 @@ class TestDeterminismAndFrames:
         p2 = plan(3.0, 2.7, dua="dua_same")
         assert roles(p1) == roles(p2)
         assert frames(p1) == frames(p2)
-        for s1, s2 in zip(p1["timeline"].scenes, p2["timeline"].scenes):
+        for s1, s2 in zip(p1["timeline"].scenes, p2["timeline"].scenes, strict=False):
             assert s1.palette_name() == s2.palette_name()
             assert s1.motion.kind == s2.motion.kind
             assert s1.text_style == s2.text_style
@@ -182,7 +182,7 @@ class TestDeterminismAndFrames:
         f2 = render(p)
         assert len(f1) == 360 == round(15.0 * FPS)
         assert all(a.size == (1080, 1920) for a in f1)
-        for fa, fb in zip(f1, f2):
+        for fa, fb in zip(f1, f2, strict=False):
             assert np.array_equal(np.asarray(fa), np.asarray(fb))
 
 

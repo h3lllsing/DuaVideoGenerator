@@ -213,8 +213,10 @@ class SecurityManager:
                 with open(self.vault_path) as f:
                     existing = f.read()
                 self.cipher.decrypt(existing.encode())
-            except Exception:
-                raise VaultWriteError("Refusing to overwrite existing vault: could not authenticate/decrypt it.")
+            except Exception as exc:
+                raise VaultWriteError(
+                    "Refusing to overwrite existing vault: could not authenticate/decrypt it."
+                ) from exc
         encrypted = self.encrypt_dict(data)
         self._atomic_write_text(self.vault_path, encrypted)
 

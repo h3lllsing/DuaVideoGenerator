@@ -119,9 +119,9 @@ def load_json(path: str, default=None):
     except FileNotFoundError:
         if default is not None:
             return default
-        raise UploadError(f"file not found: {path}")
+        raise UploadError(f"file not found: {path}") from None
     except json.JSONDecodeError as exc:
-        raise UploadError(f"invalid JSON in {path}: {exc}")
+        raise UploadError(f"invalid JSON in {path}: {exc}") from exc
 
 
 _TITLE_CACHE = {}
@@ -209,7 +209,7 @@ def load_caption(dua_id: str) -> str:
                 break
         return (title or dua_id).strip()
     except (OSError, UnicodeDecodeError) as exc:
-        raise UploadError(f"unreadable caption file {path}: {exc}")
+        raise UploadError(f"unreadable caption file {path}: {exc}") from exc
 
 
 def format_caption(text: str, platform: str) -> str:

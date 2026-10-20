@@ -551,7 +551,7 @@ class EffectsEngine:
         out = []
         active_pulses = []  # (remaining_frames, params)
 
-        for i, (frame, specs) in enumerate(zip(frames, frame_plan)):
+        for i, (frame, specs) in enumerate(zip(frames, frame_plan, strict=False)):
             arr = self._to_np(frame)
 
             # collect new word pulses for THIS frame

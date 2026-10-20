@@ -143,7 +143,7 @@ def _spans(texts, per_line_x):
     """line_spans aligned with _lines(texts): per line a list of
     (logical_token_index, x0, x1) FRAME-coordinate boxes."""
     out, ti = [], 0
-    for texts_i, xs in zip(texts, per_line_x):
+    for texts_i, xs in zip(texts, per_line_x, strict=False):
         entry = []
         for x0, x1 in xs:
             entry.append((ti, x0, x1))
@@ -402,7 +402,9 @@ def test_build_attaches_scene_relative_events_no_prime_offset():
         word_events={"arabic": ar_w, "urdu": ur_w},
     )
     assert p["valid"]
-    scenes = {s2: sc for s2, sc in [(m["role"], s) for m, s in zip(p["scene_metadata"], p["timeline"].scenes)]}
+    scenes = {
+        s2: sc for s2, sc in [(m["role"], s) for m, s in zip(p["scene_metadata"], p["timeline"].scenes, strict=False)]
+    }
     ar_scene = scenes["arabic"]
     ur_scene = scenes["urdu"]
     assert ar_scene.word_events["arabic"][0]["start"] == 0.100
@@ -480,7 +482,7 @@ def test_render_no_events_unchanged_baseline():
     p2, r2 = _render_plan(AR3, UR_TEXT, word_events={"arabic": ar_w, "urdu": []})
     frames_b = r2.render(p2["timeline"], seed="dua_x")
     assert len(frames_a) == len(frames_b)
-    for fa, fb in zip(frames_a, frames_b):
+    for fa, fb in zip(frames_a, frames_b, strict=False):
         assert fa.tobytes() == fb.tobytes()
 
 
@@ -496,7 +498,7 @@ def test_render_with_events_differs_and_is_localized():
     assert len(frames_hl) == len(frames_base)
     # Highlight must be visible in some frame (timing within audio window).
     any_diff = False
-    for fa, fb in zip(frames_base, frames_hl):
+    for fa, fb in zip(frames_base, frames_hl, strict=False):
         if fa.tobytes() != fb.tobytes():
             any_diff = True
             diff = np.asarray(fa).astype(int) - np.asarray(fb).astype(int)
@@ -515,7 +517,7 @@ def test_render_with_events_deterministic():
     f1 = r1.render(p1["timeline"], seed="dua_x")
     p2, r2 = _render_plan(AR3, UR_TEXT, word_events={"arabic": ar_w, "urdu": []})
     f2 = r2.render(p2["timeline"], seed="dua_x")
-    for a, b in zip(f1, f2):
+    for a, b in zip(f1, f2, strict=False):
         assert a.tobytes() == b.tobytes()
 
 

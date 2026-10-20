@@ -178,7 +178,7 @@ def ai_translate_words(words):
         if content:
             parsed = _parse_ts(content)
             if parsed is not None and len(parsed) == len(words):
-                return dict(zip(words, [str(x).strip() for x in parsed])), None
+                return dict(zip(words, [str(x).strip() for x in parsed], strict=False)), None
             last_err = f"bad response ({model})"
         else:
             last_err = "all models failed"
@@ -441,7 +441,7 @@ def main():
             en_texts, en_warn = ai_translate_lines([t for (_, _, t, _) in ar_lines])
         if not verified_en and en_texts:
             timed = []
-            for (st, en_, _, _), t in zip(ar_lines, en_texts):
+            for (st, en_, _, _), t in zip(ar_lines, en_texts, strict=False):
                 timed.append((st, en_, str(t).strip()))
             with open(en_path, "w", encoding="utf-8") as f:
                 f.write(srt_from_lines(timed))

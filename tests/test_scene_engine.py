@@ -157,7 +157,7 @@ class TestDeterminism:
         a, _ = _render("deterministic_seed", scene)
         b, _ = _render("deterministic_seed", scene)
         assert len(a) == len(b)
-        for fa, fb in zip(a, b):
+        for fa, fb in zip(a, b, strict=False):
             assert np.array_equal(_as_np(fa), _as_np(fb))
 
     def test_same_seed_across_renderer_instances(self):

@@ -80,7 +80,7 @@ def iso_duration_secs(d):
         return None
     parts = m.groups()
     secs = 0
-    for mult, g in zip((86400, 3600, 60, 1), parts):
+    for mult, g in zip((86400, 3600, 60, 1), parts, strict=False):
         if g:
             secs += int(g) * mult
     return secs

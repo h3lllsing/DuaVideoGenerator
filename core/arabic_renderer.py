@@ -134,7 +134,7 @@ class ArabicRenderer:
                 import freetype
                 import uharfbuzz as hb
             except ImportError as exc:  # pragma: no cover
-                raise RuntimeError(f"arabic_renderer needs uharfbuzz + freetype-py: {exc!r}")
+                raise RuntimeError(f"arabic_renderer needs uharfbuzz + freetype-py: {exc!r}") from exc
             with open(self.font_path, "rb") as f:
                 self._hb_face = hb.Face(f.read())
             self._hb_font = hb.Font(self._hb_face)
@@ -171,7 +171,7 @@ class ArabicRenderer:
             hb.shape(self._hb_font, buf)
 
             out = []
-            for gi, gp in zip(buf.glyph_infos, buf.glyph_positions):
+            for gi, gp in zip(buf.glyph_infos, buf.glyph_positions, strict=False):
                 out.append((gi.codepoint, gp.x_advance, gp.y_advance, gp.x_offset, gp.y_offset, gi.cluster))
             return out
         else:
@@ -190,7 +190,7 @@ class ArabicRenderer:
                 buf.language = "ar" if run_dir == "rtl" else "en"
                 hb.shape(self._hb_font, buf)
 
-                for gi, gp in zip(buf.glyph_infos, buf.glyph_positions):
+                for gi, gp in zip(buf.glyph_infos, buf.glyph_positions, strict=False):
                     all_glyphs.append(
                         (gi.codepoint, gp.x_advance, gp.y_advance, gp.x_offset, gp.y_offset, gi.cluster + offset)
                     )

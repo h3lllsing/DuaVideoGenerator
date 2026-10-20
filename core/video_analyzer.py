@@ -240,7 +240,7 @@ class VideoAnalyzer:
 
             # Sort by count
             sorted_colors = sorted(
-                zip(colors, [label_counts[i] for i in range(n_colors)]), key=lambda x: x[1], reverse=True
+                zip(colors, [label_counts[i] for i in range(n_colors)], strict=False), key=lambda x: x[1], reverse=True
             )
 
             # Extract primary and secondary colors
