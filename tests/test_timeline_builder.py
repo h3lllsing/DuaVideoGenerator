@@ -268,5 +268,5 @@ class TestNoZeroDurationAndContract:
     def test_builder_never_touches_audio_paths(self):
         # Builder receives only durations/texts - no audio IO exists by design.
         p = plan(3.0, 2.7)
-        assert "audio" not in p or True  # no audio key in plan
+        assert "audio" not in p  # no audio key in plan (dead or-True removed)
         assert all(k in p for k in ("valid", "timeline", "scene_metadata", "final_frames", "segments", "offsets"))

@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 import pytest
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -266,7 +266,7 @@ class TestVaultMigration:
         assert sm.migrate_legacy_vault("correct_pw") is True
         token = self._read_vault_bytes().decode()
         legacy_cipher = Fernet(legacy._derive_key_with_salt("correct_pw", LEGACY_SALT))
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidToken):
             legacy_cipher.decrypt(token.encode())
 
     def test_migration_wrong_password_leaves_bytes_unchanged(self):

@@ -91,11 +91,10 @@ class TestDetectGpu:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.os.name", "posix"):
-                gpu = detect_gpu()
-                assert gpu["available"] is False
-                assert gpu["name"] == "unknown"
+        with patch.object(builtins, "__import__", side_effect=mock_import), patch("core.hardware.os.name", "posix"):
+            gpu = detect_gpu()
+            assert gpu["available"] is False
+            assert gpu["name"] == "unknown"
 
     def test_opencl_found(self):
         mock_dev = MagicMock()
@@ -217,12 +216,11 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.os.name", "nt"):
-                gpu = detect_gpu()
-                assert gpu["name"] == "AMD Radeon RX 7900 XTX"
-                assert gpu["vendor"] == "AMD"
-                assert gpu["available"] is False
+        with patch.object(builtins, "__import__", side_effect=mock_import), patch("core.hardware.os.name", "nt"):
+            gpu = detect_gpu()
+            assert gpu["name"] == "AMD Radeon RX 7900 XTX"
+            assert gpu["vendor"] == "AMD"
+            assert gpu["available"] is False
 
     def test_wmi_intel_gpu(self):
         mock_result = MagicMock()
@@ -241,10 +239,9 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.os.name", "nt"):
-                gpu = detect_gpu()
-                assert gpu["vendor"] == "Intel"
+        with patch.object(builtins, "__import__", side_effect=mock_import), patch("core.hardware.os.name", "nt"):
+            gpu = detect_gpu()
+            assert gpu["vendor"] == "Intel"
 
     def test_wmi_empty_output(self):
         mock_result = MagicMock()
@@ -263,10 +260,9 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.os.name", "nt"):
-                gpu = detect_gpu()
-                assert gpu["available"] is False
+        with patch.object(builtins, "__import__", side_effect=mock_import), patch("core.hardware.os.name", "nt"):
+            gpu = detect_gpu()
+            assert gpu["available"] is False
 
     def test_wmi_timeout(self):
         import builtins
@@ -282,10 +278,9 @@ class TestDetectGpu:
                 return mock_sub
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.os.name", "nt"):
-                gpu = detect_gpu()
-                assert gpu["available"] is False
+        with patch.object(builtins, "__import__", side_effect=mock_import), patch("core.hardware.os.name", "nt"):
+            gpu = detect_gpu()
+            assert gpu["available"] is False
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -321,9 +316,11 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.detect_cpu_cores", return_value=4):
-                assert pick_backend(500) == "cpu_parallel"
+        with (
+            patch.object(builtins, "__import__", side_effect=mock_import),
+            patch("core.hardware.detect_cpu_cores", return_value=4),
+        ):
+            assert pick_backend(500) == "cpu_parallel"
 
     def test_cpu_when_few_frames(self):
         import builtins
@@ -335,9 +332,11 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.detect_cpu_cores", return_value=4):
-                assert pick_backend(100) == "cpu"
+        with (
+            patch.object(builtins, "__import__", side_effect=mock_import),
+            patch("core.hardware.detect_cpu_cores", return_value=4),
+        ):
+            assert pick_backend(100) == "cpu"
 
     def test_cpu_when_single_core(self):
         import builtins
@@ -349,9 +348,11 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.detect_cpu_cores", return_value=1):
-                assert pick_backend(1000) == "cpu"
+        with (
+            patch.object(builtins, "__import__", side_effect=mock_import),
+            patch("core.hardware.detect_cpu_cores", return_value=1),
+        ):
+            assert pick_backend(1000) == "cpu"
 
     def test_opencl_gpu_when_available(self):
         import builtins
@@ -376,9 +377,11 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.detect_cpu_cores", return_value=4):
-                assert pick_backend(499) == "cpu"
+        with (
+            patch.object(builtins, "__import__", side_effect=mock_import),
+            patch("core.hardware.detect_cpu_cores", return_value=4),
+        ):
+            assert pick_backend(499) == "cpu"
 
     def test_boundary_500_is_parallel(self):
         import builtins
@@ -390,9 +393,11 @@ class TestPickBackend:
                 raise ImportError("no pyopencl")
             return real_import(name, *args, **kwargs)
 
-        with patch.object(builtins, "__import__", side_effect=mock_import):
-            with patch("core.hardware.detect_cpu_cores", return_value=2):
-                assert pick_backend(500) == "cpu_parallel"
+        with (
+            patch.object(builtins, "__import__", side_effect=mock_import),
+            patch("core.hardware.detect_cpu_cores", return_value=2),
+        ):
+            assert pick_backend(500) == "cpu_parallel"
 
 
 # ──────────────────────────────────────────────────────────────────

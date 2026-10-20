@@ -168,18 +168,12 @@ class MotionSpec:
         elif self.kind in ("pan_left", "pan_right"):
             w, h = int(width * 0.94), int(height * 0.94)
             span = (bg_w - w) - 2 * margin
-            if self.kind == "pan_left":
-                x0 = margin + int(span * (1 - p))
-            else:
-                x0 = margin + int(span * p)
+            x0 = margin + int(span * (1 - p)) if self.kind == "pan_left" else margin + int(span * p)
             y0 = (bg_h - h) // 2
         elif self.kind in ("pan_up", "pan_down"):
             w, h = int(width * 0.94), int(height * 0.94)
             span = (bg_h - h) - 2 * margin
-            if self.kind == "pan_up":
-                y0 = margin + int(span * (1 - p))
-            else:
-                y0 = margin + int(span * p)
+            y0 = margin + int(span * (1 - p)) if self.kind == "pan_up" else margin + int(span * p)
             x0 = (bg_w - w) // 2
         else:
             w, h, x0, y0 = width, height, (bg_w - width) // 2, (bg_h - height) // 2

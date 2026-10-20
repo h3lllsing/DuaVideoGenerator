@@ -317,10 +317,7 @@ class EffectsEngine:
         progress = frame_num / total_frames
         W, H = text_img.size
 
-        if progress < 0.3:
-            scale = 0.3 + 0.7 * (progress / 0.3)
-        else:
-            scale = 1.0
+        scale = 0.3 + 0.7 * (progress / 0.3) if progress < 0.3 else 1.0
 
         new_w = int(W * scale)
         new_h = int(H * scale)

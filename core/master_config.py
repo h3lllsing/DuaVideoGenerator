@@ -800,10 +800,7 @@ def get_font_path(font_key: str) -> str | None:
 
 def get_random_palette(dark_only: bool = False) -> dict:
     """Get a random palette (optionally dark only)."""
-    if dark_only:
-        names = DARK_PALETTES
-    else:
-        names = PALETTE_NAMES
+    names = DARK_PALETTES if dark_only else PALETTE_NAMES
 
     name = random.choice(names)
     return dict(MASTER_PALETTES[name])

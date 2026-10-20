@@ -72,10 +72,7 @@ def build_text(dua, video_id, is_short, cid, cinfo):
     ref = (dua.get("reference") or "").strip()
     arabic = (dua.get("arabic") or "").strip()
     urdu = (dua.get("urdu") or "").strip()
-    if is_short:
-        watch = f"https://youtube.com/shorts/{video_id}"
-    else:
-        watch = f"https://youtu.be/{video_id}"
+    watch = f"https://youtube.com/shorts/{video_id}" if is_short else f"https://youtu.be/{video_id}"
     sub = f"https://www.youtube.com/channel/{cid}?sub_confirmation=1" if cid else ""
     lines = []
     head = title

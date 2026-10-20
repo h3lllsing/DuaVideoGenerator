@@ -49,10 +49,7 @@ def _is_rtl_char(ch: str) -> bool:
 
 
 def _is_arabic(text: str) -> bool:
-    for ch in text:
-        if _is_rtl_char(ch):
-            return True
-    return False
+    return any(_is_rtl_char(ch) for ch in text)
 
 
 def _split_bidi_runs(text: str) -> list[tuple[str, str]]:
