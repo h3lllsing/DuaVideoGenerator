@@ -472,7 +472,7 @@ class TestSaveLoad:
         g = MetadataGenerator()
         try:
             g.load_metadata(path)
-            assert False, "Should have raised"
+            raise AssertionError("Should have raised")
         except json.JSONDecodeError:
             pass
 

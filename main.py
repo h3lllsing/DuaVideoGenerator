@@ -86,10 +86,10 @@ def _cleanup_temp():
                 except OSError:
                     pass
         if cleaned:
-            try:
-                logger.info(f"Cleaned {cleaned} stale temp file(s) from previous run")
-            except (OSError, ValueError):
-                pass  # stdout may be closed during atexit
+            with contextlib.suppress(OSError, ValueError):
+                logger.info(
+                    f"Cleaned {cleaned} stale temp file(s) from previous run"
+                )  # stdout may be closed during atexit
     except (OSError, ValueError):
         pass
 

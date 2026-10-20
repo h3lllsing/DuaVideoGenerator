@@ -2,6 +2,7 @@
 Tests for scripts.backup module
 """
 
+import contextlib
 import os
 import sys
 
@@ -52,7 +53,6 @@ class TestRotateBackups:
             (backup / "manifest.json").write_text("{}")
 
         # Rotate with max 10
-        try:
+        # May fail due to PROJECT path dependency
+        with contextlib.suppress(Exception):
             rotate_backups(max_backups=10)
-        except Exception:
-            pass  # May fail due to PROJECT path dependency

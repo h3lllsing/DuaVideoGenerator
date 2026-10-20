@@ -135,9 +135,7 @@ class SecurityManager:
             return False
         if len(raw) < 58:  # 1 version + 8 timestamp + 16 IV + 32 HMAC + 1 ciphertext
             return False
-        if raw[0] != 0x80:
-            return False
-        return True
+        return raw[0] == 128
 
     def encrypt(self, data: str) -> str:
         """

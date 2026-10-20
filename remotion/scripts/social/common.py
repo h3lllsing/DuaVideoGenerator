@@ -358,12 +358,12 @@ def _looks_transient(exc: Exception) -> bool:
     text = str(exc).lower()
     if isinstance(exc, (TimeoutError, ConnectionError)):
         return True
-    if any(
-        k in text
-        for k in ("http 5", "http 429", "timeout", "temporarily", "connection reset", "timed out", "try again")
-    ):
-        return True
-    return False
+    return bool(
+        any(
+            k in text
+            for k in ("http 5", "http 429", "timeout", "temporarily", "connection reset", "timed out", "try again")
+        )
+    )
 
 
 def emit(payload: dict, code: int = 0) -> int:

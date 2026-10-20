@@ -299,9 +299,7 @@ def _is_empty_block(content, require_dua=True):
     ):
         return True
     # A real dua JSON array always has at least one { "id": ... } object.
-    if require_dua and ('"id"' not in content or "arabic" not in content):
-        return True
-    return False
+    return bool(require_dua and ('"id"' not in content or "arabic" not in content))
 
 
 def _mask_key(key):

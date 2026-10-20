@@ -56,9 +56,7 @@ class IslamicConstraints:
         """Validate that content is appropriate."""
         if not arabic or not arabic.strip():
             return False
-        if not urdu or not urdu.strip():
-            return False
-        return True
+        return not (not urdu or not urdu.strip())
 
 
 # ============================================================

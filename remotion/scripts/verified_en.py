@@ -81,8 +81,6 @@ SURAH_NUM = {
     "an-naml": 27,
     "ash-shu'ara": 26,
     "ash-shuara": 26,
-    "ash-shuara": 26,
-    "az-zukhruf": 43,
     "az-zukhruf": 43,
     "bani israel": 17,
     "bani-israel": 17,

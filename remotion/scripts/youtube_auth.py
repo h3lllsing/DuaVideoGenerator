@@ -167,10 +167,8 @@ def cmd_test():
 def cmd_revoke():
     data = load_token()
     if data and data.get("token"):
-        try:
+        with contextlib.suppress(ImportError):
             import requests  # noqa: F401
-        except ImportError:
-            pass
         try:
             from google.auth.transport.requests import Request
             from google.oauth2.credentials import Credentials
