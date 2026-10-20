@@ -68,7 +68,7 @@ def main():
         if not os.path.exists(rec["thumb"]):
             continue
         items.append((dua_id, rec["video_id"], rec["thumb"]))
-    print("thumbs pending: %d" % len(items), flush=True)
+    print(f"thumbs pending: {len(items)}", flush=True)
     if args.dry_run:
         print(
             json.dumps(

@@ -76,7 +76,7 @@ def main():
     if args.limit:
         to_fix = to_fix[: args.limit]
     already = [vid for vid in ids if status.get(vid, "") in CHANNELS_OK]
-    print("shorts: %d | already public/unlisted: %d | private: %d" % (len(ids), len(already), len(to_fix)), flush=True)
+    print(f"shorts: {len(ids)} | already public/unlisted: {len(already)} | private: {len(to_fix)}", flush=True)
 
     if args.dry_run:
         print(json.dumps({"ok": True, "dryRun": True, "private": to_fix}, ensure_ascii=False))

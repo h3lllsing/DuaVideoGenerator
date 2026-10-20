@@ -195,7 +195,7 @@ def fmt_ts(secs):
     h, rem = divmod(ms, 3600000)
     m, rem = divmod(rem, 60000)
     s, ms = divmod(rem, 1000)
-    return "%02d:%02d:%02d,%03d" % (h, m, s, ms)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
 def group_words(words, max_words=MAX_WORDS, max_span=MAX_SPAN):
@@ -229,7 +229,7 @@ def srt_from_lines(lines):
     """Render SRT blocks from list of (start, end, text[, indices])."""
     blocks = []
     for i, (st, en, text, *_rest) in enumerate(lines, 1):
-        blocks.append("%d\n%s --> %s\n%s\n" % (i, fmt_ts(st), fmt_ts(en), text))
+        blocks.append(f"{i}\n{fmt_ts(st)} --> {fmt_ts(en)}\n{text}\n")
     return "\n".join(blocks)
 
 

@@ -239,7 +239,7 @@ def load_json(path):
 
 def content_words(text, min_len=4, limit=6):
     stop = {"ki", "ka", "ke", "se", "aur", "the", "for", "with", "from", "part"}
-    words = re.findall(r"[A-Za-z]{%d,}" % min_len, text or "")
+    words = re.findall(rf"[A-Za-z]{{{min_len},}}", text or "")
     out, seen = [], set()
     for w in words:
         lw = w.lower()

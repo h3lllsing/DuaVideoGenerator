@@ -126,7 +126,7 @@ def _upload_once(service, body, media_path, progress=False):
     while response is None:
         status, response = request.next_chunk()
         if status and progress:
-            print("  progress: %d%%" % int(status.progress() * 100), file=sys.stderr)
+            print(f"  progress: {int(status.progress() * 100)}%", file=sys.stderr)
     return response
 
 
@@ -154,11 +154,11 @@ def mirror_upload(service, body, media, progress=False, max_attempts=MAX_ATTEMPT
             retryable, why = _is_retryable(exc)
             if not retryable or attempts >= max_attempts - 1:
                 if retryable:
-                    print("  giving up after %d attempt(s): %s" % (attempts + 1, why), file=sys.stderr)
+                    print(f"  giving up after {attempts + 1} attempt(s): {why}", file=sys.stderr)
                 raise
             attempts += 1
             wait = backoff_base * (2 ** (attempts - 1))
-            print("  retry %d/%d in %.1fs (%s)" % (attempts, max_attempts, wait, why), file=sys.stderr)
+            print(f"  retry {attempts}/{max_attempts} in {wait:.1f}s ({why})", file=sys.stderr)
             time.sleep(wait)
 
 
@@ -168,7 +168,7 @@ def _upload_once_obj(service, body, media_obj, progress=False):
     while response is None:
         status, response = request.next_chunk()
         if status and progress:
-            print("  progress: %d%%" % int(status.progress() * 100), file=sys.stderr)
+            print(f"  progress: {int(status.progress() * 100)}%", file=sys.stderr)
     return response
 
 

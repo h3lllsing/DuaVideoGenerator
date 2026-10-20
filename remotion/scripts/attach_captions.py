@@ -70,7 +70,7 @@ def fmt_ts(secs):
     h, rem = divmod(ms, 3600000)
     m, rem = divmod(rem, 60000)
     s, ms = divmod(rem, 1000)
-    return "%02d:%02d:%02d,%03d" % (h, m, s, ms)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
 def iso_duration_secs(d):

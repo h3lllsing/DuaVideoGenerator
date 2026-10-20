@@ -273,7 +273,7 @@ def verse_count(surah):
     if surah in verse_count._cache:
         return verse_count._cache[surah]
     try:
-        req = urllib.request.Request(API_BASE + "/v1/surah/%d" % surah, headers={"User-Agent": "Mozilla/5.0"})
+        req = urllib.request.Request(f"{API_BASE}/v1/surah/{surah}", headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=20) as r:
             data = json.loads(r.read().decode("utf-8", "replace"))
         n = len(data["data"]["ayahs"])
@@ -296,7 +296,7 @@ def fetch_en_ayahs(surah, a1, a2=None):
         return None
     a2 = min(a2, n)
     for a in range(a1, a2 + 1):
-        url = "%s/v1/ayah/%d:%d/en.sahih" % (API_BASE, surah, a)
+        url = f"{API_BASE}/v1/ayah/{surah}:{a}/en.sahih"
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(req, timeout=20) as r:
@@ -499,7 +499,7 @@ def get_or_build_verified(dua, ar_lines=None):
     hadith = parse_reference(ref)["hadith"]
     if hadith:
         if ai_cooldown_active(ref):
-            return None, None, ("hadith AI cooldown active (skip attempt; retry after %dh)" % HADITH_AI_COOLDOWN_HOURS)
+            return None, None, f"hadith AI cooldown active (skip attempt; retry after {HADITH_AI_COOLDOWN_HOURS}h)"
         en, warn = ai_hadith_translation(ref, ar, title)
         if en:
             _clear_ai_failure(ref)
@@ -547,10 +547,10 @@ if __name__ == "__main__":
             en, source, warn = get_or_build_verified(d)
             if en:
                 built += 1
-                print("  OK   %-45s %s" % (d.get("id"), source))
+                print(f"  OK   {d.get('id'):<45} {source}")
             else:
                 failed += 1
-                print("  FAIL %-45s %s" % (d.get("id"), warn or "no source"))
+                print(f"  FAIL {d.get('id'):<45} {warn or 'no source'}")
             seen += 1
             if args.limit and seen >= args.limit:
                 break

@@ -128,8 +128,7 @@ def cmd_login():
     if secret_kind == "web":
         redirect_port = 8976
         print(
-            "web-type secret detected: console me ye URI registered "
-            "hona chahiye -> http://localhost:%d/" % redirect_port
+            f"web-type secret detected: console me ye URI registered hona chahiye -> http://localhost:{redirect_port}/"
         )
         cred = flow.run_local_server(host="localhost", port=redirect_port, prompt="consent", access_type="offline")
     else:

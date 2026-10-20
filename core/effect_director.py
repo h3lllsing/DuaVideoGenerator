@@ -389,7 +389,7 @@ class EffectDirector:
                             }
                         )
 
-            summary = "AI Director: %s | word-sync %d | %s" % (hero, len(pulses), self._hardware())
+            summary = f"AI Director: {hero} | word-sync {len(pulses)} | {self._hardware()}"
         else:
             summary = "Effects off (none)"
 

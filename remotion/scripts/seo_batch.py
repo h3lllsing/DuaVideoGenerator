@@ -102,7 +102,7 @@ def main():
 
         meta = build_meta(dua, Rot(dua_id), t["kind"] == "short")
         plan.append({"dua_id": dua_id, "video_id": t["video_id"], "kind": t["kind"], "meta": meta})
-    print("seo targets: %d" % len(plan), flush=True)
+    print(f"seo targets: {len(plan)}", flush=True)
     if args.dry_run:
         print(
             json.dumps(
