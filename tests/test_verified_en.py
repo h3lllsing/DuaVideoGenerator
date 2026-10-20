@@ -69,9 +69,9 @@ def test_duas_reference_mapping_snapshot():
             counts["hadith"] += 1
         else:
             counts["other"] += 1
-    # Snapshot numbers track catalog growth (226 duas now); the real
+    # Snapshot numbers track catalog growth (258 duas now); the real
     # invariant is the EXACT partition: every dua lands in one bucket.
-    assert counts == {"quran": 60, "hadith": 158, "other": 8}
+    assert counts == {"quran": 82, "hadith": 165, "other": 11}
     assert sum(counts.values()) == len(ve.load_duas())
 
 
