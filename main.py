@@ -1230,8 +1230,9 @@ if __name__ == "__main__":
         elif args.batch:
             pipeline._batch_mode()
         elif args.list:
-            for dua in DB.get_all_duas():
-                print(dua.get("id", ""))
+            from scripts.cmd_list import cmd_list
+
+            cmd_list()
         else:
             pipeline.interactive_menu()
     except KeyboardInterrupt:
