@@ -145,7 +145,8 @@ def main():
     existing = {}
     if os.path.exists(MANIFEST_PATH):
         try:
-            existing = {a["id"]: a for a in json.load(open(MANIFEST_PATH, encoding="utf-8")).get("assets", [])}
+            with open(MANIFEST_PATH, encoding="utf-8") as fh:
+                existing = {a["id"]: a for a in json.load(fh).get("assets", [])}
         except Exception:
             existing = {}
 

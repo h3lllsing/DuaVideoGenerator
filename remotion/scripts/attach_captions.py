@@ -228,7 +228,8 @@ def main():
         try:
             gpath = None
             if srt_path:
-                srt_content = open(srt_path, encoding="utf-8").read()
+                with open(srt_path, encoding="utf-8") as fh:
+                    srt_content = fh.read()
             else:
                 # live duration fallback for the generated single block
                 # (read-only videos.list call - safe even in --dry-run)
@@ -246,7 +247,8 @@ def main():
                     )
                     continue
                 gpath = write_generated_srt(en, duration)
-                srt_content = open(gpath, encoding="utf-8").read()
+                with open(gpath, encoding="utf-8") as fh:
+                    srt_content = fh.read()
 
             if args.dry_run:
                 if gpath:

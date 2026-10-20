@@ -13,9 +13,12 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 PROJECT = os.path.dirname(os.path.dirname(SCRIPTS))
 DATA = os.path.join(PROJECT, "data")
-ut = json.load(open(os.path.join(DATA, "upload_state_channel1.json"), encoding="utf-8-sig"))
-sh = json.load(open(os.path.join(DATA, "shorts_state_channel1.json"), encoding="utf-8-sig"))
-duas_raw = json.load(open(os.path.join(DATA, "duas.json"), encoding="utf-8-sig"))
+with open(os.path.join(DATA, "upload_state_channel1.json"), encoding="utf-8-sig") as fh:
+    ut = json.load(fh)
+with open(os.path.join(DATA, "shorts_state_channel1.json"), encoding="utf-8-sig") as fh:
+    sh = json.load(fh)
+with open(os.path.join(DATA, "duas.json"), encoding="utf-8-sig") as fh:
+    duas_raw = json.load(fh)
 duas = duas_raw if isinstance(duas_raw, list) else duas_raw.get("duas", [])
 dmap = {d.get("id"): d for d in duas if d.get("id")}
 

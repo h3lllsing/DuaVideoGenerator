@@ -107,7 +107,8 @@ def norm_ref(r):
 
 def manifest_reference(dua_id):
     try:
-        m = json.load(open(os.path.join(DATA_DIR, dua_id + ".json"), encoding="utf-8"))
+        with open(os.path.join(DATA_DIR, dua_id + ".json"), encoding="utf-8") as fh:
+            m = json.load(fh)
         return norm_ref(m.get("reference"))
     except Exception:
         return ""
@@ -226,7 +227,8 @@ def locked_duas():
 
 def archived_ids():
     try:
-        duas = json.load(open(os.path.join(PROJECT, "data", "duas.json"), encoding="utf-8"))
+        with open(os.path.join(PROJECT, "data", "duas.json"), encoding="utf-8") as fh:
+            duas = json.load(fh)
         if isinstance(duas, dict):
             duas = duas["duas"]
         return {d["id"] for d in duas if d.get("archived")}
@@ -240,7 +242,8 @@ def archived_ids():
 def parse_sidecar(path):
     meta = {"title": None, "description": None, "tags": []}
     try:
-        text = open(path, encoding="utf-8").read()
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
         m = re.search(r"^TITLE:\s*\n(.+)", text, re.M)
         if m:
             meta["title"] = m.group(1).strip()[:MAX_TITLE]
@@ -563,7 +566,8 @@ def main():
     _db_path = os.path.join(PROJECT, "data", "duas.json")
     if os.path.exists(_db_path):
         try:
-            _raw = json.load(open(_db_path, encoding="utf-8"))
+            with open(_db_path, encoding="utf-8") as fh:
+                _raw = json.load(fh)
             duas_db = _raw if isinstance(_raw, list) else _raw.get("duas", [])
         except Exception:
             duas_db = []

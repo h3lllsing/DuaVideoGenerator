@@ -45,7 +45,8 @@ def _load_locked_ids():
     locked = set()
     for lp in (YT_LEDGER1, YT_LEDGER2):
         try:
-            raw = json.load(open(lp, encoding="utf-8-sig"))
+            with open(lp, encoding="utf-8-sig") as fh:
+                raw = json.load(fh)
             for dua_id, v in raw.items():
                 if v and v.get("status") == "uploaded":
                     locked.add(dua_id)
@@ -59,7 +60,8 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    arr = json.load(open(DB, encoding="utf-8-sig"))
+    with open(DB, encoding="utf-8-sig") as fh:
+        arr = json.load(fh)
     locked_ids = _load_locked_ids()
     deleted = [0]
     freed = [0]
