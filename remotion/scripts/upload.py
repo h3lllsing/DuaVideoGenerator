@@ -29,6 +29,7 @@ Live mode requires google libs + data/yt_token.json (youtube_auth.py login).
 
 import argparse
 import atexit
+import contextlib
 import difflib
 import hashlib
 import json
@@ -40,7 +41,6 @@ import sys
 import tempfile
 import time
 from datetime import date, timedelta
-import contextlib
 
 with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")

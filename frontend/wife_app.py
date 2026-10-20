@@ -16,6 +16,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import contextlib
 import tkinter as tk
 from tkinter import messagebox
 
@@ -31,7 +32,6 @@ from frontend.effect_preview import (
     preview_path,
 )
 from main import DuaVideoPipeline, dua_video_filename
-import contextlib
 
 # Generate EFFECT_OPTIONS dynamically from master config
 EFFECT_OPTIONS = (

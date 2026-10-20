@@ -12,11 +12,11 @@ Write op: videos().update(part=snippet) = 50 quota units each.
 """
 
 import argparse
+import contextlib
 import json
 import os
 import sys
 import time
-import contextlib
 
 with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")

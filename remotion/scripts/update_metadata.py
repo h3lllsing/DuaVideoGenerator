@@ -11,10 +11,10 @@ Output: JSON on the LAST stdout line: {"ok":true,...} or {"ok":false,"error":...
 """
 
 import argparse
+import contextlib
 import json
 import os
 import sys
-import contextlib
 
 with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")

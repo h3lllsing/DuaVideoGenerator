@@ -47,12 +47,12 @@ the caller's job (the API layer serialises uploads per dua_id).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import tempfile
 import threading
 from datetime import UTC, datetime
-import contextlib
 
 # --- paths ---------------------------------------------------------------
 SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

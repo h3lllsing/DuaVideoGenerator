@@ -13,12 +13,13 @@ import sys
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(PROJECT)
 
+import contextlib
+
 from moviepy import AudioFileClip
 
 from core.audio_mixer import AudioMixer
 from core.dua_database import DB
 from core.tts_engine import TTSEngine
-import contextlib
 
 # Hierarchy: har dua Bismillah se shuru hoti hai. Data me likhna zaroori
 # nahi — pipeline khud prepend karti hai (agar pehle se na ho).

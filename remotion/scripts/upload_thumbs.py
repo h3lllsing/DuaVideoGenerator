@@ -12,11 +12,11 @@ Idempotent: a thumbnail already custom-set is recorded; optional re-set.
 """
 
 import argparse
+import contextlib
 import json
 import os
 import sys
 import time
-import contextlib
 
 SYSOUT = None
 with contextlib.suppress(AttributeError, ValueError):

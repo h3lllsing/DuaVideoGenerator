@@ -3,12 +3,12 @@ Self-Trainer Module
 AI learns from user feedback and sample videos
 """
 
+import contextlib
 import json
 import logging
 import os
 from datetime import datetime
 from typing import Any, cast
-import contextlib
 
 logger = logging.getLogger(__name__)
 

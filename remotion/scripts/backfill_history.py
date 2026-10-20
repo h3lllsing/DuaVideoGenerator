@@ -37,11 +37,11 @@ Usage
 from __future__ import annotations
 
 import argparse
+import contextlib
 import io
 import json
 import os
 import sys
-import contextlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 with contextlib.suppress(Exception):

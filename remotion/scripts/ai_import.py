@@ -9,6 +9,7 @@ All duas are Islamic Sunni from authentic sources.
 """
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -16,7 +17,6 @@ import shutil
 import sys
 import time
 import urllib.request
-import contextlib
 
 with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")

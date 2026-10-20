@@ -92,7 +92,7 @@ def _measure_loudness(path):
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     out = {}
     for key in ("input_i", "input_tp", "input_lra", "input_thresh", "target_offset"):
-        m = re.search(r'"{}"\s*:\s*"(-?[\d.]+)"'.format(key), r.stderr)
+        m = re.search(rf'"{key}"\s*:\s*"(-?[\d.]+)"', r.stderr)
         if m:
             out[key] = float(m.group(1))
     return out

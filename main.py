@@ -39,8 +39,8 @@ setup_logging()
 
 # ── Temp cleanup on crash/exit ──
 import atexit
-import signal
 import contextlib
+import signal
 
 
 def _load_known_dua_ids():

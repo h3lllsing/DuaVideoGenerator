@@ -3,12 +3,12 @@ Restore Script for Dua Video Generator
 Restores vault, salt, tokens, and critical config files from backup.
 """
 
+import contextlib
 import json
 import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
-import contextlib
 
 PROJECT = Path(__file__).resolve().parent.parent
 BACKUP_DIR = PROJECT / "backups"

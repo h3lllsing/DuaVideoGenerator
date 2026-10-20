@@ -32,13 +32,13 @@ Off the render critical path you can pre-build in the background:
     python scripts/verified_en.py --build-all
 """
 
+import contextlib
 import json
 import os
 import re
 import sys
 import time
 import urllib.request
-import contextlib
 
 with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -319,7 +319,7 @@ def ai_hadith_translation(reference, arabic, title):
         sys.path.insert(0, os.path.join(REMOTION, "scripts"))
         from ai_import import API_KEYS, call_api, keyless_enabled
     except Exception as e:
-        return None, "AI infra load fail: {}".format(e)
+        return None, f"AI infra load fail: {e}"
     if not API_KEYS and not keyless_enabled():
         return None, "Koi API key configured nahi hai"
     system = (
@@ -331,7 +331,7 @@ def ai_hadith_translation(reference, arabic, title):
         "Do NOT paraphrase or invent. Return ONLY the English translation "
         "text, no commentary, no citation, no markdown."
     )
-    prompt = "REFERENCE: {}\nTITLE: {}\nARABIC: {}".format(reference, title, arabic)
+    prompt = f"REFERENCE: {reference}\nTITLE: {title}\nARABIC: {arabic}"
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": prompt},
@@ -344,7 +344,7 @@ def ai_hadith_translation(reference, arabic, title):
             text = str(content).strip()
             if len(text) > 15:
                 return text, model
-            last_err = "bad response ({})".format(model)
+            last_err = f"bad response ({model})"
         else:
             last_err = "all models failed"
     return None, last_err
@@ -356,7 +356,7 @@ def ai_fallback_translation(ar_lines):
         sys.path.insert(0, os.path.join(REMOTION, "scripts"))
         from ai_import import API_KEYS, call_api, keyless_enabled
     except Exception as e:
-        return None, "AI infra load fail: {}".format(e)
+        return None, f"AI infra load fail: {e}"
     if not API_KEYS and not keyless_enabled():
         return None, "Koi API key configured nahi hai"
     system = (
@@ -383,7 +383,7 @@ def ai_fallback_translation(ar_lines):
                         return parsed, model
                 except Exception:
                     pass
-            last_err = "bad response ({})".format(model)
+            last_err = f"bad response ({model})"
         else:
             last_err = "all models failed"
     return None, last_err
@@ -530,9 +530,7 @@ if __name__ == "__main__":
         "--cooldown-hours",
         type=float,
         default=0,
-        help="Override the hadith-AI cooldown window in hours (default module HADITH_AI_COOLDOWN_HOURS = {:g})".format(
-            HADITH_AI_COOLDOWN_HOURS
-        ),
+        help=f"Override the hadith-AI cooldown window in hours (default module HADITH_AI_COOLDOWN_HOURS = {HADITH_AI_COOLDOWN_HOURS:g})",
     )
     args = ap.parse_args()
 

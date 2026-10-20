@@ -142,7 +142,7 @@ def mirror_upload(service, body, media, progress=False, max_attempts=MAX_ATTEMPT
         media_obj, path = None, media
 
     if path is not None and not os.path.isfile(path):
-        raise FileNotFoundError("video file not found: {}".format(path))
+        raise FileNotFoundError(f"video file not found: {path}")
 
     attempts, last = 0, None
     while True:
@@ -281,7 +281,7 @@ def main():
             ustate.mark_uploading(did, "youtube", video_path=media_path)
         try:
             if not os.path.isfile(media_path):
-                raise FileNotFoundError("video file not found: {}".format(media_path))
+                raise FileNotFoundError(f"video file not found: {media_path}")
             resp = mirror_upload(
                 service, body, media_path, max_attempts=max(1, args.max_attempts), backoff_base=args.backoff_base
             )

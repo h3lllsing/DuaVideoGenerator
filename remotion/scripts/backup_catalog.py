@@ -25,6 +25,7 @@ Exit codes
 from __future__ import annotations
 
 import argparse
+import contextlib
 import ctypes
 import hashlib
 import io
@@ -34,7 +35,6 @@ import shutil
 import sys
 import tempfile
 from datetime import datetime
-import contextlib
 
 if hasattr(sys.stdout, "buffer"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")

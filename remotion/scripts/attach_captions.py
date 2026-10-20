@@ -19,13 +19,13 @@ Usage:
 """
 
 import argparse
+import contextlib
 import json
 import os
 import re
 import sys
 import tempfile
 import time
-import contextlib
 
 with contextlib.suppress(AttributeError, ValueError):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -179,7 +179,7 @@ def write_generated_srt(en_text, duration_secs):
     """Single caption block spanning the video (verified/hadith single-line
     style) -> temp srt file path."""
     tt = fmt_ts(duration_secs)
-    body = "1\n00:00:00,000 --> {}\n{}\n".format(tt, en_text)
+    body = f"1\n00:00:00,000 --> {tt}\n{en_text}\n"
     fd, path = tempfile.mkstemp(suffix=".en.srt", prefix="cap_")
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(body)
@@ -277,7 +277,7 @@ def main():
                         "duaId": dua_id,
                         "videoId": video_id,
                         "status": "error",
-                        "note": "captions.list failed: {}".format(tracks[1]),
+                        "note": f"captions.list failed: {tracks[1]}",
                     }
                 )
                 continue

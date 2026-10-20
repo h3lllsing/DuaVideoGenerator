@@ -73,14 +73,14 @@ def build_text(dua, video_id, is_short, cid, cinfo):
     arabic = (dua.get("arabic") or "").strip()
     urdu = (dua.get("urdu") or "").strip()
     if is_short:
-        watch = "https://youtube.com/shorts/{}".format(video_id)
+        watch = f"https://youtube.com/shorts/{video_id}"
     else:
-        watch = "https://youtu.be/{}".format(video_id)
-    sub = "https://www.youtube.com/channel/{}?sub_confirmation=1".format(cid) if cid else ""
+        watch = f"https://youtu.be/{video_id}"
+    sub = f"https://www.youtube.com/channel/{cid}?sub_confirmation=1" if cid else ""
     lines = []
     head = title
     if ref:
-        head += "  🔖 {}".format(ref)
+        head += f"  🔖 {ref}"
     lines.append(head)
     lines.append("")
     lines.append("🤲 " + arabic)
@@ -129,18 +129,18 @@ def main():
             index.append((dua_id, dua.get("title") or "", kind, video_id, (dua.get("reference") or "")))
         written += 1
 
-    sub = "https://www.youtube.com/channel/{}?sub_confirmation=1".format(cid)
+    sub = f"https://www.youtube.com/channel/{cid}?sub_confirmation=1"
     md = [
         "# Share Kit — %s" % (cinfo.get("title") or "Noor-e-Iman"),
         "",
         "Subs: {} | Videos: {}".format(cinfo.get("subs"), cinfo.get("videos")),
-        "Subscribe: {}".format(sub),
+        f"Subscribe: {sub}",
         "",
         "| dua_id | title | kind | video_id | reference |",
         "|---|---|---|---|---|",
     ]
     for dua_id, title, kind, video_id, ref in sorted(index):
-        md.append("| {} | {} | {} | {} | {} |".format(dua_id, title, kind, video_id, ref))
+        md.append(f"| {dua_id} | {title} | {kind} | {video_id} | {ref} |")
     with open(os.path.join(KIT_DIR, "INDEX.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(md) + "\n")
 

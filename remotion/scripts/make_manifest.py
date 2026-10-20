@@ -7,8 +7,9 @@ import sys
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT)
-import config as project_config
 import contextlib
+
+import config as project_config
 
 REMOTION = os.path.join(PROJECT, "remotion")
 TEMP = os.path.join(PROJECT, "temp")

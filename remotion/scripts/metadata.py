@@ -10,13 +10,13 @@ Diversity strategy (anti-repetitive-content):
 - Hashtags selected from rotating pool, never a fixed constant string.
 """
 
+import contextlib
 import hashlib
 import io
 import json
 import os
 import re
 import sys
-import contextlib
 
 if __name__ == "__main__":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")

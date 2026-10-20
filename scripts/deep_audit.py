@@ -4,9 +4,9 @@ import re
 import sys
 
 sys.stdout.reconfigure(encoding="utf-8")
-from pathlib import Path
-import contextlib
 import builtins
+import contextlib
+from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 results = []

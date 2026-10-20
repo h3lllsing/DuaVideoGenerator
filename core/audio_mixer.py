@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 import os
 import re
@@ -7,7 +8,6 @@ from concurrent.futures import ThreadPoolExecutor
 import imageio_ffmpeg
 import numpy as np
 from moviepy import AudioFileClip, concatenate_audioclips
-import contextlib
 
 logger = logging.getLogger(__name__)
 
@@ -342,7 +342,7 @@ class AudioMixer:
                 "-i",
                 input_path,
                 "-af",
-                "loudnorm=I={}:TP={}:LRA={}:print_format=json".format(LOUDNESS_TARGET, TRUE_PEAK_TARGET, LRA_TARGET),
+                f"loudnorm=I={LOUDNESS_TARGET}:TP={TRUE_PEAK_TARGET}:LRA={LRA_TARGET}:print_format=json",
                 "-f",
                 "null",
                 "-",
@@ -359,7 +359,7 @@ class AudioMixer:
             stderr_text = stderr.decode("utf-8", errors="replace")
             out = {}
             for key in ("input_i", "input_tp", "input_lra", "input_thresh", "target_offset"):
-                m = re.search(r'"{}"\s*:\s*"(-?[\d.]+)"'.format(key), stderr_text)
+                m = re.search(rf'"{key}"\s*:\s*"(-?[\d.]+)"', stderr_text)
                 if m:
                     out[key] = float(m.group(1))
             return out
