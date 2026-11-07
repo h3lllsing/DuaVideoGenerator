@@ -147,6 +147,8 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   * fast-uri 3.0.0-3.1.7 moderate
 - FIX: ek dafa `npm audit fix` (lockfile update, dev-level), phir audit
   green. Koi runtime security exposure nahi (dev/transitive DoS only)
+- RESOLVED (2026-11-07): `npm audit fix` + `npm audit fix --force` (eslint 9.39.5, @remotion/cli 4.0.541) -> recheck `npm audit --audit-level=high`
+  -> **0 vulnerabilities** (exit 0). CI remotion-check npm-audit gate ab GREEN.
 
 ## Foundation/Architecture review (2026-10-18, read-only)
 
