@@ -76,6 +76,14 @@ def main():
         if not cred:
             print(json.dumps({"ok": False, "error": "auth failed - re-login needed"}))
             return 1
+        try:
+            from google.auth.transport.requests import Request as _GReq
+
+            if getattr(cred, "expired", False) and getattr(cred, "refresh_token", None):
+                cred.refresh(_GReq())
+        except Exception as _re:
+            print(json.dumps({"ok": False, "error": "token refresh failed - re-login needed: " + str(_re)[:200]}))
+            return 1
 
         from googleapiclient.discovery import build
 
