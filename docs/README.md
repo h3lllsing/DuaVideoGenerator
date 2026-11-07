@@ -24,6 +24,7 @@
 | [AUDIT_CEO_SUMMARY.md](AUDIT_CEO_SUMMARY.md) | CEO summary, severity table, seedhi raaye, 90-day plan | ✅ |
 | [AUDIT_FINDINGS.md](AUDIT_FINDINGS.md) | Consolidated 8-area audit findings (complete-audit set) | ✅ |
 | [AUDIT_RESULT_BETTER.md](AUDIT_RESULT_BETTER.md) | Focused audit — better-results gap (YouTube stats / missing components / retention) | ✅ |
+| [AUDIT_FULL_PROJECT.md](AUDIT_FULL_PROJECT.md) | Complete full-project audit consolidation + global scan | ✅ |
 
 ## Conventions
 
