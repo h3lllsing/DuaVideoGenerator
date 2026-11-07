@@ -281,6 +281,11 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   banti hai (sirf pm2-error log); 7860 ki tarah crashAppend add karo
 - impact: crash silent restart + recovery data parity, par post-mortem
   evidence halqa me weak
+- RESOLVED (2026-11-07): `/api/v1/upload` routes me crash-safe `safeHandler`
+  wrapper add kiya (all /api/v1 routes -> try/catch -> 500 JSON reply); uncaughtException/
+  unhandledRejection process-level handlers + 7860-style crashAppend follow-up ab F-26
+  baki hai (wrapper fix ab applied).
+
 ### F-27 MEDIUM: pm2 max_restarts=10 - exit-loop pe gives up
 - FIXED (2026-10-20, dua-api re-add drill): `pm2 restart` me max-restarts
   flag NahI hota — delete + re-add `pm2 start src/server.ts --name dua-api

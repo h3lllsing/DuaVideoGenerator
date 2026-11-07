@@ -45,7 +45,15 @@ function route(method: string, path: string, handler: Handler): Route {
     keys.push(name);
     return "([^/]+)";
   });
-  return { method, pattern: new RegExp(`^${source}/?$`), handler, keys };
+  const safeHandler: Handler = async (ctx) => {
+    try {
+      return await handler(ctx);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { status: 500, ok: false, error: msg } as unknown as Reply;
+    }
+  };
+  return { method, pattern: new RegExp(`^${source}/?$`), handler: safeHandler, keys };
 }
 
 function extract(routeDef: Route, pathname: string): Record<string, string> | null {
