@@ -22,6 +22,7 @@
 | [API.md](API.md) | Live API endpoints + auth + verified curl checks | ✅ |
 | [CHANNEL_PLAYBOOK.md](CHANNEL_PLAYBOOK.md) | Noor-e-Iman channel strategy + policy/monetization/growth | ✅ |
 | [AUDIT_CEO_SUMMARY.md](AUDIT_CEO_SUMMARY.md) | CEO summary, severity table, seedhi raaye, 90-day plan | ✅ |
+| [AUDIT_FINDINGS.md](AUDIT_FINDINGS.md) | Consolidated 8-area audit findings (complete-audit set) | ✅ |
 
 ## Conventions
 
