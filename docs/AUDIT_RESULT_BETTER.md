@@ -17,6 +17,7 @@
 - **Finding:** user-reported — after YouTube connect, views/likes details not coming on portal.
 - **Impact:** cannot compute better-result metrics (retention/CTR) → improvement loop broken.
 - **Audit status:** OPEN — re-auth / stats endpoint verification needed.
+- **FIX (this session):** `remotion/scripts/youtube_stats.py` me expired-access-token auto-refresh (`cred.refresh`) + structured auth-failure error add kiya (py_compile OK). Live API verification (token re-login state) pending.
 
 ### F-R2 (MEDIUM): Retention lever modules
 - **Finding:** `remotion/scripts/make_manifest.py` mentions text-readable retention lever; karaoke/manifest tuning exists.
@@ -38,4 +39,4 @@
 
 ---
 
-*Docs-only phase: no code changed. Audit slice findings written for docs.*
+*Update (this session): F-R1 fix applied in `remotion/scripts/youtube_stats.py` (auto token refresh + structured errors); live re-auth verification pending. Audit slice findings written for docs.*
