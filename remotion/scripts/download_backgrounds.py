@@ -247,7 +247,7 @@ def main():
                     # pick the smallest file that is >= 720 height (keep size sane)
                     vfiles = vid.get("video_files", [])
                     vfiles = [f for f in vfiles if f.get("height", 0) >= 720 and f.get("link")]
-                    vfiles.sort(key=lambda f: (f["width"] * f["height"]))
+                    vfiles.sort(key=lambda f: f["width"] * f["height"])
                     if not vfiles:
                         continue
                     vfile = vfiles[0]
