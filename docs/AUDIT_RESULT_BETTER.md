@@ -17,7 +17,9 @@
 - **Finding:** user-reported — after YouTube connect, views/likes details not coming on portal.
 - **Impact:** cannot compute better-result metrics (retention/CTR) → improvement loop broken.
 - **Audit status:** OPEN — re-auth / stats endpoint verification needed.
-- **FIX (this session):** `remotion/scripts/youtube_stats.py` me expired-access-token auto-refresh (`cred.refresh`) + structured auth-failure error add kiya (py_compile OK). Live API verification (token re-login state) pending.
+- **FIX (this session):** `remotion/scripts/youtube_stats.py` me expired-access-token auto-refresh (`cred.refresh`) + structured auth-failure error add kiya (py_compile OK).
+- **Token state verified (2026-11-07):** `yt_token_channel1.json` expiry **2026-10-29** (expired) + refresh_token present + scopes OK; `yt_token_channel2.json` **missing**.
+- **Conclusion:** expiry theek hai — auto-refresh ab handle karega; channel2 ke liye re-login needed.
 
 ### F-R2 (MEDIUM): Retention lever modules
 - **Finding:** `remotion/scripts/make_manifest.py` mentions text-readable retention lever; karaoke/manifest tuning exists.
@@ -39,4 +41,4 @@
 
 ---
 
-*Update (this session): F-R1 fix applied in `remotion/scripts/youtube_stats.py` (auto token refresh + structured errors); live re-auth verification pending. Audit slice findings written for docs.*
+*Update (this session): F-R1 fix applied in `remotion/scripts/youtube_stats.py` (auto token refresh + structured errors); token state verified (ch1 expired→auto-refresh, ch2 missing); live API verification pending. Audit slice findings written for docs.*
