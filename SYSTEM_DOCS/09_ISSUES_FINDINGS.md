@@ -194,6 +194,7 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   h UI ke sath unmanageable hota jayega; tests coverage bhi 9% main
   ki (cov report me main.py 9%)
 - FIX: naya functionality subcommand modules me rakho (scripts/cmd_x)
+- RESOLVED (2026-11-08): CLI dispatch block ko scripts/cmd_cli.py module me rak diya; main.py ab thin entry ban gaya.
 
 ### F-25 INFO: apps/server CI coverage se bahar hai (F-14 follow up)
 - RESOLVED (2026-10-20): ci.yml me **server-check** job add hua (ubuntu,
