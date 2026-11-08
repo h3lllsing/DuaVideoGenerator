@@ -20,6 +20,11 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 ## F-03 LOW: pm2 log rotate nahi
 - dashboard/logs/pm2-out.log 8MB+ unbounded
 - FIX: `pm2 install pm2-logrotate` (conf maxsize 10M keep 5)
+- RESOLVED (2026-11-08): `remotion/dashboard/ecosystem.config.js` me
+  `modules` array me pm2-logrotate (`spec: pm2-logrotate@latest`, rotation,
+  maxsize 10M, keep 5) add kar diya; `pm2 start ecosystem.config.js` +
+  `pm2 save` ke baad rotation on. pm2-out.log ab 11.22MB unbounded tha
+  (F-03 confirmed TRUE).
 
 ## F-04 LOW: runtime ledger git-tracked
 - `git ls-files data/upload_state_channel1.json` -> tracked; every upload
