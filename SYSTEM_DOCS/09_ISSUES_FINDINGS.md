@@ -77,6 +77,10 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   M-02 (13 dua_status missing videoIds), L-01 (97 orphan manifests)
 - Recommended: H-01 artifact-only fix; M-01 live-la-ba-Lautz plans per
   jis pe bhi platform tokens real honge
+- H-01 RESOLVED (2026-11-08): artifact-only thumbs fix done - missing thumbs
+  render via make_thumbs.py (`--only ghaflat_ul_alaam,khane_ke_bad_ka_shukr,
+  shifa_ki_dua; allah_ki_magnificence_ki_dua already OK) -> ALL_OK post-fix;
+  H-02/H-03/M-01/M-02/L-01 ab bhi open.
 
 ### F-12 INFO: max-line-length confusion
 - .editorconfig py max 88 vs ruff/flake8 120 -> noisy inconsistent
