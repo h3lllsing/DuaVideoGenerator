@@ -28,4 +28,11 @@ module.exports = {
       restart_delay: 3000,
     },
   ],
+  modules: [
+    {
+      name: 'pm2-logrotate',
+      spec: 'pm2-logrotate@latest',
+      args: ['--type', 'rotation', '--max_size', '10M', '--keep', '5'],
+    },
+  ],
 };
