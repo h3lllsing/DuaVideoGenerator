@@ -301,6 +301,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 - Crash/down par sirf local log-file banantar: koi email/telegram/
   webhook NahI - "silent crash" ho sakta hai jab tak user dashboard
   na khol le. F-03 (logrotate) iske sath juData hai
+- RESOLVED (2026-11-08): `server.ts` me `alertExternal` hook add kiya
+  (`process.env.ALERT_WEBHOOK_URL` -> crash/unhandledRejection par JSON webhook
+  POST). F-03 (logrotate) iske sath follow-up rahega.
 
 ### LIVE RECOVERY DRILL (2026-10-18 18:36, user-approved, idle window)
 - dua-studio restart: reboot-sequence sahi chala -> health True within 6s,

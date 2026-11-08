@@ -164,15 +164,24 @@ function crashAppend(msg: string): void {
     /* best effort -- never crash because of the crash logger */
   }
 }
+async function alertExternal(msg: string): Promise<void> {
+  const url = process.env.ALERT_WEBHOOK_URL ?? "";
+  if (!url) return;
+  try {
+    await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ time: new Date().toISOString(), msg }) });
+  } catch (_) { /* best effort -- never crash because of the alert */ }
+}
 process.on("uncaughtException", (e) => {
   const msg = e instanceof Error ? (e.stack ?? e.message) : String(e);
   console.error(`${new Date().toISOString()} CRASH ${msg}`);
   crashAppend(msg);
+  void alertExternal(msg);
 });
 process.on("unhandledRejection", (e) => {
   const msg = e instanceof Error ? (e.stack ?? e.message) : String(e);
   console.error(`${new Date().toISOString()} REJECTION ${msg}`);
   crashAppend(msg);
+  void alertExternal(msg);
 });
 
 server.on("error", (exc: NodeJS.ErrnoException) => {
