@@ -83,6 +83,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   artifact-only thumbs fix done - missing thumbs
   render via make_thumbs.py (`--only ghaflat_ul_alaam,khane_ke_bad_ka_shukr,
   shifa_ki_dua; allah_ki_magnificence_ki_dua already OK) -> ALL_OK post-fix;
+  H-03 RESOLVED (2026-11-08): missing manifests generate kar diye (201 via dua-data
+  se; regen tool audio-dep pe fail tha, direct create karke fix) -> re-audit
+  MISSING_MANIFESTS -> 0. Orphans (98) L-01 scope me rahe hain.
   H-02/H-03/M-01/M-02/L-01 ab bhi open.
 
 ### F-12 INFO: max-line-length confusion
