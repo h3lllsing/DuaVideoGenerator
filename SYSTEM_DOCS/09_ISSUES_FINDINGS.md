@@ -81,6 +81,12 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 
 ### F-14 INFO: requirements vs CI mismatch
 - requirements me python>=3.11 (pyproject), CI py matrix 3.11+3.12 +
+- RESOLVED (2026-11-08): pyproject `requires-python` -> >=3.12 aur ruff
+  `target-version` -> py312 push kar diye (CI matrix wala 3.12-only + numpy
+  2.5.2 ke >=3.12 wheels ke mutabiq); requirements.txt me `Python >=3.12`
+  note add. CI py matrix (3.12-only) + mypy python_version (3.12) + server-check
+  job (F-25) pehle hi aligned theen (commits 0d21039/5db7df6); is task me
+  remaining pyproject+requirements alignment complete.
   typescript check node20 (apps TS repo apps direct node24 type-stripping
   local pe - CI me apps/server ka check missing; dashboard tsc check
   separate nahi (remotion-check sirf remotion/)
