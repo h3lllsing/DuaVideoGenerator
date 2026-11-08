@@ -30,6 +30,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 - `git ls-files data/upload_state_channel1.json` -> tracked; every upload
   dirties the repo, pushes conflict risk
 - FIX: untrack; catalog ke sath runtime file commit never
+- RESOLVED (2026-11-08): `git rm --cached data/upload_state_channel1.json`
+  kar diya (runtime ledger untrack; file on-disk rakha gaya). Ab `git ls-files
+  data/` sirf custom_vfx.json ko hi track karta hai (runtime churn resolved).`
 
 ## F-05 INFO: legacy .vbs removed? 
 - ecosystem.config.js ke sath currently PM2 (Startup .cmd) chal raha;
