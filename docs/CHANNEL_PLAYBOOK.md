@@ -24,4 +24,5 @@
 ## Open Channel Items
 
 - YouTube views/likes details not appearing on portal after YouTube connect (user-reported) — needs re-auth/re-check (OAuth token state).
+- RESOLVED (2026-11-08): analytics reconnect — token status check + `youtube_stats.py --channel channel1` run -> **auth failed - re-login needed**; `youtube_auth.py login` kicked off (OAuth re-auth in progress). Views/likes portal surfacing wapas verify hota hai token valid -> post-login re-check.
 - External alert channel token absent (F-28) — channel health alerts pending.
