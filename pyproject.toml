@@ -10,7 +10,7 @@ build-backend = "setuptools.backends._legacy:_Backend"
 name = "dua-video-generator"
 version = "0.10.0"
 description = "YouTube Shorts generator for Islamic Duas"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 # ============================================================
 # Pytest Configuration
@@ -28,7 +28,7 @@ markers = [
 # ============================================================
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [

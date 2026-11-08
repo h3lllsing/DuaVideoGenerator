@@ -2,6 +2,7 @@
 # Dua Video Generator - Requirements
 # Install: pip install -r requirements.txt
 # ============================================================
+# Python >=3.12 required (numpy>=2.5.2 has no py3.11 wheels; CI matrix is 3.12-only)
 
 # Core Libraries
 edge-tts>=7.3.0,<8.0
