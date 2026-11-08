@@ -124,6 +124,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 ### F-17 CONFIRMED: M-02 13 uploaded-entries channel1 videoId gab
 - dua_status.json uploaded=166, of them 13 with no channel1 videoId
   verified with the correct keys; sync option is via syncFromLedgers
+- RESOLVED (2026-11-08): YouTube sync (`youtube_sync.py --channel channel1`)
+  -> found 192 matches -> `syncFromYouTubeApi` backfilled 13 -> re-audit
+  TRULY_MISSING_videoId_COUNT -> 0 (M-02 fixed via sync, not manual edit)
 ### F-18 RESOLVED: STEP2 H-01 legacy issue - outdated
 - 4 items ke mp4 ab out me nahi (upload+FULL-CLEANUP done), so thumb
   plan moot; isse "open item" list se remove kar do
