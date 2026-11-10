@@ -74,7 +74,8 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 ### F-11 INFO: STEP2 deferred items ab bhi open
 - H-01 (4 missing thumbs), H-02 (5 missing audio + rebuild), H-03
   (110/170 manifest), M-01 (social tokens placeholder - live disabled),
-  M-02 (13 dua_status missing videoIds), L-01 (97 orphan manifests)
+  M-02 (13 dua_status missing videoIds), L-01 (97 orphan manifests) -> RESOLVED (2026-11-10): deleted 98 stale
+  orphan manifests from remotion/src/data -> re-audit ORPHAN_COUNT -> 0.
 - Recommended: H-01 artifact-only fix; M-01 live-la-ba-Lautz plans per
   jis pe bhi platform tokens real honge
 - M-01 AUDIT-AGAIN (2026-11-10): load_tokens me literal `<...>` placeholder
