@@ -326,6 +326,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   baki hai (wrapper fix ab applied).
 
 ### F-27 MEDIUM: pm2 max_restarts=10 - exit-loop pe gives up
+- RESOLVED (2026-11-10): ecosystem.config.js me max_restarts 10 -> 50 kar diya
+  (restart loop exhaustion se bachne ke liye); node --check PASS; min_uptime 5000
+  unchanged.
 - FIXED (2026-10-20, dua-api re-add drill): `pm2 restart` me max-restarts
   flag NahI hota — delete + re-add `pm2 start src/server.ts --name dua-api
   --max-restarts 3 --time` (cwd apps/server) + `pm2 save`. Verify jlist:
