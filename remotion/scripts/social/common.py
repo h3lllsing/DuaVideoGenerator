@@ -257,6 +257,16 @@ def load_tokens(platform: str, required=(), allow_placeholder: bool = False) -> 
         if not allow_placeholder:
             raise UploadError(message)
         log("WARNING: " + message, err=True)
+    placeholder_values = sorted(
+        k
+        for k, v in data.items()
+        if isinstance(v, str) and v.strip().startswith("<") and v.strip().endswith(">")
+    )
+    if placeholder_values and not allow_placeholder:
+        raise UploadError(
+            f"{os.path.basename(path)} still holds PLACEHOLDER values -- "
+            f"replace them with real credentials (see AUTH_SETUP.md); bad fields: {', '.join(placeholder_values)}"
+        )
     missing = [k for k in required if not data.get(k)]
     if missing:
         raise UploadError(f"{os.path.basename(path)} missing required field(s): {', '.join(missing)}")
