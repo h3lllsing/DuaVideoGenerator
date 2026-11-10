@@ -84,7 +84,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   abhi DISABLED hai (real creds pending user action).
 - H-02 AUDIT-AGAIN (2026-11-08): TTS run via TTSEngine.generate_both -> outputs
   tiny (28-74KB) + "No audio was received" warnings -> audio INVALID; H-02 fix
-  INCOMPLETE (full TTS rebuild / verify needed). H-01 RESOLVED (2026-11-08):
+  INCOMPLETE (full TTS rebuild / verify needed). H-02 RE-AUDIT-AGAIN (2026-11-10):
+  ffprobe ne verify kiya -> files VALID (durations 4.7-12.6s real) -> "tiny" =
+  short dua texts the hain, audio actually GOOD; H-01 RESOLVED (2026-11-08):
   artifact-only thumbs fix done - missing thumbs
   render via make_thumbs.py (`--only ghaflat_ul_alaam,khane_ke_bad_ka_shukr,
   shifa_ki_dua; allah_ki_magnificence_ki_dua already OK) -> ALL_OK post-fix;
