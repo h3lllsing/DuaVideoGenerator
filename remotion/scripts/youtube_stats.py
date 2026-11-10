@@ -65,6 +65,8 @@ def main():
     args = ap.parse_args()
 
     token_path = args.token or DEFAULT_TOKENS.get(args.channel)
+    if token_path and not os.path.isabs(token_path):
+        token_path = os.path.join(PROJECT, token_path)
 
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
