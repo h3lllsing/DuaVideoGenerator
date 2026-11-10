@@ -124,6 +124,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 - CI me bhi fail hoga. FIX: counts dynamic ya fresh numbers update
 
 ### F-16 IMPORTANT: upload.py ka OWN dup-gate dashboard se stricter hai
+- RESOLVED (2026-11-10): upload.py internal `_uploaded_dup` threshold 0.90 ->
+  0.85 (dashboard gate ke mutabiq) kar diya; sabr_ka_ajr ab dashboard jaisa
+  behavior follow karta hai; compile+ruff PASS; re-audit no-stale-threshold.
 - dry-run proof: `sabr_ka_ajr_ki_dua` -> upload.py skipped:
   "content duplicate (~90%+ same Arabic as an already-uploaded dua)"
   (upload_log.txt, upload.py _uploaded_dup / 584)

@@ -589,8 +589,8 @@ def main():
         for ua in uploaded_arabic:
             if a == ua:
                 return "content duplicate (same Arabic as an already-uploaded dua)"
-            if difflib.SequenceMatcher(None, a, ua).ratio() >= 0.90:
-                return "content duplicate (~90%+ same Arabic as an already-uploaded dua)"
+            if difflib.SequenceMatcher(None, a, ua).ratio() >= 0.85:
+                return "content duplicate (~85%+ same Arabic as an already-uploaded dua)"
         return None
 
     ready, skipped, failed_parse = [], [], []
