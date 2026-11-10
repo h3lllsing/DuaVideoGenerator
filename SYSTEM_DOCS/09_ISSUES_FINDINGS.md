@@ -222,6 +222,10 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   kabhi CI me nahi chalta; regen_manifests.py, run_frontend.py,
   run_tests.py bhi root-clutter
 - FIX: tests/ me move ya delete; regen_manifests ko scripts/ shift
+- RESOLVED (2026-11-10): test_60fps_render.py / regen_manifests.py / run_tests.py
+  root me already clean ho gaye; run_frontend.py bhi scripts/ me shift kar diya
+  (git mv) -> root me sirf config.py + main.py rahe; re-audit: run_frontend refs
+  sirf docs me thi, code me zero.
 
 ### F-24 LOW: main.py god-CLI (1121 lines)
 - CLI entry me saare branches + core logic kuch jaga inline; badhti
