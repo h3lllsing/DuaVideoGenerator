@@ -111,9 +111,11 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   E501 formatter-handled the hain.
 
 ### F-13 INFO: opencode.json external dependency
-- security-tools MCP server `H:\MCP\server\server.py` H: root pe hai,
-  repo ke bina ye chat assistance feature broken ho sakta hai agar
-  path badle; agents me isolation dekho openep.json YAML
+- RESOLVED (2026-11-11): security-tools MCP server `H:\MCP\server\server.py`
+  H: root pe hai (by design external); opencode.json me
+  `security-tools.command = python H:\MCP\server\server.py` +
+  `WORKSPACE_ROOT = H:\DuaVideoGenerator` (env isolation) se scope pin
+  hai; agents me isolation dekho openep.json YAML
 
 ### F-14 INFO: requirements vs CI mismatch
 - requirements me python>=3.11 (pyproject), CI py matrix 3.11+3.12 +
