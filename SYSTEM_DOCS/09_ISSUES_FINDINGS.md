@@ -106,8 +106,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   H-02/H-03/M-01/M-02/L-01 ab bhi resolved (H-01 thumbs, H-02 audio, H-03 manifests, M-01 social tokens, M-02 videoId sync, L-01 orphans all DONE).
 
 ### F-12 INFO: max-line-length confusion
-- .editorconfig py max 88 vs ruff/flake8 120 -> noisy inconsistent
-  lekin ruff format codebase follow karta hai (sirf doc issue)
+- RESOLVED (2026-11-11): .editorconfig py max_line_length 88 -> 120 (ruff
+  line-length ke mutabiq) kar diya; re-audit max_line_length -> 120; ruff
+  E501 formatter-handled the hain.
 
 ### F-13 INFO: opencode.json external dependency
 - security-tools MCP server `H:\MCP\server\server.py` H: root pe hai,
