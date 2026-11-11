@@ -55,6 +55,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
 ## Naye Findings (verification pass se)
 
 ### F-08 LOW: `start_server.vbs` duplicate auto-start path
+- RESOLVED (2026-11-11): `remotion/dashboard/start_server.vbs` (hidden
+  `node server.js` launcher) delete kar diya -> PM2 (dua-studio) ab
+  single auto-start source hai; re-audit VBS_EXISTS -> False.
 - `remotion/dashboard/start_server.vbs` abhi bhi hai: hidden `node
   server.js` run karta. PM2 (dua-studio) + Startup pm2-resurrect.cmd
   already handle. Agar koi double-start: 2nd instance EADDRINUSE clean
