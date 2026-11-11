@@ -355,6 +355,7 @@ class TestPublicApi:
         assert TTSEngine.VOICES == {
             "ar": "ar-SA-HamedNeural",
             "ur": "ur-PK-AsadNeural",
+            "en": "en-US-GuyNeural",
         }
 
 

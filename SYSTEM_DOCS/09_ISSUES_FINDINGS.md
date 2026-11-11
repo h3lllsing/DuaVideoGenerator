@@ -370,6 +370,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   EN params in generate_both add kar diye -> EN synthesis enabled; compile+ruff
   PASS; re-audit PASS.
 - NEXT: social captions multilingual (fb/insta/tiktok) + unified i18n module phase-2.
+- F-29 FIX follow-up (2026-11-11): TTSEngine EN voice add ke baad stale snapshot
+  `tests/test_audio_001.py::test_voices_unchanged` me `en` add -> targeted re-audit
+  PASS (19 passed); full suite pending final green.
 
 ### LIVE RECOVERY DRILL (2026-10-18 18:36, user-approved, idle window)
 - dua-studio restart: reboot-sequence sahi chala -> health True within 6s,
