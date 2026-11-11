@@ -72,6 +72,10 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   file kisi nahin padhta -> test pollution, safely deletable
 
 ### F-10 INFO: CI e2e artifacts `data/` folder included
+- RESOLVED (2026-11-11): e2e failure artifact paths me `data/` tha ->
+  narrowed kar diya (`output/` + `temp/` only; runtime files like
+  custom_vfx.json/upload_state_channel1.json ab artifacts me nahi jayenge).
+  YAML parse OK; re-audit HAS_DATA -> False.
 - failure artifacts path me data/ hai -> tracked runtime files
   (custom_vfx.json + upload_state_channel1.json) artifacts me jayenge;
   TOKEN files gitignored, so koi leak risk minimal. Best: path narrow
