@@ -363,6 +363,11 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   (`process.env.ALERT_WEBHOOK_URL` -> crash/unhandledRejection par JSON webhook
   POST). F-03 (logrotate) iske sath follow-up rahega.
 
+### F-30 COVERAGE: zero-coverage modules test add
+- Deep coverage audit (2026-11-11) -> 66.45% total; lowest modules islamic_randomizer
+  (0%) + mega_pack (0%) -> add tests: tests/test_islamic_randomizer.py +
+  tests/test_mega_pack.py (15 tests) -> re-audit PASS (15 passed); suite GREEN.
+
 ### F-29 INFO: Caption/i18n multi-language (ar/ur/en) - phase-1
 - AUDIT (2026-11-11): make_srt me .ar/.ur/.en.srt + EN gloss ✅; social captions
   EN-only ❌; no unified i18n module ❌; TTS EN voice missing ❌.
