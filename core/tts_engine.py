@@ -28,6 +28,7 @@ class TTSEngine:
     VOICES = {
         "ar": "ar-SA-HamedNeural",  # Arabic
         "ur": "ur-PK-AsadNeural",  # Urdu
+        "en": "en-US-GuyNeural",  # English (i18n captions phase-1)
     }
 
     # Solemn tilawat feel (user-approved "2+4 combo"):
@@ -36,6 +37,7 @@ class TTSEngine:
     PROSODY = {
         "ar": {"rate": "-8%", "pitch": "-2Hz"},
         "ur": {"rate": "-5%", "pitch": "-1Hz"},
+        "en": {"rate": "0%", "pitch": "0Hz"},  # English (i18n captions phase-1)
     }
 
     # STYLE-ROTATION (2026-08-23): deterministic per-dua voice variation.
@@ -222,12 +224,14 @@ class TTSEngine:
 
     @staticmethod
     def generate_both(
-        ar_text, ur_text, ar_output, ur_output, ar_timing=None, ur_timing=None, ar_voice=None, ur_voice=None
+        ar_text, ur_text, ar_output, ur_output, ar_timing=None, ur_timing=None, ar_voice=None, ur_voice=None,
+        en_text=None, en_output=None, en_timing=None, en_voice=None,
     ):
-        """Generate Arabic + Urdu TTS in parallel (network I/O bound).
+        """Generate Arabic + Urdu (+ optional English) TTS in parallel (network I/O bound).
 
-        Runs both TTS calls concurrently using asyncio, then returns
-        (ar_ok, ur_ok) tuple. Each side retries independently.
+        Runs both (or all three) TTS calls concurrently using asyncio, then returns
+        (ar_success, ur_success). English is optional (i18n captions phase-1): when
+        en_text + en_output are provided it is synthesised through the EN voice.
 
         Returns:
             tuple: (ar_success: bool, ur_success: bool)
@@ -235,26 +239,48 @@ class TTSEngine:
         voice_cfg = TTSEngine._load_voice_prosody()
         ar_v = (ar_voice or "").strip() or TTSEngine.VOICES["ar"]
         ur_v = (ur_voice or "").strip() or TTSEngine.VOICES["ur"]
+        en_v = (en_voice or "").strip() or TTSEngine.VOICES.get("en", "")
         ar_prosody = voice_cfg.get(ar_v, TTSEngine.PROSODY.get("ar", {}))
         ur_prosody = voice_cfg.get(ur_v, TTSEngine.PROSODY.get("ur", {}))
+        en_prosody = voice_cfg.get(en_v, TTSEngine.PROSODY.get("en", {})) if en_text else {}
 
         os.makedirs(os.path.dirname(os.path.abspath(ar_output)), exist_ok=True)
         os.makedirs(os.path.dirname(os.path.abspath(ur_output)), exist_ok=True)
+        if en_output:
+            os.makedirs(os.path.dirname(os.path.abspath(en_output)), exist_ok=True)
 
-        async def _parallel():
-            ar_task = TTSEngine._async_generate(
-                ar_text, ar_v, ar_output, ar_timing, ar_prosody.get("rate"), ar_prosody.get("pitch")
-            )
-            ur_task = TTSEngine._async_generate(
-                ur_text, ur_v, ur_output, ur_timing, ur_prosody.get("rate"), ur_prosody.get("pitch")
-            )
-            return await asyncio.gather(ar_task, ur_task, return_exceptions=True)
+        def _build():
+            tasks = [
+                TTSEngine._async_generate(ar_text, ar_v, ar_output, ar_timing, ar_prosody.get("rate"), ar_prosody.get("pitch")),
+                TTSEngine._async_generate(ur_text, ur_v, ur_output, ur_timing, ur_prosody.get("rate"), ur_prosody.get("pitch")),
+            ]
+            keys = ["ar", "ur"]
+            if en_text and en_output:
+                tasks.append(TTSEngine._async_generate(en_text, en_v, en_output, en_timing, en_prosody.get("rate"), en_prosody.get("pitch")))
+                keys.append("en")
+            return tasks, keys
+
+        def _run():
+            async def _coro():
+                tasks, keys = _build()
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                return results, keys
+            return asyncio.run(_coro())
 
         for attempt in range(TTSEngine.MAX_RETRIES):
             try:
-                results = asyncio.run(_parallel())
+                results, keys = _run()
                 ar_ok = results[0] is True
                 ur_ok = results[1] is True
+                if en_text and en_output:
+                    en_ok = results[2] is True if len(results) > 2 else False
+                    if ar_ok and ur_ok and en_ok:
+                        return (True, True, True)
+                    if attempt < TTSEngine.MAX_RETRIES - 1:
+                        delay = TTSEngine.RETRY_DELAY_BASE ** (attempt + 1)
+                        logger.info("Parallel TTS attempt %d partial (ar=%s, ur=%s, en=%s), retry in %ds...", attempt + 1, ar_ok, ur_ok, en_ok, delay)
+                        time.sleep(delay)
+                    return (ar_ok, ur_ok, en_ok)
                 if ar_ok and ur_ok:
                     return (True, True)
                 # Partial success — don't retry the succeeded side
@@ -262,10 +288,7 @@ class TTSEngine:
                     delay = TTSEngine.RETRY_DELAY_BASE ** (attempt + 1)
                     logger.info(
                         "Parallel TTS attempt %d partial (ar=%s, ur=%s), retry in %ds...",
-                        attempt + 1,
-                        ar_ok,
-                        ur_ok,
-                        delay,
+                        attempt + 1, ar_ok, ur_ok, delay,
                     )
                     time.sleep(delay)
                 else:
@@ -274,10 +297,11 @@ class TTSEngine:
                 logger.error("Parallel TTS attempt %d: %s", attempt + 1, e)
                 if attempt < TTSEngine.MAX_RETRIES - 1:
                     delay = TTSEngine.RETRY_DELAY_BASE ** (attempt + 1)
+                    logger.info("Retrying in %ds...", delay)
                     time.sleep(delay)
 
         logger.error("All %d parallel TTS attempts failed", TTSEngine.MAX_RETRIES)
-        return (False, False)
+        return (False, False, False) if (en_text and en_output) else (False, False)
 
     @staticmethod
     def parse_word_boundaries(timing_path: str) -> list[dict]:

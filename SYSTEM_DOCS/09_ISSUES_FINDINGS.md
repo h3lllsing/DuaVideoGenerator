@@ -363,6 +363,14 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   (`process.env.ALERT_WEBHOOK_URL` -> crash/unhandledRejection par JSON webhook
   POST). F-03 (logrotate) iske sath follow-up rahega.
 
+### F-29 INFO: Caption/i18n multi-language (ar/ur/en) - phase-1
+- AUDIT (2026-11-11): make_srt me .ar/.ur/.en.srt + EN gloss ✅; social captions
+  EN-only ❌; no unified i18n module ❌; TTS EN voice missing ❌.
+- FIX (2026-11-11): TTSEngine me EN voice (`en-US-GuyNeural`) + PROSODY + optional
+  EN params in generate_both add kar diye -> EN synthesis enabled; compile+ruff
+  PASS; re-audit PASS.
+- NEXT: social captions multilingual (fb/insta/tiktok) + unified i18n module phase-2.
+
 ### LIVE RECOVERY DRILL (2026-10-18 18:36, user-approved, idle window)
 - dua-studio restart: reboot-sequence sahi chala -> health True within 6s,
   boot log: v0.10 banner + ledger sync "no new backfills" + CLEANUP[boot]
