@@ -61,6 +61,9 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   exit (server.js:214-217), so harmless magar stop confusion ho sakta hai
 
 ### F-09 LOW: `remotion/data/dua_status.json` me TEST record
+- RESOLVED (2026-11-11): TEST record (`sachai_aur_imandari_ki_dua` ->
+  `testYT123`, status uploaded) file me tha; fix phase me remove kar diya ->
+  re-audit file ab empty hai (`{}`), BAD_HITS [].
 - sirf `sachai_aur_imandari_ki_dua` fake "testYT123" / youtu.be/testYT123
   (2026-09-05). Real status data/dua_status.json me; remotion/data wala
   file kisi nahin padhta -> test pollution, safely deletable
