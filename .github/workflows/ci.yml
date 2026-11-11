@@ -66,7 +66,6 @@ jobs:
           path: |
             output/
             temp/
-            data/
           retention-days: 7
 
   syntax-check:
