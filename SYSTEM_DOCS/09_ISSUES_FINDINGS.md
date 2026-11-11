@@ -363,6 +363,10 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   (`process.env.ALERT_WEBHOOK_URL` -> crash/unhandledRejection par JSON webhook
   POST). F-03 (logrotate) iske sath follow-up rahega.
 
+### F-31 COVERAGE: self_trainer tests add
+- Deep coverage audit follow-up (2026-11-11): next-lowest module self_trainer
+  (20%) -> tests/test_self_trainer.py add (5 tests) -> re-audit PASS (5 passed).
+
 ### F-30 COVERAGE: zero-coverage modules test add
 - Deep coverage audit (2026-11-11) -> 66.45% total; lowest modules islamic_randomizer
   (0%) + mega_pack (0%) -> add tests: tests/test_islamic_randomizer.py +
