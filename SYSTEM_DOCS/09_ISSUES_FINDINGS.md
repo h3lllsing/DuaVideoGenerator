@@ -74,7 +74,7 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   TOKEN files gitignored, so koi leak risk minimal. Best: path narrow
   karo data:/ khatam karo
 
-### F-11 INFO: STEP2 deferred items ab bhi open
+### F-11 INFO: STEP2 deferred items RESOLVED (2026-11-11)
 - H-01 (4 missing thumbs), H-02 (5 missing audio + rebuild), H-03
   (110/170 manifest), M-01 (social tokens placeholder - live disabled),
   M-02 (13 dua_status missing videoIds), L-01 (97 orphan manifests) -> RESOLVED (2026-11-10): deleted 98 stale
@@ -96,7 +96,7 @@ Priority-ranked. Numbering F-XX. Kuch fix options bhi.
   H-03 RESOLVED (2026-11-08): missing manifests generate kar diye (201 via dua-data
   se; regen tool audio-dep pe fail tha, direct create karke fix) -> re-audit
   MISSING_MANIFESTS -> 0. Orphans (98) L-01 scope me rahe hain.
-  H-02/H-03/M-01/M-02/L-01 ab bhi open.
+  H-02/H-03/M-01/M-02/L-01 ab bhi resolved (H-01 thumbs, H-02 audio, H-03 manifests, M-01 social tokens, M-02 videoId sync, L-01 orphans all DONE).
 
 ### F-12 INFO: max-line-length confusion
 - .editorconfig py max 88 vs ruff/flake8 120 -> noisy inconsistent
